@@ -3,6 +3,7 @@ import axios from "axios";
 import crypto from "crypto";
 import config from "../config/duitku.js";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
 const {PrismaClient, OrderStatus} = pkg;
 
@@ -361,7 +362,7 @@ export const duitkuCallback = async (req, res) => {
     const statusCode = req.body.statusCode;
     const signature = req.body.signature;
     const paymentAmount = req.body.paymentAmount;
-    const subscriptionIdOrder = parseInt(req.body.productDetails);
+    const subscriptionIdOrder = parseInt(req.body.productDetail);
 
     console.log("📥 Callback amount diterima:", req.body.amount);
 
@@ -382,20 +383,13 @@ export const duitkuCallback = async (req, res) => {
       return res.status(400).send("Invalid signature");
     }
 
-    // Cari order dengan include user data untuk mendapatkan nomor WhatsApp
+    // Cari order dengan include data yang diperlukan
     const order = await prisma.order.findUnique({
       where: {transactionId: merchantOrderId},
       include: {
         userSubscription: {
           include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                nomor_wa: true,
-              },
-            },
+            user: true,
             subscription: true,
           },
         },
@@ -427,6 +421,8 @@ export const duitkuCallback = async (req, res) => {
     if (newStatus === "paid") {
       const currentUserSubscription = order.userSubscription;
       const user = order.userSubscription.user;
+
+      // Ambil subscription yang dibeli
       const purchasedSubscription = await prisma.subscription.findUnique({
         where: {id: subscriptionIdOrder},
       });
@@ -436,85 +432,87 @@ export const duitkuCallback = async (req, res) => {
         return res.status(404).send("Subscription tidak ditemukan");
       }
 
-      // Cari subscription aktif user yang sudah ada
-      const existingActiveSubscription =
-        await prisma.userSubscription.findFirst({
-          where: {
-            userId: currentUserSubscription.userId,
-            status: "active",
-          },
-        });
+      // 1. Cek apakah UserSubscription sudah active
+      if (currentUserSubscription.status !== "active") {
+        // Jika belum active, aktifkan dan update duration & limitAkun
+        const newEndDate =
+          purchasedSubscription.duration > 0
+            ? new Date(
+                new Date().setDate(
+                  new Date().getDate() + purchasedSubscription.duration
+                )
+              )
+            : new Date(new Date().setFullYear(new Date().getFullYear() + 10)); // 10 tahun untuk tanpa durasi
 
-      // 1. Jika user belum memiliki subscription aktif
-      if (!existingActiveSubscription) {
-        // Aktifkan subscription yang baru dibeli
         await prisma.userSubscription.update({
           where: {id: currentUserSubscription.id},
           data: {
             status: "active",
+            subscription: {connect: {id: subscriptionIdOrder}}, // PERBAIKAN: Gunakan connect untuk relation
+            duration: purchasedSubscription.duration,
+            limitAkun: purchasedSubscription.limitAkun,
             startDate: new Date(),
-            endDate:
+            endDate: newEndDate,
+          },
+        });
+        console.log("✅ UserSubscription diaktifkan dengan data baru");
+      } else {
+        // 2. Jika sudah ada UserSubscription yang active
+        if (purchasedSubscription.duration === 0) {
+          // Jika duration 0, tambah limitAkun
+          const newLimitAkun =
+            currentUserSubscription.limitAkun + purchasedSubscription.limitAkun;
+
+          await prisma.userSubscription.update({
+            where: {id: currentUserSubscription.id},
+            data: {
+              limitAkun: newLimitAkun,
+            },
+          });
+          console.log(`➕ Limit akun ditambah menjadi: ${newLimitAkun}`);
+        } else {
+          // Jika memiliki duration
+          if (currentUserSubscription.subscriptionId === subscriptionIdOrder) {
+            // 3. Subscription sama - tambah duration
+            const newEndDate = new Date(currentUserSubscription.endDate);
+            newEndDate.setDate(
+              newEndDate.getDate() + purchasedSubscription.duration
+            );
+            const newDuration =
+              (currentUserSubscription.duration || 0) +
+              purchasedSubscription.duration;
+
+            await prisma.userSubscription.update({
+              where: {id: currentUserSubscription.id},
+              data: {
+                duration: newDuration,
+                endDate: newEndDate,
+                limitAkun: purchasedSubscription.limitAkun, // Update limit juga jika berubah
+              },
+            });
+            console.log("⏰ Durasi subscription diperpanjang");
+          } else {
+            // 4. Subscription berbeda - ganti dengan yang baru
+            const newEndDate =
               purchasedSubscription.duration > 0
                 ? new Date(
                     new Date().setDate(
                       new Date().getDate() + purchasedSubscription.duration
                     )
                   )
-                : null,
-          },
-        });
-        console.log("✅ Subscription pertama diaktifkan");
-      } else {
-        // 2. Jika user sudah memiliki subscription aktif
-        if (purchasedSubscription.duration === 0) {
-          // Paket tanpa durasi (hanya tambah limit akun)
-          console.log("➕ Paket tanpa durasi - menambahkan limit akun");
-          // Logika tambah limit akun bisa ditambahkan di sini
-        } else {
-          // Paket dengan durasi
-          if (
-            existingActiveSubscription.subscriptionId === subscriptionIdOrder
-          ) {
-            // 3. Subscription sama - tambah durasi
-            const newEndDate = new Date(existingActiveSubscription.endDate);
-            newEndDate.setDate(
-              newEndDate.getDate() + purchasedSubscription.duration
-            );
-
-            await prisma.userSubscription.update({
-              where: {id: existingActiveSubscription.id},
-              data: {
-                endDate: newEndDate,
-              },
-            });
-
-            // Nonaktifkan subscription yang baru dibuat
-            await prisma.userSubscription.update({
-              where: {id: currentUserSubscription.id},
-              data: {status: "canceled"},
-            });
-            console.log("⏰ Durasi subscription diperpanjang");
-          } else {
-            // 4. Subscription berbeda - ganti dengan yang baru
-            // Nonaktifkan subscription lama
-            await prisma.userSubscription.update({
-              where: {id: existingActiveSubscription.id},
-              data: {status: "expired"},
-            });
-
-            // Aktifkan subscription yang baru
-            const newEndDate = new Date();
-            newEndDate.setDate(
-              newEndDate.getDate() + purchasedSubscription.duration
-            );
+                : new Date(
+                    new Date().setFullYear(new Date().getFullYear() + 10)
+                  );
 
             await prisma.userSubscription.update({
               where: {id: currentUserSubscription.id},
               data: {
-                subscriptionId: subscriptionIdOrder,
+                subscription: {connect: {id: subscriptionIdOrder}}, // PERBAIKAN: Gunakan connect untuk relation
+                status: "active",
+                duration: purchasedSubscription.duration,
+                limitAkun: purchasedSubscription.limitAkun,
                 startDate: new Date(),
                 endDate: newEndDate,
-                status: "active",
               },
             });
             console.log("🔄 Subscription diganti dengan yang baru");
@@ -522,69 +520,13 @@ export const duitkuCallback = async (req, res) => {
         }
       }
 
-      // Kirim WhatsApp ke user jika memiliki nomor WhatsApp
-      if (user.nomor_wa) {
-        try {
-          const formattedAmount = new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-            minimumFractionDigits: 0,
-          }).format(order.amount);
+      // Kirim notifikasi email
+      const subscription = await prisma.subscription.findUnique({
+        where: {id: subscriptionIdOrder},
+      });
 
-          const endDateFormatted =
-            purchasedSubscription.duration > 0
-              ? new Date(
-                  new Date().setDate(
-                    new Date().getDate() + purchasedSubscription.duration
-                  )
-                ).toLocaleDateString("id-ID", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })
-              : "Tidak ada batas waktu";
-
-          const whatsappMessage = `🌟 *PEMBAYARAN BERHASIL* 🌟
-
-Halo ${user.name || "Pelanggan Setia"}! 
-
-Kami senang memberitahukan bahwa pembayaran Anda telah berhasil diproses.
-
-📋 *Detail Transaksi:*
-➤ Order ID: ${merchantOrderId}
-➤ Paket: ${purchasedSubscription.name}
-➤ Jumlah: ${formattedAmount}
-➤ Metode: ${order.paymentMethod}
-➤ Status: ✅ BERHASIL
-
-📅 *Masa Aktif:*
-${
-  purchasedSubscription.duration > 0
-    ? `Berlaku hingga: ${endDateFormatted}`
-    : "Paket tanpa batas waktu"
-}
-
-Terima kasih telah mempercayai layanan kami! 🚀
-
-Untuk pertanyaan atau bantuan, hubungi customer service kami.
-
-Salam hangat,
-Tim Layanan Pelanggan`;
-
-          await sendWhatsApp(user.nomor_wa, whatsappMessage);
-          console.log("✅ WhatsApp terkirim ke:", user.nomor_wa);
-        } catch (waError) {
-          console.error("❌ Gagal kirim WhatsApp:", waError.message);
-          // Jangan throw error, lanjutkan proses meski WhatsApp gagal
-        }
-      } else {
-        console.log("ℹ️ User tidak memiliki nomor WhatsApp yang terdaftar");
-      }
-
-      // Kirim email notifikasi
       console.log(
-        `📧 Kirim email ke ${user.email} untuk paket ${purchasedSubscription.name}`
+        `📧 Kirim email ke ${user.email} untuk paket ${subscription.name}`
       );
 
       try {
@@ -598,92 +540,51 @@ Tim Layanan Pelanggan`;
           },
         });
 
-        const emailHtml = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-              .details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-              .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-              .success-badge { background: #4CAF50; color: white; padding: 10px 20px; border-radius: 20px; display: inline-block; margin: 10px 0; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>🎉 Pembayaran Berhasil!</h1>
-                <p>Terima kasih telah berlangganan layanan kami</p>
-              </div>
-              <div class="content">
-                <p>Halo <strong>${user.name || "Pelanggan Setia"}</strong>,</p>
-                <p>Pembayaran untuk paket langganan Anda telah berhasil diproses. Berikut detail transaksi Anda:</p>
-                
-                <div class="details">
-                  <div class="success-badge">✅ PEMBAYARAN BERHASIL</div>
-                  <p><strong>Order ID:</strong> ${merchantOrderId}</p>
-                  <p><strong>Paket:</strong> ${purchasedSubscription.name}</p>
-                  <p><strong>Jumlah:</strong> Rp ${new Intl.NumberFormat(
-                    "id-ID"
-                  ).format(order.amount)}</p>
-                  <p><strong>Metode Pembayaran:</strong> ${
-                    order.paymentMethod
-                  }</p>
-                  <p><strong>Tanggal Transaksi:</strong> ${new Date().toLocaleDateString(
-                    "id-ID",
-                    {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}</p>
-                  ${
-                    purchasedSubscription.duration > 0
-                      ? `
-                  <p><strong>Masa Aktif:</strong> Berlaku hingga ${new Date(
-                    new Date().setDate(
-                      new Date().getDate() + purchasedSubscription.duration
-                    )
-                  ).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}</p>
-                  `
-                      : "<p><strong>Masa Aktif:</strong> Paket tanpa batas waktu</p>"
-                  }
-                </div>
-
-                <p>Kini Anda dapat menikmati semua fitur premium dari paket ${
-                  purchasedSubscription.name
-                }. Jika ada pertanyaan atau membutuhkan bantuan, jangan ragu untuk menghubungi kami.</p>
-                
-                <p>Selamat menggunakan layanan kami! 🚀</p>
-              </div>
-              <div class="footer">
-                <p>© 2024 Nama Perusahaan Anda. All rights reserved.</p>
-                <p>Email ini dikirim secara otomatis, mohon tidak membalas email ini.</p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `;
-
         await transporter.sendMail({
           from: process.env.SMTP_FROM,
           to: user.email,
-          subject: `✅ Pembayaran Berhasil - ${purchasedSubscription.name}`,
-          html: emailHtml,
+          subject: "Pembayaran Berhasil",
+          html: `
+            <p>Halo ${user.name || "Customer"},</p>
+            <p>Pembayaran paket <strong>${
+              subscription.name
+            }</strong> sebesar Rp${order.amount} telah berhasil.</p>
+            <p>Terima kasih telah berlangganan!</p>
+          `,
         });
         console.log("📧 Email sukses terkirim");
       } catch (mailErr) {
         console.error("❌ Gagal kirim email:", mailErr.message);
+      }
+
+      // Kirim WhatsApp jika ada nomor
+      if (user.nomor_wa) {
+        try {
+          const formattedAmount = new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+            minimumFractionDigits: 0,
+          }).format(order.amount);
+
+          const whatsappMessage = `🌟 *PEMBAYARAN BERHASIL* 🌟
+
+Halo ${user.name || "Pelanggan Setia"}! 
+
+Pembayaran Anda telah berhasil diproses.
+
+📋 *Detail Transaksi:*
+➤ Order ID: ${merchantOrderId}
+➤ Paket: ${subscription.name}
+➤ Jumlah: ${formattedAmount}
+➤ Status: ✅ BERHASIL
+
+Terima kasih telah mempercayai layanan kami! 🚀`;
+
+          await sendWhatsApp(user.nomor_wa, whatsappMessage);
+          console.log("✅ WhatsApp terkirim ke:", user.nomor_wa);
+        } catch (waError) {
+          console.error("❌ Gagal kirim WhatsApp:", waError.message);
+        }
       }
     }
 
