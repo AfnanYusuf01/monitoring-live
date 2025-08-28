@@ -1,0 +1,255 @@
+<!-- sidenav -->
+<aside
+  class="max-w-62.5 ease-nav-brand z-990 fixed inset-y-0 my-4 ml-4 block w-full -translate-x-full flex-wrap items-center justify-between overflow-y-auto rounded-2xl border-0 bg-white p-0 antialiased shadow-none transition-transform duration-200 xl:left-0 xl:translate-x-0 xl:bg-transparent">
+  
+  <!-- Logo section -->
+  <div class="h-19.5">
+    <i class="absolute top-0 right-0 hidden p-4 opacity-50 cursor-pointer fas fa-times text-slate-400 xl:hidden" sidenav-close></i>
+    <a class="block px-8 py-6 m-0 text-sm whitespace-nowrap text-slate-700" href="javascript:;" target="_blank">
+      <img src="/assets/img/logo-ct.png" class="inline h-full max-w-full transition-all duration-200 ease-nav-brand max-h-8" alt="main_logo" />
+      <span class="ml-1 font-semibold transition-all duration-200 ease-nav-brand">Soft UI Dashboard</span>
+    </a>
+  </div>
+
+  <hr class="h-px mt-0 bg-transparent bg-gradient-to-r from-transparent via-black/40 to-transparent" />
+
+  <!-- Navigation menu -->
+  <div class="items-center block w-auto max-h-screen overflow-auto h-sidenav grow basis-full">
+    <ul class="flex flex-col pl-0 mb-0">
+      
+      <!-- Dashboard -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Dashboard' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/dashboard"">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Dashboard' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Dashboard</title>
+              <path fill="<%= navbar === 'Dashboard' ? '#FFFFFF' : '#344767' %>" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Account Management -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Account-Management' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/account-management">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Account-Management' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Account Management</title>
+              <path fill="<%= navbar === 'Account-Management' ? '#FFFFFF' : '#344767' %>" d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Management Akun</span>
+        </a>
+      </li>
+
+      <!-- Studio Management -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Management Studio' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/studio-management">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Management Studio' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Studio Management</title>
+              <path fill="<%= navbar === 'Management Studio' ? '#FFFFFF' : '#344767' %>" d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM14 11a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1h-1a1 1 0 110-2h1v-1a1 1 0 011-1z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Management Studio</span>
+        </a>
+      </li>
+
+      <!-- Monitoring By Studio -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Manitoring By Studio' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/studio-monitoring">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Manitoring By Studio' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Monitoring By Studio</title>
+              <path fill="<%= navbar === 'Manitoring By Studio' ? '#FFFFFF' : '#344767' %>" d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
+              <path fill="<%= navbar === 'Manitoring By Studio' ? '#FFFFFF' : '#344767' %>" d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Monitoring By Studio</span>
+        </a>
+      </li>
+
+      <!-- Monitoring Live -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Monitoring-Live' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/monitoring-live">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Monitoring-Live' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Monitoring Live</title>
+              <path fill="<%= navbar === 'Monitoring-Live' ? '#FFFFFF' : '#344767' %>" d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Monitoring By User</span>
+        </a>
+      </li>
+
+      <!-- Monitoring Product -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Monitoring-Product' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/monitoring-product">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Monitoring-Product' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Monitoring Product</title>
+              <path fill="<%= navbar === 'Monitoring-Product' ? '#FFFFFF' : '#344767' %>" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+              <path fill="<%= navbar === 'Monitoring-Product' ? '#FFFFFF' : '#344767' %>" d="M5 6h2v2H5V6zm0 6h2v2H5v-2zm6-6h2v2h-2V6zm0 6h2v2h-2v-2z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Monitoring Product Live</span>
+        </a>
+      </li>
+
+      <!-- Cek Pembayaran -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Cek-Pembayaran' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/cek-pembayaran">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Cek-Pembayaran' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Histori Pembayaran</title>
+              <path fill="<%= navbar === 'Cek-Pembayaran' ? '#FFFFFF' : '#344767' %>" d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+              <path fill="<%= navbar === 'Cek-Pembayaran' ? '#FFFFFF' : '#344767' %>" fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Histori Pembayaran</span>
+        </a>
+      </li>
+
+      <!-- Histori Live -->
+      <li class="mt-0.5 w-full">
+        <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Histori-Live' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/histori-live">
+          <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Histori-Live' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+            <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <title>Histori Live</title>
+              <path fill="<%= navbar === 'Histori-Live' ? '#FFFFFF' : '#344767' %>" d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Histori Live</span>
+        </a>
+      </li>
+
+      <% if (currentUser.role === 'superadmin') { %>
+      <!-- Account pages section -->
+      <li class="w-full mt-4">
+        <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-xs opacity-60">Admin pages</h6>
+      </li>
+      <li class="mt-0.5 w-full">
+            <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'User Management' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/user-management">
+              <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'User Management' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+                <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <title>User Management</title>
+                  <path fill="<%= navbar === 'User Management' ? '#FFFFFF' : '#344767' %>" d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                </svg>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">User Management</span>
+            </a>
+          </li>
+          
+          <!-- Subscription Management -->
+          <li class="mt-0.5 w-full">
+            <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Subscription-Management' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/subscription-management">
+              <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Subscription-Management' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+                <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <title>Subscription Management</title>
+                  <path fill="<%= navbar === 'Subscription-Management' ? '#FFFFFF' : '#344767' %>" d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/>
+                  <path fill="<%= navbar === 'Subscription-Management' ? '#FFFFFF' : '#344767' %>" fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Subscription Management</span>
+            </a>
+          </li>
+          
+          <!-- User Subscription Management -->
+          <li class="mt-0.5 w-full">
+            <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'User-Subscription-Management' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/user-subscription-management">
+              <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'User-Subscription-Management' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+                <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <title>User Subscription Management</title>
+                  <path fill="<%= navbar === 'User-Subscription-Management' ? '#FFFFFF' : '#344767' %>" d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+                  <path fill="<%= navbar === 'User-Subscription-Management' ? '#FFFFFF' : '#344767' %>" d="M8 3a1 1 0 011-1h2a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 11-2 0V6H8a1 1 0 010-2h1V3z"/>
+                </svg>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">User Subscription <br> Management</span>
+            </a>
+          </li>
+          
+          <!-- Management Order -->
+          <li class="mt-0.5 w-full">
+            <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Management-Order' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/order-management">
+              <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Management-Order' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+                <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                  <title>Management Order</title>
+                  <path fill="<%= navbar === 'Management-Order' ? '#FFFFFF' : '#344767' %>" d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                </svg>
+              </div>
+              <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Management Order</span>
+            </a>
+          </li>
+        <% } %>
+      <li class="w-full mt-4">
+        <h6 class="pl-6 ml-2 font-bold leading-tight uppercase text-xs opacity-60">Account pages</h6>
+      </li>
+      <!-- Conditional rendering based on user authentication -->
+      <% if (currentUser) { %>
+        <!-- Profile -->
+        <li class="mt-0.5 w-full">
+          <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors <%= navbar === 'Profile' ? 'shadow-soft-xl rounded-lg bg-gray-200 font-semibold text-slate-700' : 'text-slate-500' %>" href="/profile">
+            <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5 <%= navbar === 'Profile' ? 'bg-gradient-to-tl from-purple-700 to-pink-500' : '' %>">
+              <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <title>Profile</title>
+                <path fill="<%= navbar === 'Profile' ? '#FFFFFF' : '#344767' %>" fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Profile</span>
+          </a>
+        </li>
+          <!-- User Management -->
+
+        <!-- Log Out -->
+        <li class="mt-0.5 w-full">
+          <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors text-slate-500" href="/logout">
+            <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5">
+              <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <title>Log Out</title>
+                <path fill="#344767" fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Log Out</span>
+          </a>
+        </li>
+      <% } else { %>
+        <!-- Sign In -->
+        <li class="mt-0.5 w-full">
+          <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors text-slate-500" href="/sign-in">
+            <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5">
+              <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <title>Sign In</title>
+                <path fill="#344767" fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Sign In</span>
+          </a>
+        </li>
+
+        <!-- Sign Up -->
+        <li class="mt-0.5 w-full">
+          <a class="py-2.7 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors text-slate-500" href="/sign-up">
+            <div class="shadow-soft-2xl mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center xl:p-2.5">
+              <svg width="12px" height="12px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <title>Sign Up</title>
+                <path fill="#344767" fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Sign Up</span>
+          </a>
+        </li>
+      <% } %>
+    </ul>
+  </div>
+
+  <!-- Background card -->
+  <div class="mx-4">
+    <!-- load phantom colors for card after: -->
+    <p class="invisible hidden text-gray-800 text-red-500 text-red-600 after:bg-gradient-to-tl after:from-gray-900 after:to-slate-800 after:bg-gradient-to-tl after:from-blue-600 after:to-cyan-400 after:bg-gradient-to-tl after:from-red-500 after:to-yellow-400 after:bg-gradient-to-tl after:from-green-600 after:to-lime-400 after:bg-gradient-to-tl after:from-red-600 after:to-rose-400 after:bg-gradient-to-tl after:from-slate-600 after:to-slate-300 text-lime-500 text-cyan-500 text-slate-400 text-fuchsia-500"></p>
+    <div class="after:opacity-65 after:bg-gradient-to-tl after:from-slate-600 after:to-slate-300 relative flex min-w-0 flex-col items-center break-words rounded-2xl border-0 border-solid border-blue-900 bg-white bg-clip-border shadow-none after:absolute after:top-0 after:bottom-0 after:left-0 after:z-10 after:block after:h-full after:w-full after:rounded-2xl after:content-['']" sidenav-card>
+      <div class="mb-7.5 absolute h-full w-full rounded-2xl bg-cover bg-center" style="background-image: url('/assets/img/curved-images/white-curved.jpeg');"></div>
+    </div>
+  </div>
+</aside>
+<!-- end sidenav -->

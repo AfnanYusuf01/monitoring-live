@@ -1,0 +1,614 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50 overflow-hidden">
+    <!-- Account Management Table -->
+    <div class="flex flex-wrap -mx-3">
+        <div class="flex-none w-full max-w-full px-3">
+            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+                <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                    <div class="flex flex-wrap justify-between items-center">
+                        <!-- Judul -->
+                        <h6 class="text-xl font-semibold text-gray-800">History Live</h6>
+
+                        <!-- Aksi -->
+                        <div class="flex items-center gap-4">
+                            <!-- Search Akun -->
+                            <div class="relative">
+                                <div class="flex items-center border border-gray-300 rounded-md bg-white transition focus-within:ring-2 focus-within:ring-blue-500 h-10">
+                                    <span class="pl-3 text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="account-search"
+                                        placeholder="Cari akun..."
+                                        class="w-full py-2 pl-2 pr-3 text-sm rounded-md focus:outline-none h-full" />
+                                </div>
+                                <select id="account-dropdown" class="hidden">
+                                    <option value="">Pilih Akun</option>
+                                </select>
+                                <div id="account-results"
+                                    class="absolute z-10 hidden w-full mt-1 bg-white border border-gray-200 rounded-md shadow-md max-h-60 overflow-y-auto"></div>
+                            </div>
+
+                            <!-- Tombol Lihat Data (Primary) -->
+                            <button id="view-history-btn" class="px-5 py-2.5 text-sm font-semibold text-white transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-95">
+                                Lihat Data
+                            </button>
+
+                            <!-- Tombol Export CSV (Secondary / Outline) -->
+                            <button id="download-csv-btn"
+                                class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-green-700 border border-green-600 rounded-md transition hover:bg-green-50 focus:ring-2 focus:ring-green-400 active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-auto px-0 pt-0 pb-2">
+                    <div class="p-0 overflow-x-auto">
+                        <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                            <thead class="align-bottom">
+                                <tr>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Cookie</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Session</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ord</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">CO</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Act</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Viewer</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Like</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comnt</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Shere</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Durasi</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <tr>
+                                    <td colspan="16" class="text-center py-4">Pilih akun untuk melihat history</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Menampilkan
+                                    <span id="pagination-start" class="font-medium">0</span>
+                                    sampai
+                                    <span id="pagination-end" class="font-medium">0</span>
+                                    dari
+                                    <span id="pagination-total" class="font-medium">0</span>
+                                    hasil
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div id="page-numbers" class="flex">
+                                        <!-- Page numbers will be inserted here -->
+                                    </div>
+                                    <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
+                            <div class="flex items-center text-sm text-slate-600">
+                                <span>Baris per halaman:</span>
+                                <select id="rows-per-page" class="ml-2 border border-gray-300 rounded-lg px-2 py-1">
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let allAccounts = [];
+let currentHistoryData = [];
+let currentPage = 1;
+let rowsPerPage = 15;
+let totalPages = 1;
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', function() {
+    loadAccounts();
+    
+    // Set event listeners
+    document.getElementById('view-history-btn').addEventListener('click', function() {
+        const selectedAccountId = document.getElementById('account-dropdown').value;
+        if (selectedAccountId) {
+            loadHistory(selectedAccountId);
+        } else {
+            alert('Silakan pilih akun terlebih dahulu');
+        }
+    });
+    
+    document.getElementById('download-csv-btn').addEventListener('click', function() {
+        downloadCSV();
+    });
+    
+    document.getElementById('rows-per-page').addEventListener('change', function() {
+        rowsPerPage = parseInt(this.value);
+        if (currentHistoryData.length > 0) {
+            currentPage = 1;
+            renderHistory(currentHistoryData);
+        }
+    });
+    
+    document.getElementById('prev-page').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderHistory(currentHistoryData);
+        }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderHistory(currentHistoryData);
+        }
+    });
+    
+    // Search functionality
+    const accountSearch = document.getElementById('account-search');
+    const accountResults = document.getElementById('account-results');
+    
+    accountSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            accountResults.classList.add('hidden');
+            return;
+        }
+        
+        const filteredAccounts = allAccounts.filter(account => 
+            account.nama_akun.toLowerCase().includes(searchTerm)
+        );
+        
+        if (filteredAccounts.length > 0) {
+            accountResults.innerHTML = filteredAccounts.map(account => `
+                <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" data-value="${account.id}">
+                    ${account.nama_akun}
+                </div>
+            `).join('');
+            
+            // Add click event to each result
+            accountResults.querySelectorAll('div').forEach(item => {
+                item.addEventListener('click', function() {
+                    accountSearch.value = this.textContent;
+                    document.getElementById('account-dropdown').value = this.getAttribute('data-value');
+                    accountResults.classList.add('hidden');
+                });
+            });
+            
+            accountResults.classList.remove('hidden');
+        } else {
+            accountResults.innerHTML = '<div class="px-4 py-2 text-gray-500">Tidak ada hasil</div>';
+            accountResults.classList.remove('hidden');
+        }
+    });
+    
+    // Prevent text centering on input
+    accountSearch.addEventListener('keydown', function(e) {
+        // Prevent default behavior that might cause text centering
+        e.stopPropagation();
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#account-search') && !e.target.closest('#account-results')) {
+            accountResults.classList.add('hidden');
+        }
+    });
+});
+
+// Load accounts from API to dropdown
+async function loadAccounts() {
+    try {
+        const response = await fetch(`/api/akun`);
+        if (!response.ok) throw new Error('Gagal memuat data akun');
+        
+        allAccounts = await response.json();
+        const dropdown = document.getElementById('account-dropdown');
+        
+        // Clear existing options except the first one
+        while (dropdown.options.length > 1) {
+            dropdown.remove(1);
+        }
+        
+        // Add new options
+        allAccounts.forEach(account => {
+            const option = document.createElement('option');
+            option.value = account.id;
+            option.textContent = account.nama_akun;
+            dropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`Gagal memuat data akun: ${error.message}`);
+    }
+}
+
+// Load history data for selected account
+async function loadHistory(accountId) {
+    try {
+        // Show loading state
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="16" class="text-center py-4">
+                    <div class="flex justify-center items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memuat data history...
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Disable buttons during loading
+        document.getElementById('view-history-btn').disabled = true;
+        document.getElementById('download-csv-btn').disabled = true;
+        
+        // Fetch data from API
+        const response = await fetch(`${API_BASE_URL}/api/history`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ accountId: accountId })
+        });
+        
+        if (!response.ok) throw new Error('Gagal memuat history');
+        
+        currentHistoryData = await response.json();
+        currentPage = 1;
+        renderHistory(currentHistoryData);
+        
+        // Enable download button
+        document.getElementById('download-csv-btn').disabled = false;
+        
+    } catch (error) {
+        console.error('Error:', error);
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="16" class="text-center py-4 text-red-500">Gagal memuat history: ${error.message}</td>
+            </tr>
+        `;
+    } finally {
+        document.getElementById('view-history-btn').disabled = false;
+    }
+}
+
+// Render history data to table with pagination
+function renderHistory(historyData) {
+    const tbody = document.getElementById('history-table-body');
+    
+    if (!historyData || historyData.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="16" class="text-center py-4">Tidak ada data history untuk akun ini</td>
+            </tr>
+        `;
+        hidePagination();
+        return;
+    }
+    
+    // Calculate pagination
+    totalPages = Math.ceil(historyData.length / rowsPerPage);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, historyData.length);
+    const paginatedData = historyData.slice(startIndex, endIndex);
+    
+    // Render table rows
+    tbody.innerHTML = paginatedData.map((item, index) => `
+        <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100">
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${startIndex + index + 1}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm font-medium" title="${item.Nama}">${truncateText(item.Nama, 20)}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Session}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.GMV}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Ord}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.CO}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Act}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.View}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Viewer}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Like}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Comnt}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Shere}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Tanggal ? new Date(item.Tanggal).toLocaleString() : '-'}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Durasi}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.Status}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${renderPelanggaran(item.Pelanggaran)}</span>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Update pagination controls
+    updatePaginationControls(historyData.length);
+}
+
+// Update pagination controls
+function updatePaginationControls(totalItems) {
+    document.getElementById('pagination-start').textContent = 
+        totalItems === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    document.getElementById('pagination-end').textContent = 
+        Math.min(currentPage * rowsPerPage, totalItems);
+    document.getElementById('pagination-total').textContent = totalItems;
+    
+    // Render page numbers
+    renderPageNumbers();
+    
+    // Show pagination controls
+    showPagination();
+    
+    // Update prev/next buttons
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+}
+
+// Render page numbers for pagination
+function renderPageNumbers() {
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Always show first page
+    appendPageNumber(1);
+    
+    // Calculate range of pages to show
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+        appendPageNumber(i);
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+        appendPageNumber(totalPages);
+    }
+    
+    function appendPageNumber(page) {
+        const isActive = page === currentPage;
+        const pageButton = document.createElement('button');
+        pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+            'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
+            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+        pageButton.textContent = page;
+        
+        pageButton.addEventListener('click', () => {
+            currentPage = page;
+            renderHistory(currentHistoryData);
+        });
+        
+        pageNumbersContainer.appendChild(pageButton);
+    }
+}
+
+// Show pagination controls
+function showPagination() {
+    document.getElementById('pagination-controls').classList.remove('hidden');
+}
+
+// Hide pagination controls
+function hidePagination() {
+    document.getElementById('pagination-controls').classList.add('hidden');
+}
+
+// Helper function to render pelanggaran data
+function renderPelanggaran(pelanggaran) {
+    if (!pelanggaran || pelanggaran.jumlah === 0) {
+        return '<span class="text-green-600">0</span>';
+    }
+    
+    const violationList = pelanggaran.judul && pelanggaran.judul.length > 0 
+        ? pelanggaran.judul.map((v, i) => `${i+1}. ${v}`).join('<br>')
+        : 'Tidak ada detail pelanggaran';
+    
+    return `
+        <span class="text-red-600 font-medium cursor-help relative group">
+            ${pelanggaran.jumlah}
+            <span class="absolute invisible group-hover:visible z-50 p-2 text-xs text-left text-white bg-gray-800 rounded-lg shadow-lg w-60 -left-32 -top-20">
+                ${violationList}
+            </span>
+        </span>
+    `;
+}
+
+// Helper function to truncate long text
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+// Download CSV function
+function downloadCSV() {
+    if (!currentHistoryData || currentHistoryData.length === 0) {
+        alert('Tidak ada data untuk diunduh');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['No', 'Cookie', 'Session', 'GMV', 'Ord', 'CO', 'Act', 'View', 'Viewer', 'Like', 'Comnt', 'Shere', 'Tanggal', 'Durasi', 'Status', 'Pelanggaran'];
+    
+    let csvContent = headers.join(',') + '\n';
+    
+    currentHistoryData.forEach(item => {
+        const row = [
+            item.No,
+            `"${item.Nama}"`,
+            item.Session,
+            item.GMV,
+            item.Ord,
+            item.CO,
+            item.Act,
+            item.View,
+            item.Viewer,
+            item.Like,
+            item.Comnt,
+            item.Shere,
+            item.Tanggal ? new Date(item.Tanggal).toLocaleString() : '',
+            item.Durasi,
+            item.Status,
+            item.Pelanggaran ? item.Pelanggaran.jumlah : 0
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const accountName = document.getElementById('account-dropdown').selectedOptions[0].text;
+    const date = new Date().toISOString().slice(0, 10);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `history_${accountName}_${date}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+
+<style>
+.tooltip-content {
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+span:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+span .tooltip-content {
+    visibility: hidden;
+    opacity: 0;
+}
+
+/* Prevent horizontal scrolling */
+body, html {
+    overflow-x: hidden;
+}
+
+/* Custom scrollbar for dropdown */
+#account-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+#account-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 0 4px 4px;
+}
+
+#account-results::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+#account-results::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Improved styling for form elements */
+#account-search {
+    text-align: left !important;
+}
+
+#account-search::placeholder {
+    text-align: left;
+}
+
+/* Ensure consistent height for all buttons */
+#view-history-btn, #download-csv-btn {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Add spacing between action buttons */
+.flex.items-center.gap-4 > * {
+    margin-right: 0.5rem;
+}
+
+.flex.items-center.gap-4 > *:last-child {
+    margin-right: 0;
+}
+</style>

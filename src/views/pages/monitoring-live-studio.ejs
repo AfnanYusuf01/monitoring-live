@@ -1,0 +1,411 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50">
+  <!-- Monitoring Table -->
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+          <div class="flex flex-wrap justify-between items-center">
+            <h6>Live Monitoring - Studio <span id="studio-name"></span></h6>
+            <div class="">
+              <button id="start-monitor-btn"
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                Proses Monitor Live
+              </button>
+              <button id="stop-monitor-btn" disabled
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-rose-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                Stop
+              </button>
+              <button id="refresh-btn"
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                Refresh
+              </button>
+            </div>  
+          </div>
+          
+          <!-- Search Bar -->
+          <div class="mt-4 mb-4">
+            <div class="relative flex items-center max-w-md">
+              <input type="text" id="search-input" placeholder="Cari data..." class="pl-10 pr-4 py-2 text-sm leading-normal text-slate-500 border border-gray-200 rounded-lg focus:shadow-soft-primary-outline ease-soft-in outline-none transition-all focus:border-fuchsia-300 focus:outline-none" />
+              <div class="absolute left-3 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex-auto px-0 pt-0 pb-2">
+          <div class="p-0 overflow-x-auto">
+            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+              <thead class="align-bottom">
+                <tr>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Check Out</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Keranjang</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ditonton</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Like</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comment</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Share</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Durasi</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
+                </tr>
+              </thead>
+              <tbody id="monitoring-table-body">
+                <!-- Data will be loaded dynamically -->
+                <tr>
+                  <td colspan="14" class="text-center py-4">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global variables
+  let monitoringInterval;
+  let currentData = [];
+  let isMonitoring = false;
+  const refreshInterval = 10000; // 10 seconds
+  const studioId = '<%= studioId %>'; // Get studioId from EJS
+
+  // DOM Ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize with studio data
+    loadStudioData();
+    
+    // Setup event listeners
+    document.getElementById('start-monitor-btn').addEventListener('click', startMonitoring);
+    document.getElementById('stop-monitor-btn').addEventListener('click', stopMonitoring);
+    document.getElementById('refresh-btn').addEventListener('click', refreshData);
+    document.getElementById('search-input').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      filterData(searchTerm);
+    });
+  });
+
+  // Start monitoring function
+  function startMonitoring() {
+    if (isMonitoring) return;
+    
+    isMonitoring = true;
+    document.getElementById('start-monitor-btn').disabled = true;
+    document.getElementById('stop-monitor-btn').disabled = false;
+    
+    // Initial fetch
+    fetchMonitoringData();
+    
+    // Set up interval
+    monitoringInterval = setInterval(fetchMonitoringData, refreshInterval);
+  }
+
+  // Stop monitoring function
+  function stopMonitoring() {
+    if (!isMonitoring) return;
+    
+    clearInterval(monitoringInterval);
+    isMonitoring = false;
+    document.getElementById('start-monitor-btn').disabled = false;
+    document.getElementById('stop-monitor-btn').disabled = true;
+  }
+
+  // Refresh data function (stops monitoring and reloads)
+  function refreshData() {
+    stopMonitoring();
+    loadStudioData();
+  }
+
+  // Fetch monitoring data from API
+  async function fetchMonitoringData() {
+    try {
+      const response = await fetch(`/api/studio/${studioId}`);
+      if (!response.ok) throw new Error('Gagal memuat data monitoring');
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Gagal memuat data');
+      }
+      
+      // Update studio name
+      if (result.studio) {
+        document.getElementById('studio-name').textContent = result.studio.nama_studio || `ID: ${result.studio.id}`;
+      }
+      
+      // Transform data to match our table structure
+      const transformedData = result.data.map((item, index) => ({
+        id: index,
+        nama: item.nama || "-",
+        gmv: item.placedGmv || "-",
+        order: item.pesanan || 0,
+        checkout: item.confirmedItemSold || 0,
+        keranjang: item.atc || 0,
+        view: item.views || 0,
+        ditonton: item.ditonton || 0,
+        like: item.likes || 0,
+        comment: item.comments || 0,
+        share: item.shares || 0,
+        tanggal: new Date().toLocaleDateString('id-ID'),
+        durasi: item.durasiFormatted || "-",
+        status: item.statusText || "-",
+        pelanggaran: item.pelanggaran || { jumlah: 0, judul: [] }
+      }));
+      
+      // Update only if we have new data
+      if (JSON.stringify(transformedData) !== JSON.stringify(currentData)) {
+        currentData = transformedData;
+        updateTableData(transformedData);
+      }
+    } catch (error) {
+      console.error('Error fetching monitoring data:', error);
+      // Don't stop monitoring on error, just log it
+    }
+  }
+
+  // Load studio data from API (initial load)
+  async function loadStudioData() {
+    try {
+      // Show loading state
+      document.getElementById('monitoring-table-body').innerHTML = `
+        <tr>
+          <td colspan="14" class="text-center py-4">Memuat data studio...</td>
+        </tr>
+      `;
+      
+      // Fetch studio data from API
+      const response = await fetch(`/api/studio/${studioId}`);
+      if (!response.ok) throw new Error('Gagal memuat data studio');
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Gagal memuat data studio');
+      }
+      
+      // Update studio name
+      if (result.studio) {
+        document.getElementById('studio-name').textContent = result.studio.nama_studio || `ID: ${result.studio.id}`;
+      }
+      
+      // Transform data to monitoring table format
+      const monitoringData = result.data.map((item, index) => ({
+        id: index,
+        nama: item.nama || "-",
+        gmv: item.placedGmv || "-",
+        order: item.pesanan || 0,
+        checkout: item.confirmedItemSold || 0,
+        keranjang: item.atc || 0,
+        view: item.views || 0,
+        ditonton: item.ditonton || 0,
+        like: item.likes || 0,
+        comment: item.comments || 0,
+        share: item.shares || 0,
+        tanggal: new Date().toLocaleDateString('id-ID'),
+        durasi: item.durasiFormatted || "-",
+        status: item.statusText || "-",
+        pelanggaran: item.pelanggaran || { jumlah: 0, judul: [] }
+      }));
+      
+      currentData = monitoringData;
+      renderData(monitoringData);
+    } catch (error) {
+      console.error('Error:', error);
+      document.getElementById('monitoring-table-body').innerHTML = `
+        <tr>
+          <td colspan="14" class="text-center py-4 text-red-500">Gagal memuat data studio: ${error.message}</td>
+        </tr>
+      `;
+    }
+  }
+
+  // Update table data without re-rendering the whole table
+  function updateTableData(data) {
+    const tbody = document.getElementById('monitoring-table-body');
+    const rows = tbody.querySelectorAll('tr');
+    
+    data.forEach((item, index) => {
+      if (rows[index]) {
+        // Update each cell individually
+        const cells = [
+          '.nama-cell', '.gmv-cell', '.order-cell', '.checkout-cell', 
+          '.keranjang-cell', '.view-cell', '.ditonton-cell', '.like-cell',
+          '.comment-cell', '.share-cell', '.tanggal-cell', '.durasi-cell'
+        ];
+        
+        const values = [
+          item.nama, item.gmv, item.order, item.checkout,
+          item.keranjang, item.view, item.ditonton, item.like,
+          item.comment, item.share, item.tanggal, item.durasi
+        ];
+        
+        cells.forEach((cellClass, i) => {
+          const cell = rows[index].querySelector(cellClass);
+          if (cell) cell.textContent = values[i];
+        });
+        
+        // Update status cell
+        const statusCell = rows[index].querySelector('.status-cell');
+        if (statusCell) {
+          statusCell.textContent = item.status;
+          statusCell.className = `p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent text-xs font-semibold leading-tight ${getStatusColor(item.status)}`;
+        }
+        
+        // Update violation cell
+        const violationCell = rows[index].querySelector('.pelanggaran-cell');
+        if (violationCell) {
+          const violationCount = item.pelanggaran?.jumlah || 0;
+          const violationTitles = item.pelanggaran?.judul || [];
+          
+          violationCell.innerHTML = violationCount > 0 
+            ? `<span class="relative group cursor-pointer ${getViolationColor(violationCount)}">
+                 ${violationCount}
+                 <div class="absolute invisible group-hover:visible z-50 w-64 p-2 text-xs bg-gray-800 text-white rounded shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+                   <div class="font-bold mb-1">Detail Pelanggaran:</div>
+                   ${violationTitles.length > 0 
+                     ? violationTitles.map(title => `<div class="mb-1">• ${title}</div>`).join('') 
+                     : '<div>Tidak ada detail pelanggaran</div>'
+                   }
+                 </div>
+               </span>`
+            : `<span class="${getViolationColor(violationCount)}">${violationCount}</span>`;
+        }
+      }
+    });
+  }
+
+  // Render data to table (initial render)
+  function renderData(data) {
+    const tbody = document.getElementById('monitoring-table-body');
+    
+    if (data.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="14" class="text-center py-4">Tidak ada data monitoring</td>
+        </tr>
+      `;
+      return;
+    }
+    
+    tbody.innerHTML = data.map((item, index) => {
+      const violationCount = item.pelanggaran?.jumlah || 0;
+      const violationTitles = item.pelanggaran?.judul || [];
+      
+      return `
+      <tr>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
+          <span class="text-xs font-semibold leading-tight">${index + 1}</span>
+        </td>
+        <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent nama-cell">
+          <div class="flex px-2 py-1">
+            <div class="flex flex-col justify-center">
+              <h6 class="mb-0 text-sm leading-normal">${item.nama}</h6>
+            </div>
+          </div>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent gmv-cell">
+          <span class="text-xs font-semibold leading-tight">${item.gmv}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent order-cell">
+          <span class="text-xs font-semibold leading-tight">${item.order}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent checkout-cell">
+          <span class="text-xs font-semibold leading-tight">${item.checkout}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent keranjang-cell">
+          <span class="text-xs font-semibold leading-tight">${item.keranjang}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent view-cell">
+          <span class="text-xs font-semibold leading-tight">${item.view}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent ditonton-cell">
+          <span class="text-xs font-semibold leading-tight">${item.ditonton}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent like-cell">
+          <span class="text-xs font-semibold leading-tight">${item.like}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent comment-cell">
+          <span class="text-xs font-semibold leading-tight">${item.comment}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent share-cell">
+          <span class="text-xs font-semibold leading-tight">${item.share}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent tanggal-cell">
+          <span class="text-xs font-semibold leading-tight">${item.tanggal}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent durasi-cell">
+          <span class="text-xs font-semibold leading-tight">${item.durasi}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent status-cell">
+          <span class="text-xs font-semibold leading-tight ${getStatusColor(item.status)}">${item.status}</span>
+        </td>
+        <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent pelanggaran-cell">
+          ${violationCount > 0 
+            ? `<span class="relative group cursor-pointer ${getViolationColor(violationCount)}">
+                 ${violationCount}
+                 <div class="absolute invisible group-hover:visible z-50 w-64 p-2 text-xs bg-gray-800 text-white rounded shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
+                   <div class="font-bold mb-1">Detail Pelanggaran:</div>
+                   ${violationTitles.length > 0 
+                     ? violationTitles.map(title => `<div class="mb-1">• ${title}</div>`).join('') 
+                     : '<div>Tidak ada detail pelanggaran</div>'
+                   }
+                 </div>
+               </span>`
+            : `<span class="${getViolationColor(violationCount)}">${violationCount}</span>`
+          }
+        </td>
+      </tr>
+    `}).join('');
+  }
+
+  // Helper function for status color
+  function getStatusColor(status) {
+    if (!status) return 'text-gray-600';
+    switch(status.toLowerCase()) {
+      case 'aktif': 
+      case 'live': 
+      case 'sedang live':
+        return 'text-green-600';
+      case 'nonaktif': 
+      case 'tidak live': 
+      case 'tidak live':
+        return 'text-red-600';
+      case 'paused': 
+        return 'text-yellow-600';
+      default: return 'text-gray-600';
+    }
+  }
+
+  // Helper function for violation color
+  function getViolationColor(violationCount) {
+    if (violationCount === 0) return 'text-green-600';
+    if (violationCount <= 2) return 'text-yellow-600';
+    return 'text-red-600';
+  }
+
+  // Filter data based on search term
+  function filterData(searchTerm) {
+    const filteredData = currentData.filter(item => 
+      item.nama.toLowerCase().includes(searchTerm)
+    );
+    
+    if (filteredData.length === 0) {
+      document.getElementById('monitoring-table-body').innerHTML = `
+        <tr>
+          <td colspan="14" class="text-center py-4">Tidak ada data yang cocok</td>
+        </tr>
+      `;
+    } else {
+      renderData(filteredData);
+    }
+  }
+</script>

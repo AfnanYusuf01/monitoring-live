@@ -1,0 +1,411 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50">
+  <!-- Order Table -->
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+          <div class="flex flex-wrap justify-between items-center">
+            <h6 class="text-xl font-bold">Daftar Order</h6>
+            <div class="">
+              <button id="refresh-btn"
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                <i class="fas fa-sync-alt mr-1"></i> Refresh
+              </button>
+            </div>  
+          </div>
+          
+          <!-- Search Bar -->
+          <div class="mt-4 mb-4">
+            <div class="relative flex items-center max-w-md">
+              <input type="text" id="search-input" placeholder="Cari order..." class="pl-10 pr-4 py-2 text-sm leading-normal text-slate-500 border border-gray-200 rounded-lg focus:shadow-soft-primary-outline ease-soft-in outline-none transition-all focus:border-fuchsia-300 focus:outline-none" />
+              <div class="absolute left-3 text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex-auto px-0 pt-0 pb-2">
+          <div class="p-0 overflow-x-auto">
+            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+              <thead class="align-bottom">
+                <tr>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">User</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Paket</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Amount</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Payment Method</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Transaction ID</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="order-table-body">
+                <!-- Data will be loaded dynamically -->
+                <tr>
+                  <td colspan="9" class="text-center py-4">Memuat data order...</td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <!-- Pagination Controls -->
+            <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
+              <div class="flex-1 flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-700">
+                    Menampilkan
+                    <span id="pagination-start" class="font-medium">0</span>
+                    sampai
+                    <span id="pagination-end" class="font-medium">0</span>
+                    dari
+                    <span id="pagination-total" class="font-medium">0</span>
+                    hasil
+                  </p>
+                </div>
+                <div>
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                    <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <span class="sr-only">Previous</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                    <div id="page-numbers" class="flex">
+                      <!-- Page numbers will be inserted here -->
+                    </div>
+                    <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                      <span class="sr-only">Next</span>
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global variables
+  let currentData = [];
+  let filteredData = [];
+  
+  // Pagination variables
+  let currentPage = 1;
+  const itemsPerPage = 10;
+
+  // DOM Ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize with order data
+    loadOrderData();
+    
+    // Setup event listeners
+    document.getElementById('refresh-btn').addEventListener('click', refreshData);
+    document.getElementById('search-input').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      filterData(searchTerm);
+    });
+    
+    // Setup pagination controls
+    document.getElementById('prev-page').addEventListener('click', function() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderData();
+      }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+      const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderData();
+      }
+    });
+  });
+
+  // Refresh data function
+  function refreshData() {
+    loadOrderData();
+  }
+
+  // Load order data from API
+  async function loadOrderData() {
+    try {
+      // Show loading state
+      document.getElementById('order-table-body').innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center py-4">Memuat data order...</td>
+        </tr>
+      `;
+      
+      // Fetch order data from API
+      const response = await fetch(`${API_BASE_URL}/api/orders`);
+      if (!response.ok) throw new Error('Gagal memuat data order');
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        currentData = result.data;
+        filteredData = [...currentData];
+        currentPage = 1;
+        renderData();
+      } else {
+        throw new Error(result.message || 'Gagal memuat data order');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      document.getElementById('order-table-body').innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center py-4 text-red-500">Gagal memuat data order: ${error.message}</td>
+        </tr>
+      `;
+      hidePagination();
+    }
+  }
+
+  // Filter data based on search term
+  function filterData(searchTerm) {
+    if (!searchTerm) {
+      filteredData = [...currentData];
+    } else {
+      filteredData = currentData.filter(item => 
+        item.userSubscription?.user?.name?.toLowerCase().includes(searchTerm) ||
+        item.userSubscription?.subscription?.name?.toLowerCase().includes(searchTerm) ||
+        item.transactionId?.toLowerCase().includes(searchTerm) ||
+        item.status?.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    currentPage = 1;
+    renderData();
+  }
+
+  // Render data to table with pagination
+  function renderData() {
+    const tbody = document.getElementById('order-table-body');
+    
+    if (filteredData.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="text-center py-4">Tidak ada data order</td>
+        </tr>
+      `;
+      hidePagination();
+      return;
+    }
+    
+    // Calculate pagination values
+    const totalItems = filteredData.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const currentItems = filteredData.slice(startIndex, endIndex);
+    
+    // Update pagination info
+    document.getElementById('pagination-start').textContent = startIndex + 1;
+    document.getElementById('pagination-end').textContent = endIndex;
+    document.getElementById('pagination-total').textContent = totalItems;
+    
+    // Render page numbers
+    renderPageNumbers(totalPages);
+    
+    // Show table data
+    tbody.innerHTML = currentItems.map((item, index) => {
+      const createdAt = new Date(item.createdAt).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      return `
+      <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100">
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${startIndex + index + 1}</span>
+        </td>
+        <td class="p-2 align-middle border-b whitespace-nowrap">
+          <div class="flex px-2 py-1">
+            <div class="flex flex-col justify-center">
+              <h6 class="mb-0 text-sm leading-normal">${item.userSubscription?.user?.name || 'N/A'}</h6>
+              <p class="mb-0 text-xs leading-tight text-slate-400">${item.userSubscription?.user?.email || ''}</p>
+            </div>
+          </div>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${item.userSubscription?.subscription?.name || 'N/A'}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">Rp ${formatCurrency(item.amount)}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight ${getStatusColor(item.status)}">${getStatusText(item.status)}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${formatPaymentMethod(item.paymentMethod)}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${item.transactionId || 'N/A'}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${createdAt}</span>
+        </td>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <button onclick="deleteOrder(${item.id})" class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors">
+            <i class="fas fa-trash mr-1"></i> Hapus
+          </button>
+        </td>
+      </tr>
+    `}).join('');
+    
+    // Show pagination controls
+    showPagination();
+    
+    // Update pagination button states
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+  }
+
+  // Delete order function
+  async function deleteOrder(orderId) {
+    if (!confirm('Apakah Anda yakin ingin menghapus order ini?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+        method: 'DELETE'
+      });
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        alert('Order berhasil dihapus');
+        // Refresh data
+        loadOrderData();
+      } else {
+        throw new Error(result.message || 'Gagal menghapus order');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Gagal menghapus order: ${error.message}`);
+    }
+  }
+
+  // Render page numbers for pagination
+  function renderPageNumbers(totalPages) {
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Always show first page
+    appendPageNumber(1);
+    
+    // Calculate range of pages to show
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+      pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      appendPageNumber(i);
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+      pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      appendPageNumber(totalPages);
+    }
+    
+    function appendPageNumber(page) {
+      const isActive = page === currentPage;
+      const pageButton = document.createElement('button');
+      pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+          'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
+          'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+      pageButton.textContent = page;
+      
+      pageButton.addEventListener('click', () => {
+        currentPage = page;
+        renderData();
+      });
+      
+      pageNumbersContainer.appendChild(pageButton);
+    }
+  }
+
+  // Show pagination controls
+  function showPagination() {
+    document.getElementById('pagination-controls').classList.remove('hidden');
+  }
+
+  // Hide pagination controls
+  function hidePagination() {
+    document.getElementById('pagination-controls').classList.add('hidden');
+  }
+
+  // Helper function for status color
+  function getStatusColor(status) {
+    if (!status) return 'text-gray-600';
+    switch(status.toLowerCase()) {
+      case 'success': 
+      case 'completed': 
+      case 'active':
+        return 'text-green-600';
+      case 'pending': 
+        return 'text-yellow-600';
+      case 'failed': 
+      case 'cancelled': 
+      case 'expired':
+        return 'text-red-600';
+      default: return 'text-gray-600';
+    }
+  }
+
+  // Helper function for status text
+  function getStatusText(status) {
+    if (!status) return 'Unknown';
+    switch(status.toLowerCase()) {
+      case 'success': return 'Berhasil';
+      case 'pending': return 'Tertunda';
+      case 'failed': return 'Gagal';
+      case 'cancelled': return 'Dibatalkan';
+      case 'expired': return 'Kadaluarsa';
+      case 'active': return 'Aktif';
+      default: return status;
+    }
+  }
+
+  // Helper function for payment method formatting
+  function formatPaymentMethod(method) {
+    if (!method) return 'N/A';
+    switch(method.toLowerCase()) {
+      case 'bank_transfer': return 'Transfer Bank';
+      case 'credit_card': return 'Kartu Kredit';
+      case 'ewallet': return 'E-Wallet';
+      default: return method;
+    }
+  }
+
+  // Helper function for currency formatting
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID').format(amount);
+  }
+</script>

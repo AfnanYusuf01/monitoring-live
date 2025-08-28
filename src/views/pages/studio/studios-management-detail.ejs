@@ -1,0 +1,163 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gray-50">
+  <!-- Header dengan judul dan tombol kembali -->
+  <div class="px-6 pt-6">
+    <div class="flex flex-wrap justify-between items-center mb-6">
+      <div class="flex items-center">
+        <a href="/studio-management" class="mr-3 text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+        </a>
+        <h6 class="text-xl font-semibold text-gray-800">Detail Studio</h6>
+      </div>
+      <div>
+        <a href="/studio-management/edit/<%= studio.id %>" 
+           class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+          Edit Studio
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail container -->
+  <div class="flex flex-wrap px-6">
+    <div class="w-full">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-lg shadow-md">
+        <!-- Card header -->
+        <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+          <h6 class="text-lg font-semibold text-gray-800">Informasi Studio</h6>
+        </div>
+        
+        <!-- Card body -->
+        <div class="flex-auto px-6 py-4">
+          <!-- Informasi Dasar Studio -->
+          <div class="mb-8">
+            <h6 class="text-md font-semibold text-gray-700 mb-4">Informasi Dasar</h6>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Nama Studio -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Nama Studio</label>
+                <p class="text-lg font-semibold text-gray-800"><%= studio.nama_studio || 'Tidak ada nama' %></p>
+              </div>
+              
+              <!-- Catatan Studio -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Catatan</label>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <p class="text-sm text-gray-800 break-words">
+                    <%= studio.catatan || 'Tidak ada catatan' %>
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Jumlah Akun -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Jumlah Akun</label>
+                <p class="text-lg font-semibold text-gray-800"><%= studio.akun.length %> akun</p>
+              </div>
+              
+              <!-- Tanggal Dibuat -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Tanggal Dibuat</label>
+                <p class="text-sm text-gray-600">
+                  <%= studio.createdAt ? new Date(studio.createdAt).toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 'Tidak diketahui' %>
+                </p>
+              </div>
+              
+              <!-- Terakhir Diupdate -->
+              <div>
+                <label class="block text-sm font-medium text-gray-500 mb-1">Terakhir Diupdate</label>
+                <p class="text-sm text-gray-600">
+                  <%= studio.updatedAt ? new Date(studio.updatedAt).toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 'Tidak diketahui' %>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Daftar Akun -->
+          <div>
+            <h6 class="text-md font-semibold text-gray-700 mb-4">Daftar Akun</h6>
+            
+            <% if (studio.akun && studio.akun.length > 0) { %>
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <% studio.akun.forEach(function(akun, index) { %>
+                  <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-center justify-between mb-2">
+                      <h6 class="text-sm font-semibold text-gray-800">
+                        <%= akun.nama_akun || 'Akun tanpa nama' %>
+                      </h6>
+                      <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                        #<%= akun.id %>
+                      </span>
+                    </div>
+                    
+                    <div class="text-xs text-gray-500 space-y-1">
+                      <p>Dibuat: <%= new Date(akun.createdAt).toLocaleDateString('id-ID') %></p>
+                      <p>ID: <%= akun.id %></p>
+                    </div>
+                    
+                    <div class="mt-3 pt-2 border-t border-gray-200">
+                      <a href="/account-management/detail/<%= akun.id %>" 
+                         class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                         Lihat detail akun →
+                      </a>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <p class="text-gray-500 text-sm">Belum ada akun yang terdaftar di studio ini</p>
+                <a href="/studio-management/edit/<%= studio.id %>" 
+                   class="inline-block mt-3 px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
+                   Tambah Akun
+                </a>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        
+        <!-- Card footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+          <a href="/studio-management" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+            Kembali
+          </a>
+          <a href="/studio-management/edit/<%= studio.id %>" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            Edit Studio
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Styling tambahan -->
+<style>
+  .account-card {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .account-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+</style>

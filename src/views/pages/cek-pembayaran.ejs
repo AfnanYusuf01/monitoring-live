@@ -1,0 +1,483 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50">
+    <!-- Payment Check Table -->
+    <div class="flex flex-wrap -mx-3">
+        <div class="flex-none w-full max-w-full px-3">
+            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+                <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                    <h6 class="mb-4">Cek Pembayaran Komisi</h6>
+                    
+                    <!-- Filter Controls -->
+                    <form id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select name="status" id="status-filter" class="w-full px-3 py-2 text-sm text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Semua Status</option>
+                                <option value="4">Sudah Dibayar</option>
+                                <option value="10">Menunggu Pembayaran</option>
+                                <option value="9">Sedang Divalidasi</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Mulai</label>
+                            <input type="date" name="tglMulai" id="start-date" required class="w-full px-3 py-2 text-sm text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Selesai</label>
+                            <input type="date" name="tglSelesai" id="end-date" required class="w-full px-3 py-2 text-sm text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button type="submit" 
+                                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                                Cek Pembayaran
+                            </button>
+                            <button type="button" onclick="resetFilters()" 
+                                class="px-4 py-2 text-xs font-bold text-gray-800 uppercase transition-all bg-gray-200 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:bg-gray-300">
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Search and Export Controls -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+                        <div class="relative w-full md:w-64">
+                            <input type="text" id="search-input" placeholder="Cari data..." 
+                                class="w-full pl-10 pr-4 py-2 text-sm text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <button id="export-csv" class="flex items-center gap-2 px-4 py-2 text-xs font-bold text-gray-800 uppercase transition-all bg-green-200 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:bg-green-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                            </svg>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex-auto px-0 pt-0 pb-2">
+                    <div class="p-0 overflow-x-auto">
+                        <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                            <thead class="align-bottom">
+                                <tr>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Akun</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">ID Validasi</th>
+                                    <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Jumlah Komisi</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Metode</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Waktu Validasi</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Waktu Selesai</th>
+                                    <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Waktu Bayar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table-body">
+                                <tr>
+                                    <td colspan="9" class="text-center py-4">Silakan pilih tanggal dan klik "Cek Pembayaran"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <!-- Pagination Controls -->
+                        <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
+                            <div class="flex-1 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-700">
+                                        Menampilkan
+                                        <span id="pagination-start" class="font-medium">0</span>
+                                        sampai
+                                        <span id="pagination-end" class="font-medium">0</span>
+                                        dari
+                                        <span id="pagination-total" class="font-medium">0</span>
+                                        hasil
+                                    </p>
+                                </div>
+                                <div>
+                                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                        <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span class="sr-only">Previous</span>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                        <div id="page-numbers" class="flex">
+                                            <!-- Page numbers will be inserted here -->
+                                        </div>
+                                        <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <span class="sr-only">Next</span>
+                                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables for pagination and search
+let allPayments = [];
+let filteredPayments = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+
+// Set default dates (today and 7 days ago)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoFormatted = sevenDaysAgo.toISOString().split('T')[0];
+    
+    document.getElementById('start-date').value = sevenDaysAgoFormatted;
+    document.getElementById('end-date').value = today;
+    
+    // Handle form submission
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        checkPayments();
+    });
+    
+    // Setup search functionality
+    document.getElementById('search-input').addEventListener('input', function() {
+        filterPayments();
+    });
+    
+    // Setup pagination controls
+    document.getElementById('prev-page').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPayments();
+        }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+        const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderPayments();
+        }
+    });
+    
+    // Setup export CSV functionality
+    document.getElementById('export-csv').addEventListener('click', exportToCSV);
+});
+
+// Check payments with filters
+async function checkPayments() {
+    const formData = new FormData(document.getElementById('filterForm'));
+    const params = {
+        tglMulai: formData.get('tglMulai'),
+        tglSelesai: formData.get('tglSelesai'),
+        status: formData.get('status') || undefined
+    };
+
+    try {
+        // Show loading state
+        document.getElementById('payments-table-body').innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-4">
+                    <div class="flex justify-center items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memuat data...
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+
+
+        // Call API
+        const response = await fetch('/api/cek-pembayaran', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        
+        allPayments = await response.json();
+        currentPage = 1;
+        filterPayments();
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('payments-table-body').innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-4 text-red-500">
+                    Gagal memuat data: ${error.message || 'Terjadi kesalahan'}
+                </td>
+            </tr>
+        `;
+        hidePagination();
+    }
+}
+
+// Filter payments based on search input
+function filterPayments() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    
+    if (!searchTerm) {
+        filteredPayments = [...allPayments];
+    } else {
+        filteredPayments = allPayments.filter(payment => 
+            (payment.nama_akun && payment.nama_akun.toLowerCase().includes(searchTerm)) ||
+            (payment.validation_id && payment.validation_id.toLowerCase().includes(searchTerm)) ||
+            (payment.total_payment_amount_dis && payment.total_payment_amount_dis.toLowerCase().includes(searchTerm)) ||
+            (payment.payment_status && payment.payment_status.toLowerCase().includes(searchTerm)) ||
+            (payment.payment_channel && payment.payment_channel.toLowerCase().includes(searchTerm))
+        );
+    }
+    
+    currentPage = 1;
+    renderPayments();
+}
+
+// Render payments to table with pagination
+function renderPayments() {
+    const tbody = document.getElementById('payments-table-body');
+    
+    if (!filteredPayments || filteredPayments.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center py-4">Tidak ada data pembayaran untuk kriteria yang dipilih</td>
+            </tr>
+        `;
+        hidePagination();
+        return;
+    }
+    
+    // Calculate pagination values
+    const totalItems = filteredPayments.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+    const currentItems = filteredPayments.slice(startIndex, endIndex);
+    
+    // Update pagination info
+    document.getElementById('pagination-start').textContent = startIndex + 1;
+    document.getElementById('pagination-end').textContent = endIndex;
+    document.getElementById('pagination-total').textContent = totalItems;
+    
+    // Render page numbers
+    renderPageNumbers(totalPages);
+    
+    // Show table data
+    tbody.innerHTML = currentItems.map((payment, index) => `
+        <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100">
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${startIndex + index + 1}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm font-medium">${payment.nama_akun || '-'}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm font-mono">${payment.validation_id || '-'}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
+                <span class="text-sm font-medium">${payment.total_payment_amount_dis || '0'}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-center">
+                <span class="text-sm ${getStatusColorClass(payment.payment_status)} px-2 py-1 rounded-full">
+                    ${payment.payment_status || 'Tidak Diketahui'}
+                </span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-center">
+                <span class="text-sm">${payment.payment_channel || '-'}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-center">
+                <span class="text-sm">${formatDateTime(payment.validation_review_time)}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-center">
+                <span class="text-sm">${formatDateTime(payment.order_completed_period_end_time)}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-center">
+                <span class="text-sm">${formatDateTime(payment.payment_time)}</span>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Show pagination controls
+    showPagination();
+    
+    // Update pagination button states
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+}
+
+// Render page numbers for pagination
+function renderPageNumbers(totalPages) {
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Always show first page
+    appendPageNumber(1);
+    
+    // Calculate range of pages to show
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+        appendPageNumber(i);
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+        appendPageNumber(totalPages);
+    }
+    
+    function appendPageNumber(page) {
+        const isActive = page === currentPage;
+        const pageButton = document.createElement('button');
+        pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+            'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
+            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+        pageButton.textContent = page;
+        
+        pageButton.addEventListener('click', () => {
+            currentPage = page;
+            renderPayments();
+        });
+        
+        pageNumbersContainer.appendChild(pageButton);
+    }
+}
+
+// Show pagination controls
+function showPagination() {
+    document.getElementById('pagination-controls').classList.remove('hidden');
+}
+
+// Hide pagination controls
+function hidePagination() {
+    document.getElementById('pagination-controls').classList.add('hidden');
+}
+
+// Export to CSV function
+function exportToCSV() {
+    if (!filteredPayments || filteredPayments.length === 0) {
+        alert('Tidak ada data untuk diexport');
+        return;
+    }
+    
+    // Define CSV headers
+    const headers = ['No', 'Nama Akun', 'ID Validasi', 'Jumlah Komisi', 'Status', 'Metode', 'Waktu Validasi', 'Waktu Selesai', 'Waktu Bayar'];
+    
+    // Convert data to CSV format
+    let csvContent = headers.join(',') + '\n';
+    
+    filteredPayments.forEach((payment, index) => {
+        const row = [
+            index + 1,
+            `"${payment.nama_akun || ''}"`,
+            payment.validation_id || '',
+            payment.total_payment_amount_dis || '0',
+            payment.payment_status || 'Tidak Diketahui',
+            payment.payment_channel || '',
+            formatDateTime(payment.validation_review_time),
+            formatDateTime(payment.order_completed_period_end_time),
+            formatDateTime(payment.payment_time)
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pembayaran-komisi-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Helper functions
+function getStatusColorClass(status) {
+    if (!status) return 'bg-gray-100 text-gray-800';
+    
+    switch(status) {
+        case 'Sudah Dibayar':
+            return 'bg-green-100 text-green-800';
+        case 'Menunggu Pembayaran':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'Sedang Divalidasi':
+            return 'bg-blue-100 text-blue-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function formatDateTime(dateString) {
+    if (!dateString || dateString === "1970-01-01T00:00:00.000Z") return '-';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString('id-ID', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).replace(/\./g, ':');
+    } catch (e) {
+        return '-';
+    }
+}
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('filterForm').reset();
+    document.getElementById('search-input').value = '';
+    
+    // Reset to default dates
+    const today = new Date().toISOString().split('T')[0];
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoFormatted = sevenDaysAgo.toISOString().split('T')[0];
+    
+    document.getElementById('start-date').value = sevenDaysAgoFormatted;
+    document.getElementById('end-date').value = today;
+    
+    // Clear table
+    document.getElementById('payments-table-body').innerHTML = `
+        <tr>
+            <td colspan="9" class="text-center py-4">Silakan pilih tanggal dan klik "Cek Pembayaran"</td>
+        </tr>
+    `;
+    
+    // Reset data and hide pagination
+    allPayments = [];
+    filteredPayments = [];
+    hidePagination();
+}
+</script>

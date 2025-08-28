@@ -1,0 +1,581 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gray-50">
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+
+          <!-- Header dengan judul dan tombol -->
+          <div class="flex flex-wrap justify-between items-center">
+            <div>
+              <h6 class="mb-1">Managemant Akun</h6>
+              <!-- Informasi Paket Subscription -->
+              <div id="subscription-info" class="text-xs text-slate-500">
+                <div class="flex items-center mt-1">
+                  <span class="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full animate-pulse"></span>
+                  <span>Memuat informasi paket...</span>
+                </div>
+              </div>
+            </div>
+            <div class="">
+              <button id="add-account-btn"
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                Tambah Akun
+              </button>
+            </div>  
+          </div>
+          
+          <!-- Container untuk tabel -->
+          <div class="flex flex-wrap px-6 mt-4">
+            <div class="w-full">
+              <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-lg">
+                <!-- Card header -->
+                <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+                  <h6 class="text-lg font-semibold text-gray-800">Daftar Akun Shopee</h6>
+                </div>
+                
+                <!-- Card body -->
+                <div class="flex-auto px-0 pt-0 pb-2">
+                  <div class="p-0 overflow-x-auto">
+                    <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                      <thead class="align-bottom">
+                        <tr>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Akun</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none tracking-none whitespace-nowrap text-slate-400 opacity-70">Cookie</th>
+                          <th class="px-6 py-3 text-xs font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none tracking-none whitespace-nowrap text-slate-400 opacity-70">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody id="data-table-body">
+                        <% if (akunList && akunList.length > 0) { %>
+                          <% akunList.forEach((akun, index) => { %>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm font-medium text-gray-900"><%= index + 1 %></span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <div class="flex items-center">
+                                  <div class="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-medium text-white"><%= akun.nama_akun.charAt(0).toUpperCase() %></span>
+                                  </div>
+                                  <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900"><%= akun.nama_akun %></div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm text-gray-600 font-mono truncate max-w-xs inline-block" title="<%= akun.cookie %>">
+                                  <%= akun.cookie.substring(0, 50) %><%= akun.cookie.length > 50 ? '...' : '' %>
+                                </span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200 text-center">
+                                <div class="flex justify-center space-x-2">
+                                  <a href="/account-management/edit/<%= akun.id %>" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                    Edit
+                                  </a>
+                                  <button class="delete-akun px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors" data-id="<%= akun.id %>">
+                                    Hapus
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="4" class="text-center py-8">
+                              <div class="flex flex-col items-center text-gray-500">
+                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span>Belum ada akun yang terdaftar</span>
+                                <button id="add-first-account" class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                                  Tambah Akun Pertama
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  <!-- Pagination Controls -->
+                  <div id="pagination-controls" class="flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex-1 flex items-center justify-between">
+                      <div>
+                        <p class="text-sm text-gray-700">
+                          Menampilkan
+                          <span id="pagination-start" class="font-medium">1</span>
+                          sampai
+                          <span id="pagination-end" class="font-medium"><%= akunList.length %></span>
+                          dari
+                          <span id="pagination-total" class="font-medium"><%= akunList.length %></span>
+                          hasil
+                        </p>
+                      </div>
+                      <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="sr-only">Previous</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                          </button>
+                          <div id="page-numbers" class="flex">
+                            <!-- Page numbers will be inserted here -->
+                            <button class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-blue-600 text-sm font-medium z-10">
+                              1
+                            </button>
+                          </div>
+                          <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span class="sr-only">Next</span>
+                            <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                          </button>
+                        </nav>
+                      </div>
+                      <div class="flex items-center text-sm text-slate-600">
+                        <span>Baris per halaman:</span>
+                        <select id="rows-per-page" class="ml-2 border border-gray-300 rounded-lg px-2 py-1">
+                          <option value="10">10</option>
+                          <option value="15">15</option>
+                          <option value="30">30</option>
+                          <option value="50">50</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Hapus</h3>
+    </div>
+    <div class="px-6 py-4">
+      <p class="text-gray-700">Apakah Anda yakin ingin menghapus akun ini?</p>
+      <input type="hidden" id="delete-id">
+    </div>
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+      <button type="button" id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+        Batal
+      </button>
+      <button type="button" id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+        Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Informasi Subscription -->
+<div id="subscription-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Informasi Subscription</h3>
+    </div>
+    <div class="px-6 py-4">
+      <p id="subscription-message" class="text-gray-700"></p>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+      <button type="button" id="close-subscription-modal" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+        Mengerti
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global variables for pagination
+  let allAccounts = [];
+  let currentPage = 1;
+  let rowsPerPage = 10;
+  let subscriptionData = null;
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup event listeners untuk delete
+    document.querySelectorAll('.delete-akun').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        showConfirmModal(id);
+      });
+    });
+    
+    // Setup event listeners untuk tombol tambah akun
+    document.getElementById('add-account-btn').addEventListener('click', checkSubscriptionBeforeAdd);
+    document.getElementById('add-first-account')?.addEventListener('click', checkSubscriptionBeforeAdd);
+    
+    document.getElementById('cancel-delete').addEventListener('click', hideConfirmModal);
+    document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+    document.getElementById('close-subscription-modal').addEventListener('click', hideSubscriptionModal);
+    
+    // Close modal when clicking outside
+    document.getElementById('confirm-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'confirm-modal') hideConfirmModal();
+    });
+    
+    document.getElementById('subscription-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'subscription-modal') hideSubscriptionModal();
+    });
+    
+    // Load subscription info on page load
+    loadSubscriptionInfo();
+    
+    // Initialize pagination
+    initializePagination();
+  });
+
+  // Function untuk memuat informasi subscription
+  async function loadSubscriptionInfo() {
+    try {
+      const response = await fetch('/api/check-subscription');
+      const data = await response.json();
+      subscriptionData = data;
+      
+      // Update UI dengan informasi subscription
+      updateSubscriptionInfo(data);
+    } catch (error) {
+      console.error('Error loading subscription info:', error);
+      document.getElementById('subscription-info').innerHTML = `
+        <div class="flex items-center text-red-500">
+          <span class="inline-block w-2 h-2 mr-1 bg-red-500 rounded-full"></span>
+          <span>Gagal memuat informasi paket</span>
+        </div>
+      `;
+    }
+  }
+
+  // Function untuk memperbarui tampilan informasi subscription
+  function updateSubscriptionInfo(data) {
+    const subscriptionInfo = document.getElementById('subscription-info');
+    const currentDate = new Date();
+    const endDate = new Date(data.subscription.endDate);
+    const isDateValid = endDate > currentDate;
+    const daysRemaining = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24));
+    
+    let statusColor = 'bg-red-500';
+    let statusText = 'Tidak Aktif';
+    
+    if (data.status === 'active' && isDateValid) {
+      statusColor = 'bg-green-500';
+      statusText = 'Aktif';
+    } else if (data.status === 'active' && !isDateValid) {
+      statusColor = 'bg-yellow-500';
+      statusText = 'Kadaluarsa';
+    }
+    
+    subscriptionInfo.innerHTML = `
+      <div class="flex flex-wrap items-center gap-4 mt-1">
+        <div class="flex items-center">
+          <span class="inline-block w-2 h-2 mr-1 ${statusColor} rounded-full ${statusColor === 'bg-green-500' ? 'animate-pulse' : ''}"></span>
+          <span class="text-xs font-medium">Paket ${data.subscription.name} - ${statusText}</span>
+        </div>
+        <div class="text-xs">
+          <span class="font-medium">${data.remainingSlots}</span> dari <span class="font-medium">${data.subscription.limitAkun}</span> slot tersedia
+        </div>
+        <div class="text-xs">
+          <span class="font-medium">${daysRemaining}</span> hari tersisa (hingga ${formatDate(endDate)})
+        </div>
+      </div>
+    `;
+  }
+
+  // Function untuk memformat tanggal
+  function formatDate(date) {
+    return new Intl.DateTimeFormat('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(date);
+  }
+
+  // Function untuk mengecek subscription sebelum menambah akun
+  async function checkSubscriptionBeforeAdd() {
+    // Jika data subscription belum dimuat, muat terlebih dahulu
+    if (!subscriptionData) {
+      await loadSubscriptionInfo();
+    }
+    
+    // Cek tiga aspek: status aktif, slot tersedia, dan tanggal masih valid
+    const currentDate = new Date();
+    const endDate = new Date(subscriptionData.subscription.endDate);
+    const isDateValid = endDate > currentDate;
+    
+    if (subscriptionData.status === 'active' && subscriptionData.remainingSlots > 0 && isDateValid) {
+      // Jika semua kondisi terpenuhi, arahkan ke halaman tambah akun
+      window.location.href = '/account-management/add';
+    } else {
+      // Jika ada kondisi yang tidak terpenuhi, tampilkan modal dengan pesan error
+      let errorMessage = 'Anda tidak dapat menambahkan akun baru karena:';
+      
+      if (subscriptionData.status !== 'active') {
+        errorMessage += '<br>- Status subscription tidak aktif';
+      }
+      
+      if (subscriptionData.remainingSlots <= 0) {
+        errorMessage += `<br>- Slot akun telah penuh (${subscriptionData.subscription.limitAkun}/${subscriptionData.subscription.limitAkun})`;
+      }
+      
+      if (!isDateValid) {
+        errorMessage += `<br>- Masa berlaku subscription telah habis (${formatDate(endDate)})`;
+      }
+      
+      showSubscriptionModal(errorMessage);
+    }
+  }
+
+  // Initialize pagination
+  function initializePagination() {
+    // Get all accounts from the table
+    const tableRows = document.querySelectorAll('#data-table-body tr');
+    allAccounts = Array.from(tableRows).map(row => {
+      return {
+        element: row,
+        // Extract data from the row if needed
+      };
+    });
+    
+    // Set event listeners for pagination
+    document.getElementById('rows-per-page').addEventListener('change', function() {
+      rowsPerPage = parseInt(this.value);
+      currentPage = 1;
+      renderTableData();
+    });
+    
+    document.getElementById('prev-page').addEventListener('click', function() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTableData();
+      }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+      const totalPages = Math.ceil(allAccounts.length / rowsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTableData();
+      }
+    });
+    
+    // Initial render
+    renderTableData();
+  }
+
+  // Render table data with pagination
+  function renderTableData() {
+    const tbody = document.getElementById('data-table-body');
+    const totalItems = allAccounts.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    
+    // Hide all rows first
+    allAccounts.forEach(account => {
+      account.element.style.display = 'none';
+    });
+    
+    // Calculate pagination values
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    
+    // Show only the rows for the current page
+    for (let i = startIndex; i < endIndex; i++) {
+      if (allAccounts[i]) {
+        allAccounts[i].element.style.display = '';
+      }
+    }
+    
+    // Update pagination info
+    document.getElementById('pagination-start').textContent = totalItems > 0 ? startIndex + 1 : 0;
+    document.getElementById('pagination-end').textContent = endIndex;
+    document.getElementById('pagination-total').textContent = totalItems;
+    
+    // Render page numbers
+    renderPageNumbers(totalPages);
+    
+    // Update pagination button states
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+  }
+
+  // Render page numbers for pagination
+  function renderPageNumbers(totalPages) {
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Always show first page
+    appendPageNumber(1);
+    
+    // Calculate range of pages to show
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+      pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+      appendPageNumber(i);
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+      pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      appendPageNumber(totalPages);
+    }
+    
+    function appendPageNumber(page) {
+      const isActive = page === currentPage;
+      const pageButton = document.createElement('button');
+      pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+          'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
+          'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+      pageButton.textContent = page;
+      
+      pageButton.addEventListener('click', () => {
+        currentPage = page;
+        renderTableData();
+      });
+      
+      pageNumbersContainer.appendChild(pageButton);
+    }
+  }
+
+  // Tampilkan modal konfirmasi hapus
+  function showConfirmModal(id) {
+    document.getElementById('delete-id').value = id;
+    
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
+  // Sembunyikan modal konfirmasi hapus
+  function hideConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  // Tampilkan modal subscription
+  function showSubscriptionModal(message) {
+    document.getElementById('subscription-message').innerHTML = message;
+    
+    const modal = document.getElementById('subscription-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
+  // Sembunyikan modal subscription
+  function hideSubscriptionModal() {
+    const modal = document.getElementById('subscription-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  // Konfirmasi hapus
+  async function confirmDelete() {
+    const id = document.getElementById('delete-id').value;
+    
+    try {
+      const response = await fetch(`/api/akun/${id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) throw new Error('Gagal menghapus akun');
+      
+      hideConfirmModal();
+      window.location.href = '/account-management?success=Akun berhasil dihapus';
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Gagal menghapus akun: ' + error.message, 'error');
+    }
+  }
+
+  // Show notification
+  function showNotification(message, type = 'info') {
+    // Hapus notifikasi sebelumnya jika ada
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+      existingNotification.remove();
+    }
+    
+    const colors = {
+      success: 'bg-green-500',
+      error: 'bg-red-500',
+      warning: 'bg-yellow-500',
+      info: 'bg-blue-500'
+    };
+    
+    const icons = {
+      success: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+      error: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+      warning: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+      info: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+    };
+    
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = `fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg ${colors[type]} text-white z-50 transform transition-transform duration-300 translate-x-full`;
+    notification.innerHTML = `${icons[type]}<span>${message}</span>`;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+      notification.classList.add('translate-x-0');
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.classList.remove('translate-x-0');
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }
+    }, 5000);
+  }
+</script>

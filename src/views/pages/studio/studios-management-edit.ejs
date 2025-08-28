@@ -1,0 +1,325 @@
+<% layout("layouts/main") %>
+
+    <div class="min-h-screen bg-gray-50">
+    <!-- Header dengan judul dan tombol kembali -->
+    <div class="px-6 pt-6">
+        <div class="flex flex-wrap justify-between items-center mb-6">
+        <div class="flex items-center">
+            <a href="/studio-management" class="mr-3 text-gray-500 hover:text-gray-700">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            </a>
+            <h6 class="text-xl font-semibold text-gray-800">Edit Studio</h6>
+        </div>
+        </div>
+    </div>
+
+    <!-- Form container -->
+    <div class="flex flex-wrap px-6">
+        <div class="w-full">
+        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-lg shadow-md">
+            <!-- Card header -->
+            <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+            <h6 class="text-lg font-semibold text-gray-800">Form Edit Studio</h6>
+            </div>
+            
+            <!-- Card body -->
+            <div class="flex-auto px-6 py-4">
+            <form id="studio-form" action="/api/studios/<%= studio.id %>" method="POST">
+                <input type="hidden" name="_method" value="PUT">
+                
+                <!-- Nama Studio -->
+                <div class="mb-6">
+                <label for="nama_studio" class="block text-sm font-medium text-gray-700 mb-2">Nama Studio *</label>
+                <input type="text" id="nama_studio" name="nama_studio" required 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Masukkan nama studio"
+                    value="<%= studio.nama_studio || '' %>">
+                </div>
+
+                <!-- Catatan Studio -->
+                <div class="mb-6">
+                <label for="catatan" class="block text-sm font-medium text-gray-700 mb-2">Catatan</label>
+                <textarea id="catatan" name="catatan" rows="3"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Masukkan catatan tentang studio (opsional)"><%= studio.catatan || '' %></textarea>
+                </div>
+
+                <!-- Pilih Akun -->
+                <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Pilih Akun </label>
+                    <span id="selected-count" class="text-sm text-gray-500">0/10 akun dipilih</span>
+                </div>
+                
+                <!-- Search Box -->
+                <div class="mb-4">
+                    <div class="relative">
+                    <input type="text" id="account-search" 
+                        class="w-full px-3 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                        placeholder="Cari akun...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    </div>
+                </div>
+                
+                <!-- Daftar Akun -->
+                <div id="account-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-2">
+                    <% if (akunList && akunList.length > 0) { %>
+                    <% 
+                    const currentStudioAccounts = studio.akun.map(acc => acc.id);
+                    akunList.forEach(function(akun, index) { 
+                        const isSelected = currentStudioAccounts.includes(akun.id);
+                        const isDisabled = akun.studioId && akun.studioId !== studio.id;
+                    %>
+                        <div class="account-card bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 <%= isDisabled ? 'opacity-50' : '' %>"
+                            data-account-id="<%= akun.id %>">
+                        <div class="flex items-start">
+                            <input type="checkbox" id="account-<%= akun.id %>" 
+                                class="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                <%= isSelected ? 'checked' : '' %>
+                                <%= isDisabled ? 'disabled' : '' %>>
+                            <div class="flex-1">
+                            <label for="account-<%= akun.id %>" class="block text-sm font-medium text-gray-700 cursor-pointer">
+                                <%= akun.nama_akun || 'Akun tanpa nama' %>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1">
+                                Dibuat: <%= new Date(akun.createdAt).toLocaleDateString('id-ID') %>
+                            </p>
+                            <% if (isDisabled) { %>
+                                <p class="text-xs text-red-500 mt-1">Sudah terdaftar di studio lain</p>
+                            <% } %>
+                            </div>
+                        </div>
+                        </div>
+                    <% }); %>
+                    <% } else { %>
+                    <p class="text-gray-500 text-center py-4 col-span-2">Tidak ada akun yang tersedia</p>
+                    <% } %>
+                </div>
+                </div>
+            </form>
+            </div>
+            
+            <!-- Card footer -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+            <a href="/studio-management" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+                Batal
+            </a>
+            <button type="button" id="delete-studio" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+                Hapus Studio
+            </button>
+            <button type="submit" form="studio-form" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                Update Studio
+            </button>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
+        <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Hapus</h3>
+        </div>
+        <div class="px-6 py-4">
+        <p class="text-gray-700">Apakah Anda yakin ingin menghapus studio ini? Semua akun yang terkait akan dipindahkan ke status tidak terdaftar.</p>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+        <button type="button" id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+            Batal
+        </button>
+        <button type="button" id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+            Hapus
+        </button>
+        </div>
+    </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('studio-form');
+        const accountList = document.getElementById('account-list');
+        const accountSearch = document.getElementById('account-search');
+        const selectedCount = document.getElementById('selected-count');
+        const deleteButton = document.getElementById('delete-studio');
+        const confirmModal = document.getElementById('confirm-modal');
+        const cancelDelete = document.getElementById('cancel-delete');
+        const confirmDelete = document.getElementById('confirm-delete');
+        
+        const maxAccounts = 1000;
+        let selectedAccounts = [];
+
+        // Initialize selected accounts from current studio
+        document.querySelectorAll('.account-card input[type="checkbox"]:checked:not(:disabled)').forEach(checkbox => {
+        const accountId = checkbox.closest('.account-card').dataset.accountId;
+        selectedAccounts.push(accountId);
+        });
+        updateSelectedCount();
+
+        // Fungsi untuk memperbarui tampilan jumlah akun yang dipilih
+        function updateSelectedCount() {
+        selectedCount.textContent = `${selectedAccounts.length}/${maxAccounts} akun dipilih`;
+        }
+
+        // Fungsi untuk menangani pemilihan akun
+        function handleAccountSelection(accountId, isChecked) {
+        if (isChecked) {
+            if (selectedAccounts.length >= maxAccounts) {
+            alert(`Maksimal hanya dapat memilih ${maxAccounts} akun`);
+            return false;
+            }
+            selectedAccounts.push(accountId);
+        } else {
+            selectedAccounts = selectedAccounts.filter(id => id !== accountId);
+        }
+        updateSelectedCount();
+        return true;
+        }
+
+        // Event listener untuk checkbox
+        accountList.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') {
+            const accountId = e.target.closest('.account-card').dataset.accountId;
+            const success = handleAccountSelection(accountId, e.target.checked);
+            
+            if (!success) {
+            e.target.checked = false;
+            }
+        }
+        });
+
+        // Event listener untuk klik pada card (selain checkbox)
+        accountList.addEventListener('click', function(e) {
+        if (!e.target.matches('input[type="checkbox"]') && !e.target.matches('label')) {
+            const accountCard = e.target.closest('.account-card');
+            if (accountCard) {
+            const checkbox = accountCard.querySelector('input[type="checkbox"]');
+            if (!checkbox.disabled) {
+                checkbox.checked = !checkbox.checked;
+                const accountId = accountCard.dataset.accountId;
+                const success = handleAccountSelection(accountId, checkbox.checked);
+                
+                if (!success) {
+                checkbox.checked = false;
+                }
+            }
+            }
+        }
+        });
+
+        // Fungsi pencarian akun
+        accountSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const accountCards = accountList.querySelectorAll('.account-card');
+        
+        accountCards.forEach(card => {
+            const accountName = card.querySelector('label').textContent.toLowerCase();
+            if (accountName.includes(searchTerm)) {
+            card.style.display = 'block';
+            } else {
+            card.style.display = 'none';
+            }
+        });
+        });
+
+        // Event listener untuk form submission
+        form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const namaStudio = document.getElementById('nama_studio').value.trim();
+        const catatan = document.getElementById('catatan').value.trim();
+        
+        // Validasi
+        if (!namaStudio) {
+            alert('Nama studio harus diisi');
+            return;
+        }
+        
+        if (selectedAccounts.length === 0) {
+            alert('Pilih minimal satu akun untuk studio');
+            return;
+        }
+        
+        const data = {
+            nama_studio: namaStudio,
+            catatan: catatan || null,
+            akun: selectedAccounts.map(id => ({ id: parseInt(id) }))
+        };
+        
+        try {
+            const response = await fetch(form.action, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+            });
+            
+            if (response.ok) {
+            window.location.href = '/studio-management?success=Studio berhasil diupdate';
+            } else {
+            const errorData = await response.json();
+            alert('Gagal mengupdate studio: ' + (errorData.error || 'Error tidak diketahui'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Gagal mengupdate studio: ' + error.message);
+        }
+        });
+
+        // Delete studio functionality
+        deleteButton.addEventListener('click', function() {
+        confirmModal.classList.remove('hidden');
+        setTimeout(() => {
+            confirmModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+            confirmModal.querySelector('div').classList.add('scale-100', 'opacity-100');
+        }, 10);
+        });
+
+        cancelDelete.addEventListener('click', function() {
+        hideModal();
+        });
+
+        confirmDelete.addEventListener('click', async function() {
+        try {
+            const response = await fetch(`/api/studios/<%= studio.id %>`, {
+            method: 'DELETE',
+            });
+            
+            if (response.ok) {
+            window.location.href = '/studio-management?success=Studio berhasil dihapus';
+            } else {
+            const errorData = await response.json();
+            alert('Gagal menghapus studio: ' + (errorData.error || 'Error tidak diketahui'));
+            hideModal();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Gagal menghapus studio: ' + error.message);
+            hideModal();
+        }
+        });
+
+        // Close modal when clicking outside
+        confirmModal.addEventListener('click', function(e) {
+        if (e.target.id === 'confirm-modal') {
+            hideModal();
+        }
+        });
+
+        function hideModal() {
+        const modalContent = confirmModal.querySelector('div');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+            confirmModal.classList.add('hidden');
+        }, 300);
+        }
+    });
+    </script>

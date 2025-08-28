@@ -1,0 +1,617 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50 overflow-hidden">
+    <!-- Product Performance Table -->
+    <div class="flex flex-wrap -mx-3">
+        <div class="flex-none w-full max-w-full px-3">
+            <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+                <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+                    <div class="flex flex-wrap justify-between items-center">
+                        <!-- Judul -->
+                        <h6 class="text-xl font-semibold text-gray-800">Product Performance</h6>
+
+                        <!-- Aksi -->
+                        <div class="flex items-center gap-4">
+                            <!-- Search Akun -->
+                            <div class="relative">
+                                <div class="flex items-center border border-gray-300 rounded-md bg-white transition focus-within:ring-2 focus-within:ring-blue-500 h-10">
+                                    <span class="pl-3 text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                    </span>
+                                    <input type="text" id="account-search"
+                                        placeholder="Cari akun..."
+                                        class="w-full py-2 pl-2 pr-3 text-sm rounded-md focus:outline-none h-full" />
+                                </div>
+                                <select id="account-dropdown" class="hidden">
+                                    <option value="">Pilih Akun</option>
+                                </select>
+                                <div id="account-results"
+                                    class="absolute z-10 hidden w-full mt-1 bg-white border border-gray-200 rounded-md shadow-md max-h-60 overflow-y-auto"></div>
+                            </div>
+
+                            <!-- Tombol Lihat Data (Primary) -->
+                            <button id="view-data-btn" class="px-5 py-2.5 text-sm font-semibold text-white transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-95">
+                                Lihat Data
+                            </button>
+
+                            <!-- Tombol Export CSV (Secondary / Outline) -->
+                            <button id="export-csv-btn"
+                                class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-green-700 border border-green-600 rounded-md transition hover:bg-green-50 focus:ring-2 focus:ring-green-400 active:scale-95">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-auto px-0 pt-0 pb-2">
+                    <div id="account-info" class="px-6 py-3 bg-gray-50 hidden">
+                        <p class="text-sm text-gray-600">Total Produk: <span id="total-products" class="font-medium"></span></p>
+                    </div>
+                    
+                    <div class="p-0 overflow-x-auto">
+                        <table class="w-full mb-0 align-top border-gray-200 text-slate-500">
+                            <thead class="align-bottom">
+                                <tr>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama Produk</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Harga Min</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Harga Max</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Klik</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ctr</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">ACT</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Revenue</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Item</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">COR</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Ord</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Rev</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Item</th>
+                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="data-table-body">
+                                <tr>
+                                    <td colspan="15" class="text-center py-4">Pilih akun untuk melihat data produk</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination Controls -->
+                    <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
+                        <div class="flex-1 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Menampilkan
+                                    <span id="pagination-start" class="font-medium">0</span>
+                                    sampai
+                                    <span id="pagination-end" class="font-medium">0</span>
+                                    dari
+                                    <span id="pagination-total" class="font-medium">0</span>
+                                    hasil
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div id="page-numbers" class="flex">
+                                        <!-- Page numbers will be inserted here -->
+                                    </div>
+                                    <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </nav>
+                            </div>
+                            <div class="flex items-center text-sm text-slate-600">
+                                <span>Baris per halaman:</span>
+                                <select id="rows-per-page" class="ml-2 border border-gray-300 rounded-lg px-2 py-1">
+                                    <option value="10">10</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styles for better table display */
+#data-table-body td {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 12px;
+}
+
+#data-table-body td:nth-child(2) { /* Nama Produk column */
+    max-width: 180px;
+    white-space: normal;
+    line-height: 1.4;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.table-container {
+    width: 100%;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    #data-table-body td {
+        max-width: 80px;
+        font-size: 0.75rem;
+        padding: 8px;
+    }
+    
+    #data-table-body td:nth-child(2) { /* Nama Produk column */
+        max-width: 120px;
+    }
+    
+    th {
+        font-size: 0.7rem;
+        padding: 8px;
+    }
+}
+
+/* Custom scrollbar for dropdown */
+#account-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+#account-results::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 0 4px 4px;
+}
+
+#account-results::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+#account-results::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Improved styling for form elements */
+#account-search {
+    text-align: left !important;
+}
+
+#account-search::placeholder {
+    text-align: left;
+}
+
+/* Ensure consistent height for all buttons */
+#view-data-btn, #export-csv-btn {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Add spacing between action buttons */
+.flex.items-center.gap-4 > * {
+    margin-right: 0.5rem;
+}
+
+.flex.items-center.gap-4 > *:last-child {
+    margin-right: 0;
+}
+</style>
+
+<script>
+// Global variables
+let allAccounts = [];
+let allProducts = [];
+let currentPage = 1;
+let rowsPerPage = 10;
+
+// DOM Ready
+document.addEventListener('DOMContentLoaded', function() {
+    loadAccounts();
+    
+    
+    // Set event listeners
+    document.getElementById('view-data-btn').addEventListener('click', function() {
+        const selectedAccountId = document.getElementById('account-dropdown').value;
+        const selectedAccountName = document.getElementById('account-search').value;
+        
+        if (selectedAccountId) {
+            loadProductData(selectedAccountId, selectedAccountName);
+        } else {
+            alert('Silakan pilih akun terlebih dahulu');
+        }
+    });
+    
+    document.getElementById('export-csv-btn').addEventListener('click', function() {
+        exportToCSV();
+    });
+    
+    document.getElementById('rows-per-page').addEventListener('change', function() {
+        rowsPerPage = parseInt(this.value);
+        if (allProducts.length > 0) {
+            currentPage = 1;
+            renderProductData();
+        }
+    });
+    
+    document.getElementById('prev-page').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderProductData();
+        }
+    });
+    
+    document.getElementById('next-page').addEventListener('click', function() {
+        const totalPages = Math.ceil(allProducts.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderProductData();
+        }
+    });
+    
+    // Search functionality
+    const accountSearch = document.getElementById('account-search');
+    const accountResults = document.getElementById('account-results');
+    const accountDropdown = document.getElementById('account-dropdown');
+    
+    accountSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        
+        if (searchTerm.length === 0) {
+            accountResults.classList.add('hidden');
+            return;
+        }
+        
+        const filteredAccounts = allAccounts.filter(account => 
+            account.nama_akun.toLowerCase().includes(searchTerm)
+        );
+        
+        if (filteredAccounts.length > 0) {
+            accountResults.innerHTML = filteredAccounts.map(account => `
+                <div class="px-4 py-2 cursor-pointer hover:bg-gray-100" data-value="${account.id}">
+                    ${account.nama_akun}
+                </div>
+            `).join('');
+            
+            // Add click event to each result
+            accountResults.querySelectorAll('div').forEach(item => {
+                item.addEventListener('click', function() {
+                    accountSearch.value = this.textContent;
+                    accountDropdown.value = this.getAttribute('data-value');
+                    accountResults.classList.add('hidden');
+                });
+            });
+            
+            accountResults.classList.remove('hidden');
+        } else {
+            accountResults.innerHTML = '<div class="px-4 py-2 text-gray-500">Tidak ada hasil</div>';
+            accountResults.classList.remove('hidden');
+        }
+    });
+    
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#account-search') && !e.target.closest('#account-results')) {
+            accountResults.classList.add('hidden');
+        }
+    });
+});
+
+// Load accounts from API
+async function loadAccounts() {
+    try {
+        const response = await fetch('/api/akun');
+        if (!response.ok) throw new Error('Gagal memuat data akun');
+        
+        allAccounts = await response.json();
+        const dropdown = document.getElementById('account-dropdown');
+        
+        // Clear existing options except the first one
+        while (dropdown.options.length > 1) {
+            dropdown.remove(1);
+        }
+        
+        // Add new options
+        allAccounts.forEach(account => {
+            const option = document.createElement('option');
+            option.value = account.id;
+            option.textContent = account.nama_akun;
+            dropdown.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        alert(`Gagal memuat data akun: ${error.message}`);
+    }
+}
+
+// Load product data for selected account
+async function loadProductData(accountId, accountName) {
+    try {
+        // Show loading state
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="15" class="text-center py-4">
+                    <div class="flex justify-center items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Memuat data produk...
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Fetch product data from API
+        const response = await fetch('/api/products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ accountId: accountId })
+        });
+        
+        if (!response.ok) throw new Error('Gagal memuat data produk');
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Gagal memuat data produk');
+        }
+        
+        // Show account info
+        const accountInfo = document.getElementById('account-info');
+        document.getElementById('total-products').textContent = data.totalProducts || '0';
+        accountInfo.classList.remove('hidden');
+        
+        // Store all products and render with pagination
+        allProducts = data.products || [];
+        currentPage = 1;
+        renderProductData();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="15" class="text-center py-4 text-red-500">Gagal memuat data produk: ${error.message}</td>
+            </tr>
+        `;
+        
+        // Hide account info if there's an error
+        document.getElementById('account-info').classList.add('hidden');
+        hidePagination();
+    }
+}
+
+// Function to truncate text with ellipsis
+function truncateText(text, maxLength = 20) {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+// Render product data to table with pagination
+function renderProductData() {
+    const tbody = document.getElementById('data-table-body');
+    
+    if (!allProducts || allProducts.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="15" class="text-center py-4">Tidak ada data produk untuk akun ini</td>
+            </tr>
+        `;
+        hidePagination();
+        return;
+    }
+    
+    // Calculate pagination values
+    const totalItems = allProducts.length;
+    const totalPages = Math.ceil(totalItems / rowsPerPage);
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalItems);
+    const currentItems = allProducts.slice(startIndex, endIndex);
+    
+    // Update pagination info
+    document.getElementById('pagination-start').textContent = startIndex + 1;
+    document.getElementById('pagination-end').textContent = endIndex;
+    document.getElementById('pagination-total').textContent = totalItems;
+    
+    // Render page numbers
+    renderPageNumbers(totalPages);
+    
+    // Show table data
+    tbody.innerHTML = currentItems.map((item, index) => `
+        <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100">
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${startIndex + index + 1}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b shadow-transparent" title="${item.namaProduk}">
+                <span class="text-sm">${truncateText(item.namaProduk, 25)}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.hargaMin}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.hargaMax}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.klik}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.ctr}%</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.act}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.order}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.revenue}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.item}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${(item.cor * 100).toFixed(2)}%</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.confOrder}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.confRev}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="text-sm">${item.confItem}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
+                <span class="px-2 py-1 text-xs rounded-full ${
+                    item.status === 'Laris' ? 'bg-green-100 text-green-800' : 
+                    item.status === 'Tidak Laris' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                }">
+                    ${item.status}
+                </span>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Show pagination controls
+    showPagination();
+    
+    // Update pagination button states
+    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('next-page').disabled = currentPage === totalPages;
+}
+
+// Render page numbers for pagination
+function renderPageNumbers(totalPages) {
+    const pageNumbersContainer = document.getElementById('page-numbers');
+    pageNumbersContainer.innerHTML = '';
+    
+    if (totalPages <= 1) return;
+    
+    // Always show first page
+    appendPageNumber(1);
+    
+    // Calculate range of pages to show
+    let startPage = Math.max(2, currentPage - 1);
+    let endPage = Math.min(totalPages - 1, currentPage + 1);
+    
+    // Add ellipsis if needed
+    if (startPage > 2) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Add middle pages
+    for (let i = startPage; i <= endPage; i++) {
+        appendPageNumber(i);
+    }
+    
+    // Add ellipsis if needed
+    if (endPage < totalPages - 1) {
+        pageNumbersContainer.innerHTML += '<span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>';
+    }
+    
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+        appendPageNumber(totalPages);
+    }
+    
+    function appendPageNumber(page) {
+        const isActive = page === currentPage;
+        const pageButton = document.createElement('button');
+        pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+            'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
+            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
+        pageButton.textContent = page;
+        
+        pageButton.addEventListener('click', () => {
+            currentPage = page;
+            renderProductData();
+        });
+        
+        pageNumbersContainer.appendChild(pageButton);
+    }
+}
+
+// Show pagination controls
+function showPagination() {
+    document.getElementById('pagination-controls').classList.remove('hidden');
+}
+
+// Hide pagination controls
+function hidePagination() {
+    document.getElementById('pagination-controls').classList.add('hidden');
+}
+
+// Export to CSV function
+function exportToCSV() {
+    if (!allProducts || allProducts.length === 0) {
+        alert('Tidak ada data untuk diexport');
+        return;
+    }
+    
+    // Define CSV headers
+    const headers = ['No', 'Nama Produk', 'Harga Min', 'Harga Max', 'Klik', 'Ctr', 'ACT', 'Order', 'Revenue', 'Item', 'COR', 'Conf Ord', 'Conf Rev', 'Conf Item', 'Status'];
+    
+    // Convert data to CSV format
+    let csvContent = headers.join(',') + '\n';
+    
+    allProducts.forEach((product, index) => {
+        const row = [
+            index + 1,
+            `"${product.namaProduk || ''}"`,
+            product.hargaMin || '',
+            product.hargaMax || '',
+            product.klik || '',
+            product.ctr || '',
+            product.act || '',
+            product.order || '',
+            product.revenue || '',
+            product.item || '',
+            (product.cor * 100).toFixed(2) + '%' || '',
+            product.confOrder || '',
+            product.confRev || '',
+            product.confItem || '',
+            product.status || ''
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const accountName = document.getElementById('account-search').value;
+    const date = new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `product-performance-${accountName}-${date}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>

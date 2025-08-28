@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  nomor_wa  String?
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+  akun      Akun[]
+  studio    Studio[]
+  userSubscriptions UserSubscription[]
+}
+
+model Akun {
+  id         Int      @id @default(autoincrement())
+  nama_akun  String?
+  cookie     String?  @db.Text   // Bisa sampai 65,535 karakter
+  createdAt  DateTime @default(now())
+
+  // relasi ke Studio
+  studioId   Int?
+  studio     Studio?  @relation(fields: [studioId], references: [id])
+
+  // relasi ke User
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Studio {
+  id          Int      @id @default(autoincrement())
+  nama_studio String?
+  catatan     String?  @db.Text 
+
+  // relasi ke Akun (1 studio bisa punya banyak akun)
+  akun        Akun[]
+
+  // relasi ke User
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id          Int       @id @default(autoincrement())
+  name        String    // contoh: Basic, Premium, Enterprise
+  description String?   @db.Text
+  price       Float
+  duration    Int?       // dalam hari (contoh: 30, 90, 365)
+  limitAkun   Int       @default(1) // jumlah akun yang diizinkan
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // relasi ke UserSubscription
+  userSubscriptions UserSubscription[]
+}
+
+
+enum UserSubscriptionStatus {
+  active
+  expired
+  canceled
+}
+
+model UserSubscription {
+  id              Int                     @id @default(autoincrement())
+  userId          Int
+  subscriptionId  Int
+  startDate       DateTime                @default(now())
+  endDate         DateTime
+  status          UserSubscriptionStatus  @default(active)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  // relasi ke User
+  user            User          @relation(fields: [userId], references: [id])
+
+  // relasi ke Subscription
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id])
+
+  // relasi ke Order
+  orders          Order[]
+}
+
+
+enum OrderStatus {
+  pending
+  paid
+  failed
+}
+
+model Order {
+  id                 Int       @id @default(autoincrement())
+  userSubscriptionId Int
+  amount             Float
+  status             OrderStatus @default(pending)
+  paymentMethod      String?
+  transactionId      String?   @unique
+  createdAt          DateTime  @default(now())
+
+  userSubscription   UserSubscription @relation(fields: [userSubscriptionId], references: [id])
+}
+

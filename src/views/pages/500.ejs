@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Server</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        warning: '#F59E0B',
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'pulse-slow': 'pulse 3s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .wave-top {
+            color: #FEF3C7;
+        }
+        .wave-bottom {
+            color: #FEF3C7;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="absolute top-0 left-0 w-full overflow-hidden pointer-events-none">
+        <svg class="relative block w-full h-20 wave-top" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0V6c0,21.6,291,111.46,741,110.26,445.39,3.6,459-88.3,459-110.26V0Z" class="shape-fill" fill="currentColor"></path>
+        </svg>
+    </div>
+    
+    <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-2xl shadow-xl card border border-gray-100">
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-32 w-32 rounded-full bg-yellow-100 relative">
+                <i class="fa-solid fa-server text-yellow-500 text-6xl z-10"></i>
+                <div class="absolute inset-0 bg-yellow-100 rounded-full animate-ping opacity-20"></div>
+            </div>
+            
+            <h1 class="mt-6 text-9xl font-bold bg-gradient-to-r from-yellow-500 to-orange-600 bg-clip-text text-transparent">
+                500
+            </h1>
+            
+            <h2 class="mt-4 text-3xl font-bold text-gray-900">Error Server Internal</h2>
+            
+            <div class="mt-4 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                <p class="text-yellow-700 font-medium">Terjadi kesalahan pada server. Tim kami telah diberitahu dan sedang memperbaikinya.</p>
+            </div>
+            
+            <p class="mt-4 text-gray-600">
+                Maaf, server mengalami masalah teknis yang tidak terduga.
+            </p>
+            
+            <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-500">Silakan coba lagi dalam beberapa saat, atau hubungi dukungan teknis jika masalah berlanjut.</p>
+            </div>
+            
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary to-purple-700 hover:from-purple-600 hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+                    <i class="fa-solid fa-house mr-2"></i> Kembali ke Beranda
+                </a>
+                <button onclick="location.reload()" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Coba Lagi
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none rotate-180">
+        <svg class="relative block w-full h-20 wave-bottom" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0V6c0,21.6,291,111.46,741,110.26,445.39,3.6,459-88.3,459-110.26V0Z" class="shape-fill" fill="currentColor"></path>
+        </svg>
+    </div>
+</body>
+</html>

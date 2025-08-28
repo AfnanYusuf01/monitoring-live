@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Subscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                        'medium': '0 6px 25px rgba(0, 0, 0, 0.07)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .payment-method {
+            transition: all 0.2s ease;
+        }
+        .payment-method:hover {
+            transform: translateY(-2px);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+        .check-icon {
+            transition: all 0.2s ease;
+        }
+        .step-indicator {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background-color: #e0f2fe;
+            color: #0369a1;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .step-indicator.active {
+            background-color: #0ea5e9;
+            color: white;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalopen 0.3s;
+        }
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-50px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        .close {
+            color: #aaa;
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .form-tab {
+            cursor: pointer;
+            padding: 12px 20px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .form-tab.active {
+            border-bottom-color: #0ea5e9;
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+        .form-container {
+            display: none;
+        }
+        .form-container.active {
+            display: block;
+        }
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            z-index: 60;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .confirmation-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            animation: modalopen 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-secondary-50 text-secondary-700">
+    <div class="min-h-screen py-8">
+        <div class="max-w-5xl mx-auto px-4">
+            <!-- Header -->
+            <header class="text-center mb-10">
+                <h1 class="text-3xl font-bold text-primary-700 mb-2"><%= subscription.name %></h1>
+                <p class="text-secondary-600">Tingkatkan pengalaman Anda dengan paket premium kami</p>
+            </header>
+
+            <!-- Info User jika sudah login -->
+            <% if (user) { %>
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-user-check text-green-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-green-800">Anda sudah login</h3>
+                        <p class="text-green-600 text-sm"><%= user.name %> (<%= user.email %>)</p>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="text-sm text-green-600 hover:text-green-800 font-medium flex items-center">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                </button>
+            </div>
+            <% } else { %>
+            <!-- Info jika belum login -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <i class="fas fa-info-circle text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-blue-800">Anda perlu login untuk melanjutkan pembayaran</h3>
+                        <p class="text-blue-600 text-sm">Silakan login atau daftar jika belum memiliki akun</p>
+                    </div>
+                </div>
+                <button id="showAuthModal" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center">
+                    <i class="fas fa-user mr-2"></i> Login / Daftar
+                </button>
+            </div>
+            <% } %>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Detail Paket -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-xl shadow-soft p-6">
+                        <h2 class="text-xl font-semibold text-secondary-800 mb-6 pb-3 border-b border-secondary-100 flex items-center">
+                            <i class="fas fa-box-open text-primary-500 mr-2"></i>
+                            Detail Paket
+                        </h2>
+                        
+                        <div class="flex items-center mb-6 p-4 gradient-bg rounded-lg">
+                            <div class="bg-white p-4 rounded-lg shadow-soft mr-4">
+                                <i class="fas fa-crown text-primary-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-secondary-800" id="packageName"><%= subscription.name %></h3>
+                                <p class="text-secondary-600" id="packageLimit"><i class="fas fa-user text-primary-500 mr-1"></i><%= subscription.limitAkun %> Akun</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-secondary-100 pt-5">
+                            <div class="flex justify-between mb-3 py-2">
+                                <span class="text-secondary-600"><i class="fas fa-tag text-primary-500 mr-2"></i>Harga Paket</span>
+                                <span class="text-secondary-800 font-medium" id="packagePrice">Rp <%= subscription.price %></span>
+                            </div>
+                            <div class="flex justify-between mb-3 py-2">
+                                <span class="text-secondary-600"><i class="fas fa-calendar-alt text-primary-500 mr-2"></i>Durasi</span>
+                                <span class="text-secondary-800 font-medium" id="packageDuration"><%= subscription.duration %> Hari</span>
+                            </div>
+                            <div class="flex justify-between font-semibold text-lg mt-5 pt-5 border-t border-secondary-200">
+                                <span class="text-secondary-800">Total Pembayaran</span>
+                                <span class="text-primary-600" id="totalPrice">Rp <%= subscription.price %></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Informasi Tambahan -->
+                    <div class="bg-white rounded-xl shadow-soft p-6">
+                        <h2 class="text-xl font-semibold text-secondary-800 mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                            Keuntungan Berlangganan
+                        </h2>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span>Akses penuh ke semua fitur premium</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span>Dukungan prioritas 24/7</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span>Pembaruan fitur secara rutin</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                <span>Jaminan uang kembali dalam 14 hari</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Metode Pembayaran -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-medium p-6 sticky top-6">
+                        <h2 class="text-xl font-semibold text-secondary-800 mb-6 pb-3 border-b border-secondary-100 flex items-center">
+                            <i class="fas fa-credit-card text-primary-500 mr-2"></i>
+                            Metode Pembayaran
+                        </h2>
+                        
+                        <div class="mb-6">
+                            <label class="block text-secondary-700 text-sm font-medium mb-3">Pilih Metode Pembayaran</label>
+                            <div class="grid grid-cols-2 gap-3" id="paymentMethods">
+                                <!-- Payment methods will be populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6 hidden" id="selectedMethodInfo">
+                            <p class="text-sm text-secondary-600 mb-2">Metode dipilih:</p>
+                            <div class="flex items-center p-3 bg-secondary-50 rounded-lg border border-secondary-200">
+                                <img id="selectedMethodImage" src="" alt="" class="h-8 mr-3">
+                                <span id="selectedMethodName" class="text-secondary-700 font-medium"></span>
+                            </div>
+                        </div>
+                        
+                        <button id="payButton" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center disabled:bg-secondary-400 disabled:cursor-not-allowed shadow-md hover:shadow-lg">
+                            <i class="fas fa-lock mr-2"></i>
+                            Lanjutkan Pembayaran
+                        </button>
+                        
+                        <div class="mt-6 pt-5 border-t border-secondary-100">
+                            <div class="flex items-center text-sm text-secondary-500">
+                                <i class="fas fa-shield-alt text-primary-500 mr-2"></i>
+                                <span>Transaksi Anda aman dan terenkripsi</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-secondary-500 mt-4 text-center">
+                            Dengan melanjutkan, Anda menyetujui <a href="#" class="text-primary-600 hover:underline">Syarat dan Ketentuan</a> kami.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Login/Register -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            
+            <div class="flex border-b border-secondary-200">
+                <div class="form-tab active w-1/2 text-center" data-form="login">Login</div>
+                <div class="form-tab w-1/2 text-center" data-form="register">Daftar</div>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="form-container active p-6">
+                <h3 class="text-xl font-semibold text-secondary-800 mb-6 text-center">Masuk ke Akun Anda</h3>
+                
+                <form id="loginFormElement">
+                    <div class="mb-4">
+                        <label for="loginEmail" class="block text-secondary-700 text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="loginEmail" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="nama@contoh.com" required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label for="loginPassword" class="block text-secondary-700 text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="loginPassword" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="Masukkan password" required>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Masuk
+                    </button>
+                </form>
+                
+                <p class="text-sm text-secondary-600 mt-4 text-center">
+                    Lupa password? <a href="#" class="text-primary-600 hover:underline">Reset di sini</a>
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerForm" class="form-container p-6">
+                <h3 class="text-xl font-semibold text-secondary-800 mb-6 text-center">Buat Akun Baru</h3>
+                
+                <form id="registerFormElement">
+                    <div class="mb-4">
+                        <label for="registerName" class="block text-secondary-700 text-sm font-medium mb-2">Nama Lengkap</label>
+                        <input type="text" id="registerName" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="Nama lengkap" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="registerEmail" class="block text-secondary-700 text-sm font-medium mb-2">Email</label>
+                        <input type="email" id="registerEmail" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="nama@contoh.com" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="registerPhone" class="block text-secondary-700 text-sm font-medium mb-2">Nomor WhatsApp</label>
+                        <input type="tel" id="registerPhone" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="081234567890" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="registerPassword" class="block text-secondary-700 text-sm font-medium mb-2">Password</label>
+                        <input type="password" id="registerPassword" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="Buat password" required>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="registerTerms" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded" required>
+                            <label for="registerTerms" class="ml-2 block text-sm text-secondary-700">
+                                Saya menyetujui <a href="#" class="text-primary-600 hover:underline">Syarat & Ketentuan</a>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <i class="fas fa-user-plus mr-2"></i> Daftar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Subscription -->
+    <div id="confirmationModal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <span class="close" id="closeConfirmation">&times;</span>
+            
+            <div class="text-center mb-6">
+                <i class="fas fa-exclamation-circle text-yellow-500 text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-secondary-800 mb-2" id="confirmationTitle"></h3>
+                <p class="text-secondary-600" id="confirmationMessage"></p>
+            </div>
+            
+            <div class="bg-secondary-50 p-4 rounded-lg mb-6 hidden" id="currentSubscriptionInfo">
+                <h4 class="font-medium text-secondary-800 mb-2">Subscription Aktif Anda:</h4>
+                <p class="text-sm text-secondary-600" id="currentSubscriptionDetails"></p>
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button id="cancelPayment" class="px-6 py-2 border border-secondary-300 text-secondary-700 rounded-lg hover:bg-secondary-100 transition duration-200">
+                    Batal
+                </button>
+                <button id="confirmPayment" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition duration-200">
+                    Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tambahkan script ini untuk meneruskan data subscription dari server ke client -->
+<script>
+    // Data subscription dari server
+    const subscription = <%- JSON.stringify(subscription) %>;
+
+    // Data user dari server (jika ada)
+    const user = <%- JSON.stringify(user || null) %>;
+</script>
+
+    <script>
+        // Data metode pembayaran
+        const availablePaymentMethods = [
+            { paymentMethod: 'BC', paymentName: 'BCA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BCA.SVG' },
+            { paymentMethod: 'BR', paymentName: 'BRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BR.PNG' },
+            { paymentMethod: 'M2', paymentName: 'MANDIRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MV.PNG' },
+            { paymentMethod: 'B1', paymentName: 'CIMB NIAGA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/B1.PNG' },
+            { paymentMethod: 'DA', paymentName: 'DANA', paymentImage: 'https://images.duitku.com/hotlink-ok/DA.PNG' },
+            { paymentMethod: 'OV', paymentName: 'OVO', paymentImage: 'https://images.duitku.com/hotlink-ok/OV.PNG' },
+            { paymentMethod: 'SP', paymentName: 'SHOPEEPAY', paymentImage: 'https://images.duitku.com/hotlink-ok/SHOPEEPAY.PNG' },
+            { paymentMethod: 'LA', paymentName: 'LINKAJA', paymentImage: 'https://images.duitku.com/hotlink-ok/LINKAJA.PNG' },
+            { paymentMethod: 'IR', paymentName: 'INDOMARET', paymentImage: 'https://images.duitku.com/hotlink-ok/IR.PNG' },
+            { paymentMethod: 'DN', paymentName: 'INDODANA', paymentImage: 'https://images.duitku.com/hotlink-ok/DN.PNG' },
+        ];
+
+        // Format angka ke Rupiah
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(angka);
+        }
+
+        // Fungsi untuk memuat metode pembayaran
+        function loadPaymentMethods() {
+            const paymentMethodsContainer = document.getElementById('paymentMethods');
+            paymentMethodsContainer.innerHTML = '';
+            
+            availablePaymentMethods.forEach(method => {
+                const methodElement = document.createElement('div');
+                methodElement.className = 'payment-method relative border border-secondary-200 rounded-lg p-3 cursor-pointer hover:border-primary-500 bg-white';
+                methodElement.dataset.method = method.paymentMethod;
+                methodElement.dataset.name = method.paymentName;
+                methodElement.dataset.image = method.paymentImage;
+                
+                methodElement.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <img src="${method.paymentImage}" alt="${method.paymentName}" class="h-6 mb-2 object-contain">
+                        <span class="text-xs text-secondary-700 text-center font-medium">${method.paymentName}</span>
+                    </div>
+                    <div class="absolute top-2 right-2 hidden check-icon">
+                        <i class="fas fa-check-circle text-primary-600"></i>
+                    </div>
+                `;
+                
+                methodElement.addEventListener('click', () => selectPaymentMethod(methodElement));
+                paymentMethodsContainer.appendChild(methodElement);
+            });
+        }
+
+        // Fungsi untuk memilih metode pembayaran
+        function selectPaymentMethod(element) {
+            // Hapus seleksi sebelumnya
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('border-primary-500', 'bg-primary-50');
+                el.querySelector('.check-icon').classList.add('hidden');
+            });
+            
+            // Tambahkan seleksi pada elemen yang diklik
+            element.classList.add('border-primary-500', 'bg-primary-50');
+            element.querySelector('.check-icon').classList.remove('hidden');
+            
+            // Tampilkan info metode yang dipilih
+            const selectedMethodInfo = document.getElementById('selectedMethodInfo');
+            const selectedMethodImage = document.getElementById('selectedMethodImage');
+            const selectedMethodName = document.getElementById('selectedMethodName');
+            
+            selectedMethodImage.src = element.dataset.image;
+            selectedMethodName.textContent = element.dataset.name;
+            selectedMethodInfo.classList.remove('hidden');
+            
+            // Aktifkan tombol bayar
+            document.getElementById('payButton').disabled = false;
+        }
+
+        // Fungsi untuk menampilkan modal konfirmasi
+        function showConfirmationModal(type, message, subscriptionData = null) {
+            const modal = document.getElementById('confirmationModal');
+            const title = document.getElementById('confirmationTitle');
+            const messageEl = document.getElementById('confirmationMessage');
+            const subscriptionInfo = document.getElementById('currentSubscriptionInfo');
+            const subscriptionDetails = document.getElementById('currentSubscriptionDetails');
+            
+            // Set konten modal berdasarkan tipe
+            if (type === 'same') {
+                title.textContent = 'Perpanjang Subscription';
+                messageEl.textContent = message;
+                
+                if (subscriptionData) {
+                    const endDate = new Date(subscriptionData.endDate).toLocaleDateString('id-ID');
+                    subscriptionDetails.textContent = `${subscriptionData.subscription.name} (${subscriptionData.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
+                    subscriptionInfo.classList.remove('hidden');
+                }
+            } else if (type === 'different') {
+                title.textContent = 'Ganti Subscription';
+                messageEl.textContent = message;
+                
+                if (subscriptionData) {
+                    const endDate = new Date(subscriptionData.endDate).toLocaleDateString('id-ID');
+                    subscriptionDetails.textContent = `${subscriptionData.subscription.name} (${subscriptionData.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
+                    subscriptionInfo.classList.remove('hidden');
+                }
+            } else {
+                // Tidak ada subscription aktif, langsung proses pembayaran
+                processPayment();
+                return;
+            }
+            
+            // Tampilkan modal
+            modal.style.display = 'block';
+            
+            // Setup event listeners untuk tombol modal
+            document.getElementById('confirmPayment').onclick = () => {
+                modal.style.display = 'none';
+                processPayment();
+            };
+            
+            document.getElementById('cancelPayment').onclick = () => {
+                modal.style.display = 'none';
+            };
+            
+            document.getElementById('closeConfirmation').onclick = () => {
+                modal.style.display = 'none';
+            };
+            
+            window.onclick = (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        }
+
+        // Fungsi untuk memproses pembayaran
+        function processPayment() {
+            const selectedMethod = document.querySelector('.payment-method.border-primary-500');
+            if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
+
+            const paymentMethod = selectedMethod.dataset.method;
+
+            fetch(`/subscription/buy/${subscription.id}?method=${paymentMethod}`, {
+                method: "POST"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.paymentUrl) {
+                    window.location.href = data.paymentUrl; // redirect manual ke Duitku
+                } else {
+                    showNotification(data.message || "Gagal membuat transaksi", 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification("Gagal membuat transaksi", 'error');
+            });
+        }
+
+        // Fungsi untuk menangani pembayaran
+        function handlePayment() {
+            // Cek apakah user sudah login
+            if (!user) {
+                showNotification('Silakan login terlebih dahulu', 'error');
+                document.getElementById('showAuthModal').click();
+                return;
+            }
+
+            const selectedMethod = document.querySelector('.payment-method.border-primary-500');
+            if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
+
+            // Cek status subscription user
+            fetch(`/api/check-subscription/${subscription.id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.type === 'same' || data.type === 'different'  || data.type === 'add-limi') {
+                        // Tampilkan modal konfirmasi
+                        showConfirmationModal(data.type, data.message, data.data);
+                    } else {
+                        // Tidak ada subscription aktif, langsung proses pembayaran
+                        processPayment();
+                    }
+                } else {
+                    showNotification(data.message || "Gagal memeriksa status subscription", 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification("Gagal memeriksa status subscription", 'error');
+            });
+        }
+
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(message, type) {
+            // Hapus notifikasi sebelumnya jika ada
+            const existingNotification = document.getElementById('notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.id = 'notification';
+            notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white font-medium transition-opacity duration-300 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Hapus notifikasi setelah 3 detik
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Fungsi untuk mengelola modal login/register
+        function setupAuthModal() {
+            const modal = document.getElementById('authModal');
+            const showAuthModalBtn = document.getElementById('showAuthModal');
+            const closeBtn = document.querySelector('.close');
+            const formTabs = document.querySelectorAll('.form-tab');
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const loginFormElement = document.getElementById('loginFormElement');
+            const registerFormElement = document.getElementById('registerFormElement');
+
+            // Buka modal
+            if (showAuthModalBtn) {
+                showAuthModalBtn.addEventListener('click', () => {
+                    modal.style.display = 'block';
+                });
+            }
+
+            // Tutup modal
+            closeBtn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            // Tutup modal jika klik di luar konten
+            window.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            // Toggle antara form login dan register
+            formTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const formType = tab.dataset.form;
+                    
+                    // Update tab aktif
+                    formTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Tampilkan form yang sesuai
+                    if (formType === 'login') {
+                        loginForm.classList.add('active');
+                        registerForm.classList.remove('active');
+                    } else {
+                        loginForm.classList.remove('active');
+                        registerForm.classList.add('active');
+                    }
+                });
+            });
+
+            // Handle form login
+            loginFormElement.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Login berhasil', 'success');
+                        setTimeout(() => {
+                            location.reload(); // Reload halaman untuk update status user
+                        }, 1500);
+                    } else {
+                        showNotification(data.message || 'Login gagal', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Terjadi kesalahan saat login', 'error');
+                });
+            });
+
+            // Handle form register
+            registerFormElement.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = document.getElementById('registerName').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const nomor_wa = document.getElementById('registerPhone').value;
+                const terms = document.getElementById('registerTerms').checked;
+                
+                fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password, nomor_wa, terms })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Registrasi berhasil', 'success');
+                        setTimeout(() => {
+                            location.reload(); // Reload halaman untuk update status user
+                        }, 1500);
+                    } else {
+                        showNotification(data.message || 'Registrasi gagal', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Terjadi kesalahan saat registrasi', 'error');
+                });
+            });
+        }
+
+        // Fungsi untuk handle logout
+        function setupLogout() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    fetch('/api/logout', {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Logout berhasil', 'success');
+                            setTimeout(() => {
+                                location.reload(); // Reload halaman untuk update status user
+                            }, 1500);
+                        } else {
+                            showNotification(data.message || 'Logout gagal', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Terjadi kesalahan saat logout', 'error');
+                    });
+                });
+            }
+        }
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPaymentMethods();
+            
+            // Setup modal login/register
+            setupAuthModal();
+            
+            // Setup logout
+            setupLogout();
+            
+            // Event listener untuk tombol bayar
+            document.getElementById('payButton').addEventListener('click', handlePayment);
+            
+            // Nonaktifkan tombol bayar sampai metode dipilih
+            document.getElementById('payButton').disabled = true;
+            
+            // Jika user belum login, nonaktifkan tombol bayar
+            if (!user) {
+                document.getElementById('payButton').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<% layout("layouts/main") %>
+<div class="min-h-screen bg-gray-50">
+  <!-- Header dengan judul dan tombol kembali -->
+  <div class="px-6 pt-6">
+    <div class="flex flex-wrap justify-between items-center mb-6">
+      <div class="flex items-center">
+        <a href="/user-management" class="mr-3 text-gray-500 hover:text-gray-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+        </a>
+        <h6 class="text-xl font-semibold text-gray-800">Tambah Pengguna</h6>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form container -->
+  <div class="flex flex-wrap px-6">
+    <div class="w-full">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-lg">
+        <!-- Card header -->
+        <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+          <h6 class="text-lg font-semibold text-gray-800">Form Tambah Pengguna</h6>
+        </div>
+        
+        <!-- Card body -->
+        <div class="flex-auto px-6 py-4">
+          <form id="user-form" action="/api/users" method="POST">
+            <div class="mb-4">
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Nama</label>
+              <input type="text" id="name" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
+            </div>
+            <div class="mb-4">
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <input type="email" id="email" name="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
+            </div>
+            <div class="mb-4">
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+              <input type="password" id="password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
+              <p class="text-xs text-gray-500 mt-1">Password minimal 6 karakter</p>
+            </div>
+            <div class="mb-4">
+              <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+              <select id="role" name="role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors">
+                <option value="user">User</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        
+        <!-- Card footer -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+          <a href="/user-management" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+            Batal
+          </a>
+          <button type="submit" form="user-form" class="px-4 py-2 text-sm font-medium bg-gray-200 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('user-form');
+    
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        role: formData.get('role')
+      };
+      
+      // Validasi
+      if (!data.email) {
+        alert('Email harus diisi');
+        return;
+      }
+      
+      if (!data.password) {
+        alert('Password harus diisi');
+        return;
+      }
+      
+      if (data.password.length < 6) {
+        alert('Password minimal 6 karakter');
+        return;
+      }
+      
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (response.ok) {
+          window.location.href = '/user-management?success=Pengguna berhasil ditambahkan';
+        } else {
+          const errorData = await response.json();
+          alert('Gagal menambahkan pengguna: ' + (errorData.error || 'Error tidak diketahui'));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Gagal menambahkan pengguna: ' + error.message);
+      }
+    });
+  });
+</script>
