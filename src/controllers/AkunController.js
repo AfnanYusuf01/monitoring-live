@@ -302,24 +302,22 @@ export const checkUserSubscription = async (req, res) => {
       });
     }
 
-    const subscription = activeSub.subscription;
-
     // Hitung jumlah akun user untuk paket ini
     const userAccountsCount = await prisma.akun.count({
       where: {userId},
     });
 
-    const remainingSlots = subscription.limitAkun - userAccountsCount;
+    const remainingSlots = activeSub.limitAkun - userAccountsCount;
 
     return res.json({
       canAddAccount: remainingSlots > 0,
       remainingSlots,
+      limitAkun: activeSub.limitAkun, // ← ambil dari UserSubscription
       status: activeSub.status, // 'active'
       subscription: {
-        id: subscription.id,
-        name: subscription.name,
-        price: subscription.price,
-        limitAkun: subscription.limitAkun,
+        id: activeSub.subscription.id,
+        name: activeSub.subscription.name,
+        price: activeSub.subscription.price,
         endDate: activeSub.endDate,
       },
     });

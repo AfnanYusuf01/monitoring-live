@@ -281,7 +281,7 @@
           <span class="text-xs font-medium">Paket ${data.subscription.name} - ${statusText}</span>
         </div>
         <div class="text-xs">
-          <span class="font-medium">${data.remainingSlots}</span> dari <span class="font-medium">${data.subscription.limitAkun}</span> slot tersedia
+          <span class="font-medium">${data.remainingSlots}</span> dari <span class="font-medium">${data.limitAkun}</span> slot tersedia
         </div>
         <div class="text-xs">
           <span class="font-medium">${daysRemaining}</span> hari tersisa (hingga ${formatDate(endDate)})
@@ -323,7 +323,7 @@
       }
       
       if (subscriptionData.remainingSlots <= 0) {
-        errorMessage += `<br>- Slot akun telah penuh (${subscriptionData.subscription.limitAkun}/${subscriptionData.subscription.limitAkun})`;
+        errorMessage += `<br>- Slot akun telah penuh (${subscriptionData.limitAkun}/${subscriptionData.limitAkun})`;
       }
       
       if (!isDateValid) {
