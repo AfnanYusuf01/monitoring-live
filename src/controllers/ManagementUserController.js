@@ -2,7 +2,6 @@
 import {PrismaClient} from "@prisma/client";
 import bcrypt from "bcrypt";
 
-
 const prisma = new PrismaClient();
 
 // Render halaman utama
@@ -13,6 +12,7 @@ export const renderUserManagement = async (req, res) => {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -54,6 +54,7 @@ export const renderEditUser = async (req, res) => {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -87,6 +88,7 @@ export async function index(req, res) {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -111,6 +113,7 @@ export async function show(req, res) {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -128,10 +131,9 @@ export async function show(req, res) {
 }
 
 // Create new user
-
 export async function store(req, res) {
   try {
-    const {email, password, name, role} = req.body;
+    const {email, password, name, nomor_wa, role} = req.body;
 
     // Validasi
     if (!email || !password) {
@@ -155,12 +157,14 @@ export async function store(req, res) {
         email,
         password: hashedPassword,
         name,
+        nomor_wa: nomor_wa || null,
         role: role || "user",
       },
       select: {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -176,10 +180,10 @@ export async function store(req, res) {
 export async function update(req, res) {
   try {
     const {id} = req.params;
-    const {email, name, role, password} = req.body;
+    const {email, name, nomor_wa, role, password} = req.body;
 
     // Data yang akan diupdate
-    const updateData = {email, name, role};
+    const updateData = {email, name, nomor_wa, role};
 
     // Kalau ada password baru → hash
     if (password) {
@@ -193,6 +197,7 @@ export async function update(req, res) {
         id: true,
         email: true,
         name: true,
+        nomor_wa: true,
         role: true,
         createdAt: true,
       },
@@ -213,13 +218,38 @@ export async function destroy(req, res) {
     const {id} = req.params;
     const userId = parseInt(id);
 
-    // 1️⃣ Hapus child dulu
-    await prisma.akun.deleteMany({where: {userId}});
-    await prisma.studio.deleteMany({where: {userId}});
+    // Mulai transaction untuk memastikan semua operasi berhasil atau tidak sama sekali
+    await prisma.$transaction(async (tx) => {
+      // 1️⃣ Hapus semua data terkait secara berurutan
 
-    // 2️⃣ Baru hapus user
-    await prisma.user.delete({
-      where: {id: userId},
+      // Hapus Order yang terkait dengan UserSubscription user ini
+      await tx.order.deleteMany({
+        where: {
+          userSubscription: {
+            userId: userId,
+          },
+        },
+      });
+
+      // Hapus UserSubscription user ini
+      await tx.userSubscription.deleteMany({
+        where: {userId: userId},
+      });
+
+      // Hapus Akun user ini
+      await tx.akun.deleteMany({
+        where: {userId: userId},
+      });
+
+      // Hapus Studio user ini
+      await tx.studio.deleteMany({
+        where: {userId: userId},
+      });
+
+      // 2️⃣ Baru hapus user
+      await tx.user.delete({
+        where: {id: userId},
+      });
     });
 
     res.json({message: "User deleted successfully"});
@@ -232,8 +262,7 @@ export async function destroy(req, res) {
     if (error.code === "P2003") {
       return res.status(400).json({
         error: "Foreign key constraint failed",
-        message:
-          "User masih punya data terkait. Hapus child record dulu atau pakai cascade.",
+        message: "User masih punya data terkait yang gagal dihapus.",
       });
     }
 

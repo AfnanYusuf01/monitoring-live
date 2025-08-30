@@ -15,6 +15,7 @@ export const renderUserSubscriptionManagement = async (req, res) => {
         endDate: true,
         createdAt: true,
         status: true,
+        limitAkun: true, // Ditambahkan
         user: {select: {id: true, email: true, name: true}},
         subscription: {
           select: {id: true, name: true, price: true, duration: true},
@@ -74,6 +75,7 @@ export const renderEditUserSubscription = async (req, res) => {
         startDate: true,
         endDate: true,
         status: true,
+        limitAkun: true, // Ditambahkan
         userId: true,
         subscriptionId: true,
       },
@@ -129,13 +131,11 @@ export const indexUserSubscription = async (req, res) => {
       data: userSubscriptions,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Gagal fetch data",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Gagal fetch data",
+      error: error.message,
+    });
   }
 };
 
@@ -162,20 +162,19 @@ export const showUserSubscription = async (req, res) => {
       data: userSubscription,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Gagal fetch data",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Gagal fetch data",
+      error: error.message,
+    });
   }
 };
 
 // Store
 export const storeUserSubscription = async (req, res) => {
   try {
-    const {userId, subscriptionId, startDate, endDate, status} = req.body;
+    const {userId, subscriptionId, startDate, endDate, status, limitAkun} =
+      req.body;
     if (!userId || !subscriptionId)
       return res
         .status(400)
@@ -188,24 +187,21 @@ export const storeUserSubscription = async (req, res) => {
         startDate: startDate ? new Date(startDate) : new Date(),
         endDate: endDate ? new Date(endDate) : null,
         status: status || "active",
+        limitAkun: limitAkun ? parseInt(limitAkun) : null, // Ditambahkan
       },
     });
 
-    res
-      .status(201)
-      .json({
-        status: "success",
-        message: "Data berhasil dibuat",
-        data: userSubscription,
-      });
+    res.status(201).json({
+      status: "success",
+      message: "Data berhasil dibuat",
+      data: userSubscription,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Gagal create data",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Gagal create data",
+      error: error.message,
+    });
   }
 };
 
@@ -213,7 +209,7 @@ export const storeUserSubscription = async (req, res) => {
 export const updateUserSubscription = async (req, res) => {
   try {
     const {id} = req.params;
-    const {startDate, endDate, status} = req.body;
+    const {startDate, endDate, status, limitAkun} = req.body;
 
     const userSubscription = await prisma.userSubscription.update({
       where: {id: parseInt(id)},
@@ -221,6 +217,7 @@ export const updateUserSubscription = async (req, res) => {
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
         status: status || undefined,
+        limitAkun: limitAkun !== undefined ? parseInt(limitAkun) : undefined, // Ditambahkan
       },
     });
 
@@ -234,13 +231,11 @@ export const updateUserSubscription = async (req, res) => {
       return res
         .status(404)
         .json({status: "error", message: "Data tidak ditemukan"});
-    res
-      .status(500)
-      .json({
-        status: "error",
-        message: "Gagal update data",
-        error: error.message,
-      });
+    res.status(500).json({
+      status: "error",
+      message: "Gagal update data",
+      error: error.message,
+    });
   }
 };
 

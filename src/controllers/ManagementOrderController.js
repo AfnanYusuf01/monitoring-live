@@ -247,6 +247,34 @@ export const renderCheckout = async (req, res) => {
   }
 };
 
+const sendWhatsApp = async (number, message) => {
+  try {
+    const res = await axios.post(
+      process.env.STARSENDER_API_URL,
+      {
+        to: number.startsWith("62") ? number : "62" + number.replace(/^0/, ""),
+        message: message,
+        messageType: "text",
+        deviceId: parseInt(process.env.STARSENDER_DEVICE_ID, 10),
+      },
+      {
+        headers: {
+          Authorization: process.env.STARSENDER_TOKEN, // tanpa "Bearer"
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("📨 Starsender response:", res.data);
+    return res.data;
+  } catch (err) {
+    console.error(
+      "❌ Error kirim WhatsApp:",
+      err.response?.data || err.message
+    );
+    throw err;
+  }
+};
 export const createOrder = async (req, res) => {
   try {
     const subscriptionId = parseInt(req.params.id);
@@ -258,6 +286,24 @@ export const createOrder = async (req, res) => {
       where: {id: subscriptionId},
     });
     if (!subscription) return res.status(404).send("Paket tidak ditemukan");
+
+    // ✅ CEK: Jika subscription duration = 0 (paket tambahan akun)
+    if (subscription.duration === 0) {
+      // Cek apakah user sudah punya UserSubscription active
+      const activeSubscription = await prisma.userSubscription.findFirst({
+        where: {
+          userId: userId,
+          status: "active",
+        },
+      });
+
+      if (!activeSubscription) {
+        return res.status(400).json({
+          message:
+            "Anda harus memiliki subscription aktif terlebih dahulu sebelum membeli paket tambahan akun",
+        });
+      }
+    }
 
     // buat UserSubscription (status pending)
     const startDate = new Date();
@@ -274,8 +320,6 @@ export const createOrder = async (req, res) => {
       },
     });
 
-    //console.log("✅ UserSubscription dibuat:", userSub);
-
     // buat Order
     const orderId = "TRX-" + Date.now();
     const order = await prisma.order.create({
@@ -287,11 +331,6 @@ export const createOrder = async (req, res) => {
         transactionId: orderId,
       },
     });
-
-    // Membuat order
-    //     // const signatureString = config.merchantCode + orderId + paymentAmount + config.apiKey;
-    // const signatureString = config.merchantCode + paymentAmount + orderId + config.apiKey;
-    // const signature = crypto.createHash("md5").update(signatureString).digest("hex");
 
     const paymentAmount = subscription.price.toString(); // harus string
     const signatureString =
@@ -351,7 +390,6 @@ export const createOrder = async (req, res) => {
     res.status(500).send("Terjadi kesalahan saat membuat order");
   }
 };
-
 export const duitkuCallback = async (req, res) => {
   try {
     console.log("📥 Callback diterima:", req.body);
@@ -419,10 +457,7 @@ export const duitkuCallback = async (req, res) => {
 
     // Logika untuk mengelola UserSubscription ketika pembayaran berhasil
     if (newStatus === "paid") {
-      const currentUserSubscription = order.userSubscription;
       const user = order.userSubscription.user;
-
-      // Ambil subscription yang dibeli
       const purchasedSubscription = await prisma.subscription.findUnique({
         where: {id: subscriptionIdOrder},
       });
@@ -432,9 +467,19 @@ export const duitkuCallback = async (req, res) => {
         return res.status(404).send("Subscription tidak ditemukan");
       }
 
-      // 1. Cek apakah UserSubscription sudah active
-      if (currentUserSubscription.status !== "active") {
-        // Jika belum active, aktifkan dan update duration & limitAkun
+      // 1. CEK: Apakah user punya UserSubscription dengan status = "active" ?
+      const activeUserSubscription = await prisma.userSubscription.findFirst({
+        where: {
+          userId: user.id,
+          status: "active",
+        },
+        include: {
+          subscription: true,
+        },
+      });
+
+      if (!activeUserSubscription) {
+        // ──> JIKA TIDAK ADA: Buat/Update UserSubscription baru
         const newEndDate =
           purchasedSubscription.duration > 0
             ? new Date(
@@ -442,57 +487,54 @@ export const duitkuCallback = async (req, res) => {
                   new Date().getDate() + purchasedSubscription.duration
                 )
               )
-            : new Date(new Date().setFullYear(new Date().getFullYear() + 10)); // 10 tahun untuk tanpa durasi
+            : new Date(new Date().setFullYear(new Date().getFullYear() + 10));
 
         await prisma.userSubscription.update({
-          where: {id: currentUserSubscription.id},
+          where: {id: order.userSubscription.id},
           data: {
             status: "active",
-            subscription: {connect: {id: subscriptionIdOrder}}, // PERBAIKAN: Gunakan connect untuk relation
-            duration: purchasedSubscription.duration,
+            subscription: {connect: {id: subscriptionIdOrder}},
             limitAkun: purchasedSubscription.limitAkun,
             startDate: new Date(),
             endDate: newEndDate,
           },
         });
-        console.log("✅ UserSubscription diaktifkan dengan data baru");
+        console.log("✅ UserSubscription baru diaktifkan");
       } else {
-        // 2. Jika sudah ada UserSubscription yang active
+        // ──> JIKA ADA: User sudah punya subscription aktif
         if (purchasedSubscription.duration === 0) {
-          // Jika duration 0, tambah limitAkun
+          // 2. JIKA YA (paket tambahan akun): Update limitAkun
           const newLimitAkun =
-            currentUserSubscription.limitAkun + purchasedSubscription.limitAkun;
+            (activeUserSubscription.limitAkun || 0) +
+            purchasedSubscription.limitAkun;
 
           await prisma.userSubscription.update({
-            where: {id: currentUserSubscription.id},
+            where: {id: activeUserSubscription.id},
             data: {
               limitAkun: newLimitAkun,
             },
           });
           console.log(`➕ Limit akun ditambah menjadi: ${newLimitAkun}`);
         } else {
-          // Jika memiliki duration
-          if (currentUserSubscription.subscriptionId === subscriptionIdOrder) {
-            // 3. Subscription sama - tambah duration
-            const newEndDate = new Date(currentUserSubscription.endDate);
+          // ──> JIKA TIDAK (subscription utama)
+          if (activeUserSubscription.subscriptionId === subscriptionIdOrder) {
+            // 3. JIKA SAMA (paket yang sama): Perpanjang endDate
+            const currentDuration =
+              activeUserSubscription.subscription?.duration || 0;
+            const newEndDate = new Date(activeUserSubscription.endDate);
             newEndDate.setDate(
               newEndDate.getDate() + purchasedSubscription.duration
             );
-            const newDuration =
-              (currentUserSubscription.duration || 0) +
-              purchasedSubscription.duration;
 
             await prisma.userSubscription.update({
-              where: {id: currentUserSubscription.id},
+              where: {id: activeUserSubscription.id},
               data: {
-                duration: newDuration,
                 endDate: newEndDate,
-                limitAkun: purchasedSubscription.limitAkun, // Update limit juga jika berubah
               },
             });
             console.log("⏰ Durasi subscription diperpanjang");
           } else {
-            // 4. Subscription berbeda - ganti dengan yang baru
+            // ──> JIKA BERBEDA (paket berbeda): Update ke subscription baru
             const newEndDate =
               purchasedSubscription.duration > 0
                 ? new Date(
@@ -505,11 +547,9 @@ export const duitkuCallback = async (req, res) => {
                   );
 
             await prisma.userSubscription.update({
-              where: {id: currentUserSubscription.id},
+              where: {id: activeUserSubscription.id},
               data: {
-                subscription: {connect: {id: subscriptionIdOrder}}, // PERBAIKAN: Gunakan connect untuk relation
-                status: "active",
-                duration: purchasedSubscription.duration,
+                subscription: {connect: {id: subscriptionIdOrder}},
                 limitAkun: purchasedSubscription.limitAkun,
                 startDate: new Date(),
                 endDate: newEndDate,

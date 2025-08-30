@@ -350,7 +350,8 @@
                     
                     <div class="mb-4">
                         <label for="registerPhone" class="block text-secondary-700 text-sm font-medium mb-2">Nomor WhatsApp</label>
-                        <input type="tel" id="registerPhone" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="081234567890" required>
+                        <input type="tel" id="registerPhone" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="081234567890" required oninput="formatNomorWA(this)">
+                        <p class="text-xs text-secondary-500 mt-1">Format: 62xxxxxxxxxxx (tanpa +)</p>
                     </div>
                     
                     <div class="mb-4">
@@ -412,6 +413,43 @@
 </script>
 
     <script>
+        // Fungsi untuk memformat nomor WhatsApp
+        function formatNomorWA(input) {
+            // Hapus semua karakter non-digit
+            let value = input.value.replace(/\D/g, '');
+            
+            // Jika diawali dengan 0, ganti dengan 62
+            if (value.startsWith('0')) {
+                value = '62' + value.substring(1);
+            }
+            // Jika diawali dengan 8, tambahkan 62 di depan
+            else if (value.startsWith('8')) {
+                value = '62' + value;
+            }
+            // Jika diawali dengan +62, hapus tanda +
+            else if (value.startsWith('+62')) {
+                value = value.substring(1);
+            }
+            // Pastikan selalu diawali dengan 62
+            else if (!value.startsWith('62') && value.length > 0) {
+                value = '62' + value;
+            }
+            
+            // Batasi panjang maksimum 15 digit (62 + 13 digit)
+            if (value.length > 15) {
+                value = value.substring(0, 15);
+            }
+            
+            // Update nilai input
+            input.value = value;
+        }
+
+        // Fungsi validasi nomor WhatsApp
+        function validateNomorWA(nomor) {
+            const regex = /^62\d{9,13}$/;
+            return regex.test(nomor);
+        }
+
         // Data metode pembayaran
         const availablePaymentMethods = [
             { paymentMethod: 'BC', paymentName: 'BCA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BCA.SVG' },
@@ -725,6 +763,12 @@
                 const password = document.getElementById('registerPassword').value;
                 const nomor_wa = document.getElementById('registerPhone').value;
                 const terms = document.getElementById('registerTerms').checked;
+                
+                // Validasi nomor WhatsApp
+                if (!validateNomorWA(nomor_wa)) {
+                    showNotification('Format nomor WhatsApp tidak valid. Harus diawali dengan 62 dan terdiri dari 11-15 digit', 'error');
+                    return;
+                }
                 
                 fetch('/api/register', {
                     method: 'POST',

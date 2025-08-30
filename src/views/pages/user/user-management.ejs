@@ -1,263 +1,266 @@
-  <% layout("layouts/main") %>
+<% layout("layouts/main") %>
 
-  <div class="min-h-screen bg-gray-50">
-    <!-- Success Notification -->
-    <% if (successMessage) { %>
-      <div id="success-notification" class="fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white z-50 transform transition-transform duration-300">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <span><%= successMessage %></span>
-      </div>
+<div class="min-h-screen bg-gray-50">
+  <!-- Success Notification -->
+  <% if (successMessage) { %>
+    <div id="success-notification" class="fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white z-50 transform transition-transform duration-300">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span><%= successMessage %></span>
+    </div>
 
-      <script>
-        // Auto hide success notification after 5 seconds
-        setTimeout(() => {
-          const notification = document.getElementById('success-notification');
-          if (notification) notification.remove();
-        }, 5000);
-      </script>
-    <% } %>
+    <script>
+      // Auto hide success notification after 5 seconds
+      setTimeout(() => {
+        const notification = document.getElementById('success-notification');
+        if (notification) notification.remove();
+      }, 5000);
+    </script>
+  <% } %>
 
-    <div class="flex flex-wrap -mx-3">
-      <div class="flex-none w-full max-w-full px-3">
-        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-2xl bg-clip-border">
-          <div class="p-6 pb-0 mb-0 bg-white border-b-0 rounded-t-2xl">
-            <!-- Header dengan judul dan tombol -->
-            <div class="flex flex-wrap justify-between items-center">
-              <h6>Managemant Akun</h6>
-              <div>
-                <button id="start-monitor-btn" class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg tracking-tight-soft shadow-soft-md hover:scale-102 active:opacity-85">
-                  <a href="/user-management/add">Tambah Akun</a>
-                </button>
-              </div>
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 rounded-t-2xl">
+          <!-- Header dengan judul dan tombol -->
+          <div class="flex flex-wrap justify-between items-center">
+            <h6>Managemant Akun</h6>
+            <div>
+              <button id="start-monitor-btn" class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg tracking-tight-soft shadow-soft-md hover:scale-102 active:opacity-85">
+                <a href="/user-management/add">Tambah Akun</a>
+              </button>
             </div>
+          </div>
 
-            <!-- Container untuk tabel -->
-            <div class="flex flex-wrap px-6 mt-4">
-              <div class="w-full">
-                <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-lg">
-                  <!-- Card header -->
-                  <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
-                    <h6 class="text-lg font-semibold text-gray-800">Daftar Pengguna</h6>
-                  </div>
+          <!-- Container untuk tabel -->
+          <div class="flex flex-wrap px-6 mt-4">
+            <div class="w-full">
+              <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-lg">
+                <!-- Card header -->
+                <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+                  <h6 class="text-lg font-semibold text-gray-800">Daftar Pengguna</h6>
+                </div>
 
-                  <!-- Card body -->
-                  <div class="flex-auto px-0 pt-0 pb-2">
-                    <div class="p-0 overflow-x-auto">
-                      <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
-                        <thead class="align-bottom">
-                          <tr>
-                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">No</th>
-                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Nama</th>
-                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Email</th>
-                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Role</th>
-                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Tanggal Dibuat</th>
-                            <th class="px-6 py-3 text-xs font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Aksi</th>
-                          </tr>
-                        </thead>
+                <!-- Card body -->
+                <div class="flex-auto px-0 pt-0 pb-2">
+                  <div class="p-0 overflow-x-auto">
+                    <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
+                      <thead class="align-bottom">
+                        <tr>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">No</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Nama</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Email</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Nomor WA</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Role</th>
+                          <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Tanggal Dibuat</th>
+                          <th class="px-6 py-3 text-xs font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Aksi</th>
+                        </tr>
+                      </thead>
 
-                        <tbody>
-                          <% if (users && users.length > 0) { %>
-                            <% users.forEach((user, index) => { %>
-                              <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 align-middle border-b border-gray-200">
-                                  <span class="text-sm font-medium text-gray-900"><%= index + 1 %></span>
-                                </td>
-                                <td class="px-6 py-4 align-middle border-b border-gray-200">
-                                  <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center">
-                                      <span class="text-sm font-medium text-white"><%= user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase() %></span>
-                                    </div>
-                                    <div class="ml-4">
-                                      <div class="text-sm font-medium text-gray-900"><%= user.name || '-' %></div>
-                                    </div>
+                      <tbody>
+                        <% if (users && users.length > 0) { %>
+                          <% users.forEach((user, index) => { %>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm font-medium text-gray-900"><%= index + 1 %></span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <div class="flex items-center">
+                                  <div class="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <span class="text-sm font-medium text-white"><%= user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase() %></span>
                                   </div>
-                                </td>
-                                <td class="px-6 py-4 align-middle border-b border-gray-200">
-                                  <span class="text-sm text-gray-600"><%= user.email %></span>
-                                </td>
-                                <td class="px-6 py-4 align-middle border-b border-gray-200">
-                                  <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full <%= user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' %>">
-                                    <%= user.role %>
-                                  </span>
-                                </td>
-                                <td class="px-6 py-4 align-middle border-b border-gray-200">
-                                  <span class="text-sm text-gray-600"><%= new Date(user.createdAt).toLocaleDateString('id-ID') %></span>
-                                </td>
-                                <td class="px-6 py-4 align-middle border-b border-gray-200 text-center">
-                                  <div class="flex justify-center space-x-2">
-                                    <a href="/user-management/edit/<%= user.id %>" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
-                                      Edit
-                                    </a>
-                                    <button class="delete-user px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors" data-id="<%= user.id %>">
-                                      Hapus
-                                    </button>
+                                  <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900"><%= user.name || '-' %></div>
                                   </div>
-                                </td>
-                              </tr>
-                            <% }) %>
-                          <% } else { %>
-                            <tr>
-                              <td colspan="6" class="text-center py-8">
-                                <div class="flex flex-col items-center text-gray-500">
-                                  <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                  </svg>
-                                  <span>Belum ada pengguna yang terdaftar</span>
-                                  <a href="/user-management/add" class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                                    Tambah Pengguna Pertama
+                                </div>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm text-gray-600"><%= user.email %></span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm text-gray-600"><%= user.nomor_wa || '-' %></span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full <%= user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' %>">
+                                  <%= user.role %>
+                                </span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                <span class="text-sm text-gray-600"><%= new Date(user.createdAt).toLocaleDateString('id-ID') %></span>
+                              </td>
+                              <td class="px-6 py-4 align-middle border-b border-gray-200 text-center">
+                                <div class="flex justify-center space-x-2">
+                                  <a href="/user-management/edit/<%= user.id %>" class="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
+                                    Edit
                                   </a>
+                                  <button class="delete-user px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors" data-id="<%= user.id %>">
+                                    Hapus
+                                  </button>
                                 </div>
                               </td>
                             </tr>
-                          <% } %>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div> <!-- End Card Body -->
-                </div>
+                          <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="7" class="text-center py-8">
+                              <div class="flex flex-col items-center text-gray-500">
+                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span>Belum ada pengguna yang terdaftar</span>
+                                <a href="/user-management/add" class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
+                                  Tambah Pengguna Pertama
+                                </a>
+                              </div>
+                            </td>
+                          </tr>
+                        <% } %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div> <!-- End Card Body -->
               </div>
-            </div> <!-- End Table Container -->
-          </div>
+            </div>
+          </div> <!-- End Table Container -->
         </div>
       </div>
     </div>
   </div>
+</div>
 
-
-  <!-- Modal Konfirmasi Hapus -->
-  <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Hapus</h3>
-      </div>
-      <div class="px-6 py-4">
-        <p class="text-gray-700">Apakah Anda yakin ingin menghapus pengguna ini?</p>
-        <input type="hidden" id="delete-id">
-      </div>
-      <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-        <button type="button" id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
-          Batal
-        </button>
-        <button type="button" id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
-          Hapus
-        </button>
-      </div>
+<!-- Modal Konfirmasi Hapus -->
+<div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Hapus</h3>
+    </div>
+    <div class="px-6 py-4">
+      <p class="text-gray-700">Apakah Anda yakin ingin menghapus pengguna ini?</p>
+      <input type="hidden" id="delete-id">
+    </div>
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+      <button type="button" id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+        Batal
+      </button>
+      <button type="button" id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+        Hapus
+      </button>
     </div>
   </div>
+</div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Setup event listeners untuk delete
-      document.querySelectorAll('.delete-user').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const id = e.target.getAttribute('data-id');
-          showConfirmModal(id);
-        });
-      });
-      
-      document.getElementById('cancel-delete').addEventListener('click', hideConfirmModal);
-      document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
-      
-      // Close modal when clicking outside
-      document.getElementById('confirm-modal').addEventListener('click', function(e) {
-        if (e.target.id === 'confirm-modal') hideConfirmModal();
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Setup event listeners untuk delete
+    document.querySelectorAll('.delete-user').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        showConfirmModal(id);
       });
     });
+    
+    document.getElementById('cancel-delete').addEventListener('click', hideConfirmModal);
+    document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+    
+    // Close modal when clicking outside
+    document.getElementById('confirm-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'confirm-modal') hideConfirmModal();
+    });
+  });
 
-    // Tampilkan modal konfirmasi hapus
-    function showConfirmModal(id) {
-      document.getElementById('delete-id').value = id;
+  // Tampilkan modal konfirmasi hapus
+  function showConfirmModal(id) {
+    document.getElementById('delete-id').value = id;
+    
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
+  // Sembunyikan modal konfirmasi hapus
+  function hideConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  // Konfirmasi hapus
+  async function confirmDelete() {
+    const id = document.getElementById('delete-id').value;
+    
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+      });
       
-      const modal = document.getElementById('confirm-modal');
-      const modalContent = modal.querySelector('div');
+      if (!response.ok) throw new Error('Gagal menghapus pengguna');
       
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        modalContent.classList.remove('scale-95', 'opacity-0');
-        modalContent.classList.add('scale-100', 'opacity-100');
-      }, 10);
+      hideConfirmModal();
+      window.location.href = '/user-management?success=Pengguna berhasil dihapus';
+    } catch (error) {
+      console.error('Error:', error);
+      showNotification('Gagal menghapus pengguna: ' + error.message, 'error');
     }
+  }
 
-    // Sembunyikan modal konfirmasi hapus
-    function hideConfirmModal() {
-      const modal = document.getElementById('confirm-modal');
-      const modalContent = modal.querySelector('div');
-      
-      modalContent.classList.remove('scale-100', 'opacity-100');
-      modalContent.classList.add('scale-95', 'opacity-0');
-      
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 300);
+  // Show notification
+  function showNotification(message, type = 'info') {
+    // Hapus notifikasi sebelumnya jika ada
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+      existingNotification.remove();
     }
-
-    // Konfirmasi hapus
-    async function confirmDelete() {
-      const id = document.getElementById('delete-id').value;
-      
-      try {
-        const response = await fetch(`/api/users/${id}`, {
-          method: 'DELETE',
-        });
-        
-        if (!response.ok) throw new Error('Gagal menghapus pengguna');
-        
-        hideConfirmModal();
-        window.location.href = '/user-management?success=Pengguna berhasil dihapus';
-      } catch (error) {
-        console.error('Error:', error);
-        showNotification('Gagal menghapus pengguna: ' + error.message, 'error');
+    
+    const colors = {
+      success: 'bg-green-500',
+      error: 'bg-red-500',
+      warning: 'bg-yellow-500',
+      info: 'bg-blue-500'
+    };
+    
+    const icons = {
+      success: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+      error: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+      warning: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+      info: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+    };
+    
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = `fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg ${colors[type]} text-white z-50 transform transition-transform duration-300 translate-x-full`;
+    notification.innerHTML = `${icons[type]}<span>${message}</span>`;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+      notification.classList.add('translate-x-0');
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.classList.remove('translate-x-0');
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
       }
-    }
-
-    // Show notification
-    function showNotification(message, type = 'info') {
-      // Hapus notifikasi sebelumnya jika ada
-      const existingNotification = document.getElementById('notification');
-      if (existingNotification) {
-        existingNotification.remove();
-      }
-      
-      const colors = {
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-        warning: 'bg-yellow-500',
-        info: 'bg-blue-500'
-      };
-      
-      const icons = {
-        success: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
-        error: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
-        warning: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
-        info: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
-      };
-      
-      const notification = document.createElement('div');
-      notification.id = 'notification';
-      notification.className = `fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg ${colors[type]} text-white z-50 transform transition-transform duration-300 translate-x-full`;
-      notification.innerHTML = `${icons[type]}<span>${message}</span>`;
-      
-      document.body.appendChild(notification);
-      
-      // Animate in
-      setTimeout(() => {
-        notification.classList.remove('translate-x-full');
-        notification.classList.add('translate-x-0');
-      }, 10);
-      
-      // Auto remove after 5 seconds
-      setTimeout(() => {
-        if (notification.parentNode) {
-          notification.classList.remove('translate-x-0');
-          notification.classList.add('translate-x-full');
-          setTimeout(() => {
-            if (notification.parentNode) {
-              notification.parentNode.removeChild(notification);
-            }
-          }, 300);
-        }
-      }, 5000);
-    }
-  </script>
+    }, 5000);
+  }
+</script>
