@@ -153,7 +153,7 @@ router.get("/account-management/edit/:id", requireLogin, async (req, res) => {
 });
 
 router.get("/account-management/add", requireLogin, renderAddAccount);
-router.post("/akun/import", upload.single("csvFile"), importAkunFromCSV);
+router.post("/akun/import", upload.single("csvFile"), requireLogin, importAkunFromCSV);
 
 router.get("/dashboard", requireLogin, (req, res) => {
   console.log("Current User di session:", req.session.user);

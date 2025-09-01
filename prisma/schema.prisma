@@ -23,8 +23,11 @@ model User {
 model Akun {
   id         Int      @id @default(autoincrement())
   nama_akun  String?
-  cookie     String?  @db.Text   // Bisa sampai 65,535 karakter
+  email      String?      // email opsional tapi tetap unik kalau ada
+  phone      String?     // phone opsional tapi tetap unik kalau ada
+  cookie     String?   @db.Text   // Bisa sampai 65,535 karakter
   createdAt  DateTime @default(now())
+  deletedAt  DateTime? 
 
   // relasi ke Studio
   studioId   Int?
@@ -34,6 +37,7 @@ model Akun {
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
 }
+
 
 model Studio {
   id          Int      @id @default(autoincrement())
@@ -53,6 +57,7 @@ model Subscription {
   name        String    // contoh: Basic, Premium, Enterprise
   description String?   @db.Text
   price       Float
+  duration    Int?       // dalam hari (contoh: 30, 90, 365)
   limitAkun   Int       @default(1) // jumlah akun yang diizinkan
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -75,7 +80,6 @@ model UserSubscription {
   startDate       DateTime                @default(now())
   endDate         DateTime
   status          UserSubscriptionStatus  @default(active)
-  duration        Int?       // dalam hari (contoh: 30, 90, 365)
   limitAkun       Int       
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt

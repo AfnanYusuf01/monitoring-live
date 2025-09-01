@@ -73,7 +73,7 @@ const router = express.Router();
 /* ============================================================
    AKUN CONTROLLER (CRUD Akun + Import CSV)
 ============================================================ */
-router.get("/akun", requireApiLogin, getAllAkun);
+router.get("/akun", getAllAkun);
 router.post("/akun", checkActiveSubscription, requireApiLogin, createAkun);
 router.get("/akun/:id",   requireApiLogin,   getAkunById);
 router.put("/akun/:id",   requireApiLogin,   updateAkun);
