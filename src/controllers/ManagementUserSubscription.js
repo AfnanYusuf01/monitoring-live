@@ -18,7 +18,7 @@ export const renderUserSubscriptionManagement = async (req, res) => {
         limitAkun: true, // Ditambahkan
         user: {select: {id: true, email: true, name: true}},
         subscription: {
-          select: {id: true, name: true, price: true, duration: true},
+          select: {id: true, name: true, price: true},
         },
       },
       orderBy: {createdAt: "desc"},

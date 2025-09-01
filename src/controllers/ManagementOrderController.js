@@ -390,6 +390,7 @@ export const createOrder = async (req, res) => {
     res.status(500).send("Terjadi kesalahan saat membuat order");
   }
 };
+
 export const duitkuCallback = async (req, res) => {
   try {
     console.log("📥 Callback diterima:", req.body);
@@ -580,16 +581,26 @@ export const duitkuCallback = async (req, res) => {
           },
         });
 
+        const appUrl = process.env.APP_URL || 'https://monitor.kol-kit.my.id/';
+        
         await transporter.sendMail({
           from: process.env.SMTP_FROM,
           to: user.email,
-          subject: "Pembayaran Berhasil",
+          subject: "Pembayaran Berhasil - Akses Akun Anda",
           html: `
             <p>Halo ${user.name || "Customer"},</p>
-            <p>Pembayaran paket <strong>${
-              subscription.name
-            }</strong> sebesar Rp${order.amount} telah berhasil.</p>
+            <p>Pembayaran paket <strong>${subscription.name}</strong> sebesar Rp${order.amount} telah berhasil.</p>
+            <p>Anda sekarang dapat mengakses akun Anda dengan fitur premium yang telah Anda beli.</p>
+            
+            <p><strong>Link Akses Aplikasi:</strong></p>
+            <p><a href="${appUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login ke Aplikasi</a></p>
+            
+            <p>Atau salin link berikut di browser Anda:</p>
+            <p>${appUrl}</p>
+            
             <p>Terima kasih telah berlangganan!</p>
+            <br>
+            <p>Hormat kami,<br>Tim Support</p>
           `,
         });
         console.log("📧 Email sukses terkirim");
@@ -606,6 +617,8 @@ export const duitkuCallback = async (req, res) => {
             minimumFractionDigits: 0,
           }).format(order.amount);
 
+          const appUrl = process.env.APP_URL || 'https://monitor.kol-kit.my.id/';
+
           const whatsappMessage = `🌟 *PEMBAYARAN BERHASIL* 🌟
 
 Halo ${user.name || "Pelanggan Setia"}! 
@@ -618,7 +631,14 @@ Pembayaran Anda telah berhasil diproses.
 ➤ Jumlah: ${formattedAmount}
 ➤ Status: ✅ BERHASIL
 
-Terima kasih telah mempercayai layanan kami! 🚀`;
+🔗 *Akses Aplikasi:*
+${appUrl}
+
+Silakan login untuk mulai menggunakan layanan premium kami.
+
+Terima kasih telah mempercayai layanan kami! 🚀
+
+*Tim Support*`;
 
           await sendWhatsApp(user.nomor_wa, whatsappMessage);
           console.log("✅ WhatsApp terkirim ke:", user.nomor_wa);

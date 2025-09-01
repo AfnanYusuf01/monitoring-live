@@ -186,12 +186,12 @@ export const importAkunFromCSV = async (req, res) => {
     const userId = req.user.id;
 
     if (!req.file) {
-      return res.status(400).json({error: "File CSV belum diupload"});
+      return res.status(400).json({ error: "File CSV belum diupload" });
     }
 
     const csvText = req.file.buffer.toString("utf8");
 
-    const {data, errors} = Papa.parse(csvText, {
+    const { data, errors } = Papa.parse(csvText, {
       header: true,
       skipEmptyLines: true,
     });
@@ -204,15 +204,14 @@ export const importAkunFromCSV = async (req, res) => {
     }
 
     if (!data || data.length === 0) {
-      return res.status(400).json({error: "CSV kosong atau tidak terbaca"});
+      return res.status(400).json({ error: "CSV kosong atau tidak terbaca" });
     }
 
-    // Ambil subscription aktif terbaru
+    // 🔑 Ambil subscription aktif terbaru dari UserSubscription
     const now = new Date();
     const activeSub = await prisma.userSubscription.findFirst({
-      where: {userId, status: "active", endDate: {gt: now}},
-      include: {subscription: true},
-      orderBy: {endDate: "desc"},
+      where: { userId, status: "active", endDate: { gt: now } },
+      orderBy: { endDate: "desc" },
     });
 
     if (!activeSub) {
@@ -221,11 +220,12 @@ export const importAkunFromCSV = async (req, res) => {
       });
     }
 
-    const subscription = activeSub.subscription;
+    // 🔑 Gunakan limitAkun dari UserSubscription (bukan dari Subscription)
+    const limitAkun = activeSub.limitAkun;
 
     // Hitung akun saat ini
-    const currentAccountsCount = await prisma.akun.count({where: {userId}});
-    const remainingSlots = subscription.limitAkun - currentAccountsCount;
+    const currentAccountsCount = await prisma.akun.count({ where: { userId } });
+    const remainingSlots = limitAkun - currentAccountsCount;
 
     if (remainingSlots <= 0) {
       return res.status(403).json({
@@ -249,7 +249,7 @@ export const importAkunFromCSV = async (req, res) => {
         });
         createdCount++;
       } catch (err) {
-        // Skip jika gagal
+        // Skip jika gagal (misalnya duplikat)
         continue;
       }
     }
@@ -257,8 +257,7 @@ export const importAkunFromCSV = async (req, res) => {
     return res.json({
       message: `Proses import selesai. Berhasil membuat ${createdCount} akun.`,
       totalImported: createdCount,
-      remainingSlots:
-        subscription.limitAkun - currentAccountsCount - createdCount,
+      remainingSlots: limitAkun - currentAccountsCount - createdCount,
     });
   } catch (err) {
     console.error("Gagal mengimpor CSV:", err);
@@ -268,6 +267,7 @@ export const importAkunFromCSV = async (req, res) => {
     });
   }
 };
+
 
 
 export const checkUserSubscription = async (req, res) => {

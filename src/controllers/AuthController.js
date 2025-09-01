@@ -42,7 +42,7 @@ export default {
         nomor_wa: user.nomor_wa,
       };
 
-      return res.redirect("/"); // arahkan ke dashboard
+      return res.redirect("/dashboard"); // arahkan ke dashboard
     } catch (err) {
       console.error(err);
       return res.render("pages/sign-in", {

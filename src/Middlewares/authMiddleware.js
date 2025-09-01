@@ -1,8 +1,9 @@
 // middlewares/authMiddleware.js
 import multer from "multer";
-
+import {PrismaClient} from "@prisma/client";
 // Configure multer for file upload
 const storage = multer.memoryStorage();
+const prisma = new PrismaClient();
 
 const fileFilter = (req, file, cb) => {
   if (file.mimetype === "text/csv" || file.originalname.endsWith(".csv")) {
@@ -115,7 +116,8 @@ export const requireWebRole = (allowedRoles = []) => {
 
 export const checkActiveSubscription = async (req, res, next) => {
   try {
-    const userId = req.user.id; // pastikan user sudah login
+    const user = req.session.user;
+    const userId = user.id // pastikan user sudah login
     const now = new Date();
 
     // Ambil subscription aktif terbaru

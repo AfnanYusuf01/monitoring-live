@@ -38,6 +38,23 @@
                         </div>
                     </form>
                     
+                    <!-- Error Display Section -->
+                    <div id="error-container" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">Error pada beberapa akun</h3>
+                                <div id="error-list" class="mt-2 text-sm text-red-700">
+                                    <!-- Error messages will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Search and Export Controls -->
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                         <div class="relative w-full md:w-64">
@@ -195,8 +212,9 @@ async function checkPayments() {
                 </td>
             </tr>
         `;
-        
 
+        // Hide error container initially
+        document.getElementById('error-container').classList.add('hidden');
 
         // Call API
         const response = await fetch('/api/cek-pembayaran', {
@@ -211,7 +229,19 @@ async function checkPayments() {
             throw new Error(await response.text());
         }
         
-        allPayments = await response.json();
+        const result = await response.json();
+        
+        // Check if the response contains errors
+        if (result.errors && result.errors.length > 0) {
+            // Display errors
+            showErrors(result.errors);
+        } else {
+            // Hide error container if no errors
+            document.getElementById('error-container').classList.add('hidden');
+        }
+        
+        // Set data regardless of errors
+        allPayments = result.data || [];
         currentPage = 1;
         filterPayments();
     } catch (error) {
@@ -225,6 +255,42 @@ async function checkPayments() {
         `;
         hidePagination();
     }
+}
+
+// Show errors from API response
+function showErrors(errors) {
+    const errorContainer = document.getElementById('error-container');
+    const errorList = document.getElementById('error-list');
+    
+    // Clear previous errors
+    errorList.innerHTML = '';
+    
+    // Add each error to the list
+    errors.forEach(error => {
+        const errorItem = document.createElement('div');
+        errorItem.className = 'mb-1';
+        
+        let errorMessage = `<strong>${error.nama_akun}:</strong> `;
+        
+        if (error.error && error.error.msg) {
+            errorMessage += error.error.msg;
+            if (error.error.code) {
+                errorMessage += ` (Kode: ${error.error.code})`;
+            }
+        } else if (error.error && typeof error.error === 'string') {
+            errorMessage += error.error;
+        } else if (error.error) {
+            errorMessage += JSON.stringify(error.error);
+        } else {
+            errorMessage += 'Terjadi kesalahan yang tidak diketahui';
+        }
+        
+        errorItem.innerHTML = errorMessage;
+        errorList.appendChild(errorItem);
+    });
+    
+    // Show the error container
+    errorContainer.classList.remove('hidden');
 }
 
 // Filter payments based on search input
@@ -479,5 +545,8 @@ function resetFilters() {
     allPayments = [];
     filteredPayments = [];
     hidePagination();
+    
+    // Hide error container
+    document.getElementById('error-container').classList.add('hidden');
 }
 </script>

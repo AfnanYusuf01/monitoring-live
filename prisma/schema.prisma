@@ -53,7 +53,6 @@ model Subscription {
   name        String    // contoh: Basic, Premium, Enterprise
   description String?   @db.Text
   price       Float
-  duration    Int?       // dalam hari (contoh: 30, 90, 365)
   limitAkun   Int       @default(1) // jumlah akun yang diizinkan
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

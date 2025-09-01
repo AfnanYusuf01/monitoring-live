@@ -273,9 +273,87 @@ router.get("/", (req, res) => {
 
 router.get("/subscription/checkout/:id", renderCheckout);
 router.post("/subscription/buy/:id", requireLogin, createOrder);
-router.get("/thank-you", requireLogin, (req, res) => {
-  res.render("thank-you", {navbar: "/thank-you"});
-});
 
+
+
+router.get("/thank-you", requireLogin, async (req, res) => {
+  try {
+    // Ambil parameter dari query string
+    const {merchantOrderId, resultCode, reference} = req.query;
+
+    console.log("Payment data received:", {
+      merchantOrderId,
+      resultCode,
+      reference,
+    });
+
+    // Cek status pembayaran
+    const isPaymentSuccess = resultCode === "00";
+
+    // Dapatkan data order dari database untuk mendapatkan harga
+    let orderData = null;
+    let priceData = null;
+
+    if (merchantOrderId) {
+      orderData = await prisma.order.findUnique({
+        where: {orderId: merchantOrderId},
+        include: {
+          subscription: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              duration: true,
+              features: true,
+            },
+          },
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (orderData && orderData.subscription) {
+        priceData = {
+          subscriptionName: orderData.subscription.name,
+          price: orderData.subscription.price,
+          duration: orderData.subscription.duration,
+          features: orderData.subscription.features,
+          orderDate: orderData.createdAt,
+        };
+      }
+    }
+
+    res.render("thank-you", {
+      navbar: "thank-you",
+      paymentData: {
+        success: isPaymentSuccess,
+        merchantOrderId: merchantOrderId || "Tidak tersedia",
+        resultCode: resultCode || "Tidak tersedia",
+        reference: reference || "Tidak tersedia",
+        message: isPaymentSuccess
+          ? "Pembayaran berhasil! Terima kasih telah berlangganan."
+          : "Pembayaran gagal atau sedang diproses.",
+        price: priceData,
+      },
+    });
+  } catch (error) {
+    console.error("Error processing thank-you page:", error);
+    res.render("thank-you", {
+      navbar: "thank-you",
+      paymentData: {
+        success: false,
+        merchantOrderId: "Error",
+        resultCode: "Error",
+        reference: "Error",
+        message: "Terjadi kesalahan dalam memproses informasi pembayaran",
+        price: null,
+      },
+    });
+  }
+});
 
 export default router;

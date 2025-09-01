@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembayaran Berhasil</title>
+    <title>Status Pembayaran</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -73,11 +73,13 @@
 </head>
 <body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <!-- Confetti animation elements -->
+    <% if (paymentData.success) { %>
     <div class="confetti" style="top: 10%; left: 20%; background-color: #10B981;"></div>
     <div class="confetti" style="top: 15%; left: 50%; background-color: #4F46E5;"></div>
     <div class="confetti" style="top: 5%; left: 80%; background-color: #F59E0B;"></div>
     <div class="confetti" style="top: 20%; left: 40%; background-color: #EF4444;"></div>
     <div class="confetti" style="top: 8%; left: 60%; background-color: #3B82F6;"></div>
+    <% } %>
     
     <div class="absolute top-0 left-0 w-full overflow-hidden pointer-events-none">
         <svg class="relative block w-full h-20 wave-top" viewBox="0 0 1200 120" preserveAspectRatio="none">
@@ -87,6 +89,7 @@
     
     <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-2xl shadow-xl card border border-gray-100">
         <div class="text-center">
+            <% if (paymentData.success) { %>
             <div class="mx-auto flex items-center justify-center h-32 w-32 rounded-full bg-green-100 relative animate-celebrate">
                 <svg class="checkmark h-20 w-20 text-green-500" viewBox="0 0 52 52">
                     <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -98,45 +101,87 @@
             <h1 class="mt-6 text-4xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">
                 Pembayaran Berhasil!
             </h1>
+            <% } else { %>
+            <div class="mx-auto flex items-center justify-center h-32 w-32 rounded-full bg-yellow-100 relative">
+                <i class="fa-solid fa-exclamation-triangle text-yellow-500 text-5xl"></i>
+            </div>
             
-            <div class="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
-                <p class="text-green-700 font-medium">Terima kasih telah menyelesaikan pembayaran Anda.</p>
+            <h1 class="mt-6 text-4xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-700 bg-clip-text text-transparent">
+                Status Pembayaran
+            </h1>
+            <% } %>
+            
+            <div class="mt-4 p-4 rounded-lg border-l-4 <%= paymentData.success ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500' %>">
+                <p class="<%= paymentData.success ? 'text-green-700' : 'text-yellow-700' %> font-medium">
+                    <%= paymentData.message %>
+                </p>
             </div>
             
             <div class="mt-6 bg-gray-50 p-4 rounded-lg text-left">
                 <h3 class="font-semibold text-gray-800 mb-2">Detail Transaksi:</h3>
                 <div class="space-y-2">
                     <div class="flex justify-between">
-                        <span class="text-gray-600">ID Transaksi</span>
-                        <span class="font-medium">#TRX-789456123</span>
+                        <span class="text-gray-600">Order ID</span>
+                        <span class="font-medium"><%= paymentData.merchantOrderId %></span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Tanggal</span>
-                        <span class="font-medium">29 Oktober 2023</span>
+                        <span class="text-gray-600">Reference</span>
+                        <span class="font-medium"><%= paymentData.reference %></span>
                     </div>
                     <div class="flex justify-between">
-                        <span class="text-gray-600">Metode Pembayaran</span>
-                        <span class="font-medium">Kartu Kredit</span>
+                        <span class="text-gray-600">Kode Result</span>
+                        <span class="font-medium <%= paymentData.success ? 'text-green-600' : 'text-yellow-600' %>">
+                            <%= paymentData.resultCode %>
+                        </span>
+                    </div>
+                    
+                    <% if (paymentData.price) { %>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Paket</span>
+                        <span class="font-medium"><%= paymentData.price.subscriptionName %></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Durasi</span>
+                        <span class="font-medium"><%= paymentData.price.duration %> hari</span>
                     </div>
                     <div class="flex justify-between pt-2 border-t border-gray-200">
-                        <span class="text-gray-600 font-semibold">Total</span>
-                        <span class="text-green-600 font-bold">Rp 1.250.000</span>
+                        <span class="text-gray-600 font-semibold">Total Pembayaran</span>
+                        <span class="text-green-600 font-bold">
+                            Rp <%= new Intl.NumberFormat('id-ID').format(paymentData.price.price) %>
+                        </span>
                     </div>
+                    <% } else { %>
+                    <div class="flex justify-between pt-2 border-t border-gray-200">
+                        <span class="text-gray-600 font-semibold">Status</span>
+                        <span class="font-medium <%= paymentData.success ? 'text-green-600' : 'text-yellow-600' %>">
+                            <%= paymentData.success ? 'Berhasil' : 'Pending' %>
+                        </span>
+                    </div>
+                    <% } %>
                 </div>
             </div>
             
+            <% if (paymentData.success && paymentData.price) { %>
             <div class="mt-6 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                <h3 class="font-semibold text-blue-800 mb-1">Apa selanjutnya?</h3>
-                <p class="text-sm text-blue-700">Anda akan menerima email konfirmasi dalam beberapa menit. Pesanan Anda akan diproses dan dikirim dalam 1-2 hari kerja.</p>
+                <h3 class="font-semibold text-blue-800 mb-1">Fitur Paket:</h3>
+                <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
+                    <% const features = paymentData.price.features ? JSON.parse(paymentData.price.features) : []; %>
+                    <% features.forEach(feature => { %>
+                        <li><%= feature %></li>
+                    <% }); %>
+                </ul>
             </div>
+            <% } %>
             
             <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary to-purple-700 hover:from-purple-600 hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
-                    <i class="fa-solid fa-house mr-2"></i> Kembali ke Beranda
+                <a href="/dashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary to-purple-700 hover:from-purple-600 hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+                    <i class="fa-solid fa-house mr-2"></i> Kembali ke Dashboard
                 </a>
-                <a href="#" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
-                    <i class="fa-solid fa-receipt mr-2"></i> Lihat Invoice
+                <% if (paymentData.success) { %>
+                <a href="/account-management" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
+                    <i class="fa-solid fa-user mr-2"></i> Kelola Akun
                 </a>
+                <% } %>
             </div>
             
             <div class="mt-8 text-center">
@@ -152,11 +197,9 @@
     </div>
 
     <script>
-        // Animasi konfeti
+        // Animasi konfeti hanya untuk pembayaran sukses
         document.addEventListener('DOMContentLoaded', function() {
-            // Animasi checkmark sudah dihandle oleh CSS
-            
-            // Animasi konfeti
+            <% if (paymentData.success) { %>
             const confettiElements = document.querySelectorAll('.confetti');
             confettiElements.forEach((el, index) => {
                 setTimeout(() => {
@@ -165,7 +208,6 @@
                 }, index * 200);
             });
             
-            // Tambahkan style untuk animasi jatuh konfeti
             const style = document.createElement('style');
             style.textContent = `
                 @keyframes fall {
@@ -174,6 +216,7 @@
                 }
             `;
             document.head.appendChild(style);
+            <% } %>
         });
     </script>
 </body>

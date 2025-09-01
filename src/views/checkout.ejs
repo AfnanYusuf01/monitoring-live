@@ -362,7 +362,7 @@
                     <div class="mb-6">
                         <div class="flex items-center">
                             <input type="checkbox" id="registerTerms" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded" required>
-                            <label for="registerTerms" class="ml-2 block text-sm text-secondary-700">
+                            <label for 'registerTerms' class="ml-2 block text-sm text-secondary-700">
                                 Saya menyetujui <a href="#" class="text-primary-600 hover:underline">Syarat & Ketentuan</a>
                             </label>
                         </div>
@@ -413,6 +413,18 @@
 </script>
 
     <script>
+        // Data metode pembayaran yang diperbarui - HANYA VIRTUAL ACCOUNT
+        const availablePaymentMethods = [
+            // Virtual Accounts (Bank Transfer) ONLY
+            { paymentMethod: 'BC', paymentName: 'BCA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BCA.SVG' },
+            { paymentMethod: 'BR', paymentName: 'BRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BR.PNG' },
+            { paymentMethod: 'M2', paymentName: 'MANDIRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MV.PNG' },
+            { paymentMethod: 'B1', paymentName: 'CIMB NIAGA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/B1.PNG' },
+            { paymentMethod: 'VA', paymentName: 'BNI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/VA.PNG' },
+            { paymentMethod: 'I1', paymentName: 'Maybank VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MAYBANK.PNG' },
+            { paymentMethod: 'A1', paymentName: 'Permata VA', paymentImage: 'https://images.duitku.com/hotlink-ok/PERMATABANK.PNG' }
+        ];
+
         // Fungsi untuk memformat nomor WhatsApp
         function formatNomorWA(input) {
             // Hapus semua karakter non-digit
@@ -449,20 +461,6 @@
             const regex = /^62\d{9,13}$/;
             return regex.test(nomor);
         }
-
-        // Data metode pembayaran
-        const availablePaymentMethods = [
-            { paymentMethod: 'BC', paymentName: 'BCA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BCA.SVG' },
-            { paymentMethod: 'BR', paymentName: 'BRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BR.PNG' },
-            { paymentMethod: 'M2', paymentName: 'MANDIRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MV.PNG' },
-            { paymentMethod: 'B1', paymentName: 'CIMB NIAGA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/B1.PNG' },
-            { paymentMethod: 'DA', paymentName: 'DANA', paymentImage: 'https://images.duitku.com/hotlink-ok/DA.PNG' },
-            { paymentMethod: 'OV', paymentName: 'OVO', paymentImage: 'https://images.duitku.com/hotlink-ok/OV.PNG' },
-            { paymentMethod: 'SP', paymentName: 'SHOPEEPAY', paymentImage: 'https://images.duitku.com/hotlink-ok/SHOPEEPAY.PNG' },
-            { paymentMethod: 'LA', paymentName: 'LINKAJA', paymentImage: 'https://images.duitku.com/hotlink-ok/LINKAJA.PNG' },
-            { paymentMethod: 'IR', paymentName: 'INDOMARET', paymentImage: 'https://images.duitku.com/hotlink-ok/IR.PNG' },
-            { paymentMethod: 'DN', paymentName: 'INDODANA', paymentImage: 'https://images.duitku.com/hotlink-ok/DN.PNG' },
-        ];
 
         // Format angka ke Rupiah
         function formatRupiah(angka) {
@@ -552,6 +550,16 @@
                     subscriptionDetails.textContent = `${subscriptionData.subscription.name} (${subscriptionData.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
                     subscriptionInfo.classList.remove('hidden');
                 }
+            } else if (type === 'add-limit') {
+                title.textContent = 'Tambahkan Limit Akun';
+                messageEl.textContent = message;
+                
+                if (subscriptionData && subscriptionData.length > 0) {
+                    const data = subscriptionData[0];
+                    const endDate = new Date(data.endDate).toLocaleDateString('id-ID');
+                    subscriptionDetails.textContent = `${data.subscription.name} (${data.limitAkun} akun digunakan dari ${data.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
+                    subscriptionInfo.classList.remove('hidden');
+                }
             } else {
                 // Tidak ada subscription aktif, langsung proses pembayaran
                 processPayment();
@@ -623,7 +631,7 @@
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    if (data.type === 'same' || data.type === 'different'  || data.type === 'add-limi') {
+                    if (data.type === 'same' || data.type === 'different' || data.type === 'add-limit') {
                         // Tampilkan modal konfirmasi
                         showConfirmationModal(data.type, data.message, data.data);
                     } else {
