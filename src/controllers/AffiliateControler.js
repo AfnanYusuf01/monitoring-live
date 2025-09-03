@@ -60,16 +60,25 @@ export const renderAffiliatePage = async (req, res) => {
       // Dapatkan data subscriptions untuk ditampilkan
       const subscriptions = await fetchSubscriptions();
       
-      return res.render("pages/affiliate/affiliate-dashboard", {
-        navbar: "Dashboard Affiliate",
-        affiliate,
-        subscriptions,
-        totalKomisi,
-        totalDibayar,
-        availableKomisi: totalKomisi - totalDibayar, // Komisi yang belum dibayar
-        successMessage,
-        APP_BASE_URL: process.env.APP_URL || "http://localhost:3000"
-      });
+        console.log("👉 affiliate:", affiliate);
+        console.log("👉 subscriptions:", subscriptions);
+        console.log("👉 totalKomisi:", totalKomisi);
+        console.log("👉 totalDibayar:", totalDibayar);
+        console.log("👉 availableKomisi:", totalKomisi - totalDibayar);
+        console.log("👉 successMessage:", successMessage);
+        console.log("👉 APP_BASE_URL:", process.env.APP_URL || "http://localhost:3000");
+        
+        return res.render("pages/affiliate/affiliate-dashboard", {
+          navbar: "Dashboard Affiliate",
+          affiliate,
+          subscriptions,
+          totalKomisi,
+          totalDibayar,
+          availableKomisi: totalKomisi - totalDibayar,
+          successMessage,
+          APP_BASE_URL: process.env.APP_URL || "http://localhost:3000"
+        });
+
     }
 
     // Jika belum menjadi affiliate, tampilkan form pendaftaran
@@ -145,14 +154,35 @@ export const renderEditAffiliatePage = async (req, res) => {
 async function fetchSubscriptions() {
   try {
     const APP_BASE_URL = process.env.APP_URL || "http://localhost:3000";
-    const response = await fetch(`${APP_BASE_URL}/api/subscriptions`);
-    const data = await response.json();
+    const url = `${APP_BASE_URL}api/subscriptions`;
+
+    console.log("👉 Fetching from:", url);
+
+    const response = await fetch(url);
+
+    console.log("👉 Response status:", response.status);
+    console.log("👉 Response ok:", response.ok);
+
+    const text = await response.text(); // ambil plain text dulu
+    console.log("👉 Raw response text:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text); // coba parse manual
+    } catch (parseError) {
+      console.error("❌ JSON parse error:", parseError.message);
+      return [];
+    }
+
+    console.log("👉 Parsed JSON:", data);
+
     return data.data || [];
   } catch (error) {
-    console.error('Error fetching subscriptions:', error);
+    console.error("❌ Error fetching subscriptions:", error);
     return [];
   }
 }
+
 
 export const renderAffiliateManagement = async (req, res) => {
   try {
