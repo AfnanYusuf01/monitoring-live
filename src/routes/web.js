@@ -289,16 +289,16 @@ router.get("/", (req, res) => {
 
 router.get("/subscription/checkout/:id", renderCheckout);
 router.post("/subscription/buy/:id", requireLogin, createOrder);
-router.get("/subscription/checkout/:id_add/:id", (req, res) => {
-  const { id_add, id } = req.params;
+  router.get("/subscription/checkout/:id_add/:id", (req, res) => {
+    const { id_add, id } = req.params;
 
-  // simpan ke cookie dengan masa berlaku 7 hari
-  res.cookie("id_aff", id_add, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
-  res.cookie("id_sub", id, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
+    // simpan ke cookie dengan masa berlaku 7 hari
+    res.cookie("id_aff", id_add, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
+    res.cookie("id_sub", id, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
 
-  // redirect ke halaman checkout (frontend)
-  res.redirect(`/subscription/checkout/${id}`);
-});
+    // redirect ke halaman checkout (frontend)
+    res.redirect(`/subscription/checkout/${id}`);
+  });
 
 
 router.get('/affiliate', requireLogin, renderAffiliatePage);

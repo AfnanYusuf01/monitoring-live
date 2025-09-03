@@ -8,6 +8,7 @@ import session from "express-session";
 import apiRoutes from "./routes/api.js"; 
 import flash from "connect-flash";
 import methodOverride from "method-override";
+import cookieParser from "cookie-parser";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "./public")));
 
 // ✅ Parser body dulu
+app.use(cookieParser());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(flash());

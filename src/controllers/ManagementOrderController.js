@@ -275,15 +275,47 @@ const sendWhatsApp = async (number, message) => {
     throw err;
   }
 };
+
+
 export const createOrder = async (req, res) => {
   try {
     const subscriptionId = parseInt(req.params.id);
-    const method = req.query.method; // metode pembayaran dipilih user
-      const userId = req.session.user.id;
+    const method = req.query.method;
+    const userId = req.session.user.id;
+
+    // Ambil affiliate data dari cookie jika ada
+    const affiliateCookie = req.cookies?.id_aff;
+    const subscriptionCookie = req.cookies?.id_sub;
+    let affiliateId = null;
+
+    // Validasi affiliate cookie
+    if (affiliateCookie && subscriptionCookie) {
+      const subscriptionIdFromCookie = parseInt(subscriptionCookie);
+      
+      // Pastikan subscription yang dibeli sesuai dengan cookie affiliate
+      if (subscriptionId === subscriptionIdFromCookie) {
+        affiliateId = parseInt(affiliateCookie);
+        
+        // Verifikasi bahwa affiliate exists
+        const affiliate = await prisma.affiliate.findUnique({
+          where: { id: affiliateId },
+        });
+        
+        if (!affiliate) {
+          affiliateId = null; // Invalid affiliate, ignore
+          console.log("❌ Affiliate tidak valid, diabaikan");
+        } else {
+          console.log(`✅ Affiliate valid: ${affiliateId}`);
+        }
+      } else {
+        console.log("❌ Subscription ID tidak cocok dengan cookie affiliate");
+        affiliateId = null;
+      }
+    }
 
     // ambil paket
     const subscription = await prisma.subscription.findUnique({
-      where: {id: subscriptionId},
+      where: { id: subscriptionId },
     });
     if (!subscription) return res.status(404).send("Paket tidak ditemukan");
 
@@ -305,7 +337,7 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // buat UserSubscription (status pending)
+    // buat UserSubscription (status canceled dulu, akan diupdate setelah payment success)
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(startDate.getDate() + subscription.duration);
@@ -332,7 +364,30 @@ export const createOrder = async (req, res) => {
       },
     });
 
-    const paymentAmount = subscription.price.toString(); // harus string
+    // Buat AffiliateOrder PENDING jika ada affiliate (tanpa mengubah schema)
+    if (affiliateId) {
+      try {
+        const komisiAmount = subscription.price * (subscription.komisi / 100);
+        
+        await prisma.affiliateOrder.create({
+          data: {
+            affiliateId: affiliateId,
+            orderId: order.id,
+            komisi: komisiAmount,
+            status: "pending" // Status pending, akan diupdate setelah payment success
+          }
+        });
+        
+        console.log(`✅ AffiliateOrder created for affiliate ID: ${affiliateId}, Komisi: ${komisiAmount}`);
+      } catch (affiliateError) {
+        console.error("❌ Error creating affiliate order:", affiliateError);
+        // Jangan ganggu flow utama jika ada error di affiliate
+      }
+    } else {
+      console.log("ℹ️ Tidak ada affiliate untuk order ini");
+    }
+
+    const paymentAmount = subscription.price.toString();
     const signatureString =
       config.merchantCode + orderId + paymentAmount + config.apiKey;
 
@@ -341,7 +396,6 @@ export const createOrder = async (req, res) => {
       .update(signatureString)
       .digest("hex");
 
-    //console.log("🔑 String before hash:", signatureString);
     console.log("🔑 Local Signature:", signature);
 
     // payload ke duitku
@@ -350,10 +404,10 @@ export const createOrder = async (req, res) => {
       paymentAmount: paymentAmount,
       paymentMethod: method,
       merchantOrderId: orderId,
-      productDetails: subscription.id,
-      customerVaName: req.user.name || "Customer",
-      email: req.user.email,
-      phoneNumber: "08123456789", // bisa ambil dari user profile
+      productDetails: subscription.name,
+      customerVaName: req.session.user.name || "Customer",
+      email: req.session.user.email,
+      phoneNumber: req.session.user.nomor_wa || "08123456789",
       callbackUrl: config.callbackUrl,
       returnUrl: config.returnUrl,
       signature: signature,
@@ -366,21 +420,19 @@ export const createOrder = async (req, res) => {
       ? "https://passport.duitku.com/webapi/api/merchant/v2/inquiry"
       : "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry";
 
-    //console.log("🌐 Endpoint Duitku:", duitkuUrl);
-
     // request ke duitku
     const response = await axios.post(duitkuUrl, payload, {
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
     });
 
-    //console.log("📥 Response dari Duitku:", response.data);
-
     if (response.data && response.data.paymentUrl) {
-      return res.json({paymentUrl: response.data.paymentUrl});
+      // Hapus cookie affiliate setelah digunakan
+
+      return res.json({ paymentUrl: response.data.paymentUrl });
     } else {
       return res
         .status(400)
-        .json({message: "Gagal membuat transaksi", response: response.data});
+        .json({ message: "Gagal membuat transaksi", response: response.data });
     }
   } catch (error) {
     console.error(
@@ -398,19 +450,14 @@ export const duitkuCallback = async (req, res) => {
     const merchantCode = req.body.merchantCode;
     const merchantOrderId = req.body.merchantOrderId;
     const amount = req.body.amount;
-    const reference = req.body.reference;
     const statusCode = req.body.statusCode;
     const signature = req.body.signature;
     const paymentAmount = req.body.paymentAmount;
-    const subscriptionIdOrder = parseInt(req.body.productDetails);
 
     console.log("📥 Callback amount diterima:", amount);
 
     const signatureString =
-      merchantCode +
-      amount +
-      merchantOrderId +
-      config.apiKey;
+      merchantCode + amount + merchantOrderId + config.apiKey;
     const validSignature = crypto
       .createHash("md5")
       .update(signatureString)
@@ -433,7 +480,11 @@ export const duitkuCallback = async (req, res) => {
             subscription: true,
           },
         },
-        affiliate: true, // Include data affiliate jika ada
+        affiliateOrders: { // Include affiliate orders
+          include: {
+            affiliate: true
+          }
+        },
       },
     });
 
@@ -443,6 +494,10 @@ export const duitkuCallback = async (req, res) => {
       console.warn("⚠️ Order tidak ditemukan:", merchantOrderId);
       return res.status(404).send("Order tidak ditemukan");
     }
+
+    // Ambil subscriptionId dari order (bukan dari callback)
+    const subscriptionIdOrder = order.userSubscription.subscriptionId;
+    console.log("📥 Subscription ID dari database:", subscriptionIdOrder);
 
     // Tentukan status
     let newStatus = "pending";
@@ -496,7 +551,6 @@ export const duitkuCallback = async (req, res) => {
           where: { id: order.userSubscription.id },
           data: {
             status: "active",
-            subscription: { connect: { id: subscriptionIdOrder } },
             limitAkun: purchasedSubscription.limitAkun,
             startDate: new Date(),
             endDate: newEndDate,
@@ -563,57 +617,33 @@ export const duitkuCallback = async (req, res) => {
         }
       }
 
-      // ✅ CEK AFFILIATE: Jika ada cookie affiliate dan subscription ID cocok
-      const affiliateCookie = req.cookies?.id_aff;
-      const subscriptionCookie = req.cookies?.id_sub;
-      
-      if (affiliateCookie && subscriptionCookie) {
-        const affiliateId = parseInt(affiliateCookie);
-        const subscriptionIdFromCookie = parseInt(subscriptionCookie);
-        
-        // Pastikan subscription yang dibeli sesuai dengan cookie
-        if (subscriptionIdOrder === subscriptionIdFromCookie) {
-          try {
-            // Cek apakah affiliate valid
-            const affiliate = await prisma.affiliate.findUnique({
-              where: { id: affiliateId },
-              include: { user: true }
-            });
-            
-            if (affiliate) {
-              // Hitung komisi berdasarkan persentase dari subscription
-              const komisiAmount = purchasedSubscription.price * (purchasedSubscription.komisi / 100);
-              
-              // Buat affiliate order
-              await prisma.affiliateOrder.create({
-                data: {
-                  affiliateId: affiliateId,
-                  orderId: order.id,
-                  komisi: komisiAmount,
-                  status: "pending"
-                }
-              });
-              
-              // Update total komisi affiliate
-              await prisma.affiliate.update({
-                where: { id: affiliateId },
-                data: {
-                  komisi: {
-                    increment: komisiAmount
-                  }
-                }
-              });
-              
-              console.log(`✅ Affiliate order created for affiliate ID: ${affiliateId}`);
-              
-              // Hapus cookie setelah digunakan
-              res.clearCookie("id_aff");
-              res.clearCookie("id_sub");
+      // ✅ CEK AFFILIATE: Gunakan affiliateOrders yang sudah dibuat sebelumnya
+      if (order.affiliateOrders && order.affiliateOrders.length > 0) {
+        try {
+          const affiliateOrder = order.affiliateOrders[0]; // Ambil affiliate order pertama
+          
+          // Update status affiliate order menjadi approved
+          await prisma.affiliateOrder.update({
+            where: { id: affiliateOrder.id },
+            data: {
+              status: "approved"
             }
-          } catch (affiliateError) {
-            console.error("❌ Error creating affiliate order:", affiliateError);
-            // Jangan ganggu flow utama jika ada error di affiliate
-          }
+          });
+          
+          // Update total komisi affiliate
+          await prisma.affiliate.update({
+            where: { id: affiliateOrder.affiliateId },
+            data: {
+              komisi: {
+                increment: affiliateOrder.komisi
+              }
+            }
+          });
+          
+          console.log(`✅ Affiliate order approved for affiliate ID: ${affiliateOrder.affiliateId}`);
+        } catch (affiliateError) {
+          console.error("❌ Error updating affiliate order:", affiliateError);
+          // Jangan ganggu flow utama jika ada error di affiliate
         }
       }
 
@@ -677,29 +707,47 @@ export const duitkuCallback = async (req, res) => {
 
           const whatsappMessage = `🌟 *PEMBAYARAN BERHASIL* 🌟
 
-Halo ${user.name || "Pelanggan Setia"}! 
-
-Pembayaran Anda telah berhasil diproses.
-
-📋 *Detail Transaksi:*
-➤ Order ID: ${merchantOrderId}
-➤ Paket: ${subscription.name}
-➤ Jumlah: ${formattedAmount}
-➤ Status: ✅ BERHASIL
-
-🔗 *Akses Aplikasi:*
-${appUrl}
-
-Silakan login untuk mulai menggunakan layanan premium kami.
-
-Terima kasih telah mempercayai layanan kami! 🚀
-
-*Tim Support*`;
+        Halo ${user.name || "Pelanggan Setia"}! 
+        
+        Pembayaran Anda telah berhasil diproses.
+        
+        📋 *Detail Transaksi:*
+        ➤ Order ID: ${merchantOrderId}
+        ➤ Paket: ${subscription.name}
+        ➤ Jumlah: ${formattedAmount}
+        ➤ Status: ✅ BERHASIL
+        
+        🔗 *Akses Aplikasi:*
+        ${appUrl}
+        
+        Silakan login untuk mulai menggunakan layanan premium kami.
+        
+        Terima kasih telah mempercayai layanan kami! 🚀
+        
+        *Tim Support*`;
 
           await sendWhatsApp(user.nomor_wa, whatsappMessage);
           console.log("✅ WhatsApp terkirim ke:", user.nomor_wa);
         } catch (waError) {
           console.error("❌ Gagal kirim WhatsApp:", waError.message);
+        }
+      }
+    } else if (newStatus === "failed" || newStatus === "expired") {
+      // Jika payment failed/expired, update affiliate order status menjadi canceled
+      if (order.affiliateOrders && order.affiliateOrders.length > 0) {
+        try {
+          const affiliateOrder = order.affiliateOrders[0];
+          
+          await prisma.affiliateOrder.update({
+            where: { id: affiliateOrder.id },
+            data: {
+              status: "canceled"
+            }
+          });
+          
+          console.log(`❌ Affiliate order canceled for order ID: ${order.id}`);
+        } catch (affiliateError) {
+          console.error("❌ Error canceling affiliate order:", affiliateError);
         }
       }
     }
@@ -711,7 +759,6 @@ Terima kasih telah mempercayai layanan kami! 🚀
     res.status(200).send("OK");
   }
 };
-
 export const checkSubscription = async (req, res) => {
   const user = req.session.user;
   const subscriptionId = parseInt(req.params.subscriptionId);
