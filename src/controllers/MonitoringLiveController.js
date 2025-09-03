@@ -212,6 +212,7 @@ export async function getShopeeData(req, res) {
 
     const akunList = await prisma.akun.findMany({
       where: {
+         deletedAt: null,
         userId: userId,
       },
     });

@@ -43,7 +43,10 @@ export const getDataPembayaran = async (req, res) => {
     
     console.log(`Mengambil akun untuk user ID: ${userId}`);
     const accounts = await prisma.akun.findMany({
-      where: { userId: userId },
+      where: { 
+        userId: userId,
+         deletedAt: null,
+       },
     });
     
     console.log(`Jumlah akun ditemukan: ${accounts.length}`);

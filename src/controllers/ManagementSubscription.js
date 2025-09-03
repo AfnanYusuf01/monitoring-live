@@ -13,7 +13,8 @@ export const renderSubscriptionManagement = async (req, res) => {
         description: true,
         price: true,
         duration: true,
-        limitAkun: true, // Ditambahkan
+        limitAkun: true,
+        komisi: true, // Ditambahkan
         createdAt: true,
         updatedAt: true,
       },
@@ -55,7 +56,8 @@ export const renderEditSubscription = async (req, res) => {
         description: true,
         price: true,
         duration: true,
-        limitAkun: true, // Ditambahkan
+        limitAkun: true,
+        komisi: true, // Ditambahkan
         createdAt: true,
         updatedAt: true,
       },
@@ -138,7 +140,7 @@ export async function showSubscription(req, res) {
 // Create new subscription
 export async function storeSubscription(req, res) {
   try {
-    const {name, description, price, duration, limitAkun} = req.body;
+    const {name, description, price, duration, limitAkun, komisi} = req.body;
 
     if (!name || !price || !duration) {
       return res.status(400).json({
@@ -153,7 +155,8 @@ export async function storeSubscription(req, res) {
         description,
         price: parseFloat(price),
         duration: parseInt(duration),
-        limitAkun: limitAkun ? parseInt(limitAkun) : 1, // Ditambahkan
+        limitAkun: limitAkun ? parseInt(limitAkun) : 1,
+        komisi: komisi !== undefined ? parseFloat(komisi) : 0, // Ditambahkan
       },
     });
 
@@ -176,7 +179,7 @@ export async function storeSubscription(req, res) {
 export async function updateSubscription(req, res) {
   try {
     const {id} = req.params;
-    const {name, description, price, duration, limitAkun} = req.body;
+    const {name, description, price, duration, limitAkun, komisi} = req.body;
 
     const subscription = await prisma.subscription.update({
       where: {id: parseInt(id)},
@@ -185,7 +188,8 @@ export async function updateSubscription(req, res) {
         description,
         price: price !== undefined ? parseFloat(price) : undefined,
         duration: duration !== undefined ? parseInt(duration) : undefined,
-        limitAkun: limitAkun !== undefined ? parseInt(limitAkun) : undefined, // Ditambahkan
+        limitAkun: limitAkun !== undefined ? parseInt(limitAkun) : undefined,
+        komisi: komisi !== undefined ? parseFloat(komisi) : undefined, // Ditambahkan
       },
     });
 

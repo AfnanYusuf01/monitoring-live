@@ -63,6 +63,24 @@ import {
   duitkuCallback,
 } from "../controllers/ManagementOrderController.js";
 
+// Import controller affiliate
+import {
+  indexAffiliate,
+  showAffiliate,
+  storeAffiliate,
+  updateAffiliate,
+  destroyAffiliate,
+  updateKomisiStatus
+} from "../controllers/AffiliateControler.js";
+
+import {
+  indexPerformance,
+  showPerformance,
+  storePerformance,
+  updatePerformance,
+  destroyPerformance,
+} from "../controllers/PerformanceLiveStreamController.js";
+
 const router = express.Router();
 
 // ============================================================
@@ -90,66 +108,57 @@ router.post("/users",   requireApiLogin,   store);
 router.put("/users/:id",   requireApiLogin,   update);
 router.delete("/users/:id",   requireApiLogin,   destroy);
 
+/* ============================================================
+   AFFILIATE CONTROLLER
+============================================================ */
+router.get("/affiliates", requireApiLogin, indexAffiliate);
+router.get("/affiliates/:id", requireApiLogin, showAffiliate);
+router.post("/affiliates", requireApiLogin, storeAffiliate);
+router.put("/affiliates/:id", requireApiLogin, updateAffiliate);
+router.delete("/affiliates/:id", requireApiLogin, destroyAffiliate);
+router.post("/affiliate/register", requireApiLogin, storeAffiliate);
+router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updateKomisiStatus);
+
 
 /* ============================================================
    MONITORING LIVE CONTROLLER
 ============================================================ */
 router.get("/shopee-data",   requireApiLogin,   getShopeeData);
 
-
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER
 ============================================================ */
 router.post("/cek-pembayaran",   requireApiLogin,   getDataPembayaran);
-
 
 /* ============================================================
    HISTORI LIVE CONTROLLER
 ============================================================ */
 router.post("/history",   requireApiLogin,   getLiveHistory);
 
-
 /* ============================================================
    MONITORING PRODUCT CONTROLLER
 ============================================================ */
 router.post("/products",   requireApiLogin,   getShopeeProducts);
 
-
 /* ============================================================
    MANAGEMENT STUDIO  CONTROLLER
 ============================================================ */
-// router.get("/studios", getAllStudios);
 router.get("/studios",    requireApiLogin,   getAllStudios);
 router.get("/studio/:id",   requireApiLogin,   getAkunStudioById);
-
-router.get("/studios",   requireApiLogin,   indexStudio);           // Get all studios
-router.get("/studios/:id",   requireApiLogin,   getStudio);   // Get single studio
-router.post("/studios",   requireApiLogin,   postStudios);    // Create studio
-router.put("/studios/:id",   requireApiLogin,   putStudio);   // Update studio
-router.delete("/studios/:id",   requireApiLogin,   delStudio);// Delete studio
-
+router.get("/studios",   requireApiLogin,   indexStudio);
+router.get("/studios/:id",   requireApiLogin,   getStudio);
+router.post("/studios",   requireApiLogin,   postStudios);
+router.put("/studios/:id",   requireApiLogin,   putStudio);
+router.delete("/studios/:id",   requireApiLogin,   delStudio);
 
 /* ============================================================
-   MANAGEMENT SUBCRIBTIONS  CONTROLLER
+   MANAGEMENT SUBSCRIPTIONS  CONTROLLER
 ============================================================ */
-
 router.get("/subscriptions", indexSubscription);
 router.get("/subscriptions/:id", showSubscription);
 router.post("/subscriptions", storeSubscription);
 router.put("/subscriptions/:id", updateSubscription);
 router.delete("/subscriptions/:id", destroySubscription);
-
-
-/* ============================================================
-   MANAGEMENT USER SUBCRIBTIONS  CONTROLLER
-============================================================ */
-
-router.get("/subscriptions", indexSubscription);
-router.get("/subscriptions/:id", showSubscription);
-router.post("/subscriptions", storeSubscription);
-router.put("/subscriptions/:id", updateSubscription);
-router.delete("/subscriptions/:id", destroySubscription);
-
 
 /* ============================================================
    MANAGEMENT USER SUBSCRIPTIONS CONTROLLER
@@ -169,7 +178,6 @@ router.post("/orders", storeOrder);
 router.put("/orders/:id", updateOrder);
 router.delete("/orders/:id", destroyOrder);
 
-
 router.post("/duitku/callback", duitkuCallback);
 router.get("/check-subscription", requireApiLogin, checkUserSubscription);
 
@@ -178,5 +186,14 @@ router.post("/register", AuthController.registerApi);
 router.post("/logout", AuthController.logoutApi);
 
 router.get("/check-subscription/:subscriptionId", requireApiLogin, checkSubscription);
+
+/* ============================================================
+   PERFORMANCE LIVE STREAM ROUTES
+============================================================ */
+router.get("/performance-live-streams", requireApiLogin, indexPerformance);
+router.get("/performance-live-streams/:id", requireApiLogin, showPerformance);
+router.post("/performance-live-streams", requireApiLogin, storePerformance);
+router.put("/performance-live-streams/:id", requireApiLogin, updatePerformance);
+router.delete("/performance-live-streams/:id", requireApiLogin, destroyPerformance);
 
 export default router;

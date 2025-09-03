@@ -48,6 +48,19 @@ import {
   createOrder,
 } from "../controllers/ManagementOrderController.js";
 
+import {
+  renderAffiliatePage,
+  renderEditAffiliatePage,
+  renderAffiliateManagement
+} from "../controllers/AffiliateControler.js";
+
+
+import {
+  renderPerformanceLiveStream,
+} from '../controllers/PerformanceLiveStreamController.js';
+
+
+
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -108,7 +121,10 @@ router.get("/account-management", requireLogin, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const akunList = await prisma.akun.findMany({
-      where: {userId: userId},
+            where: {
+         deletedAt: null,
+        userId: userId,
+      },
     });
     res.render("pages/account/account-management", {
       navbar: "Account-Management",
@@ -273,6 +289,28 @@ router.get("/", (req, res) => {
 
 router.get("/subscription/checkout/:id", renderCheckout);
 router.post("/subscription/buy/:id", requireLogin, createOrder);
+router.get("/subscription/checkout/:id_add/:id", (req, res) => {
+  const { id_add, id } = req.params;
+
+  // simpan ke cookie dengan masa berlaku 7 hari
+  res.cookie("id_aff", id_add, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
+  res.cookie("id_sub", id, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
+
+  // redirect ke halaman checkout (frontend)
+  res.redirect(`/subscription/checkout/${id}`);
+});
+
+
+router.get('/affiliate', requireLogin, renderAffiliatePage);
+router.get('/affiliate/edit/:id', requireLogin, renderEditAffiliatePage);
+router.get('/affiliate-management', requireLogin, renderAffiliateManagement);
+
+
+router.get('/performance', requireLogin, renderPerformanceLiveStream);
+
+
+
+
 
 
 

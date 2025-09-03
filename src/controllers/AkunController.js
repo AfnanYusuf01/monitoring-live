@@ -83,7 +83,7 @@ const checkCookieStatus = async (cookie) => {
 
 export const renderAccountManagement = async (req, res) => {
   try {
-    const userId = req.user.id;
+      const userId = req.session.user.id;
     const akun = await prisma.akun.findMany({
       where: {
         userId: userId,
@@ -120,7 +120,7 @@ export const renderAddAccount = (req, res) => {
 
 export const renderEditAccount = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     const akun = await prisma.akun.findFirst({
@@ -158,11 +158,11 @@ export const getAllAkun = async (req, res) => {
   try {
     console.log("👉 getAllAkun dipanggil");
 
-    if (!req.user) {
+    if (!req.session.user.id) {
       return res.status(401).json({error: "Unauthorized: req.user kosong"});
     }
 
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     console.log("🔎 userId:", userId);
 
     const akun = await prisma.akun.findMany({
@@ -205,11 +205,11 @@ export const getAllAkun = async (req, res) => {
 };
 
 export const createAkun = async (req, res) => {
-  const {cookie} = req.body;
-  const userId = req.user.id;
+  const { cookie } = req.body;
+    const userId = req.session.user.id;
 
   if (!cookie) {
-    return res.status(400).json({error: "Cookie wajib diisi"});
+    return res.status(400).json({ error: "Cookie wajib diisi" });
   }
 
   try {
@@ -223,6 +223,7 @@ export const createAkun = async (req, res) => {
 
         const akun = await prisma.akun.create({
           data: {
+            id: Date.now(), // fallback id (wajib unique)
             nama_akun,
             email: null,
             phone: null,
@@ -248,13 +249,14 @@ export const createAkun = async (req, res) => {
     const profileData = profileResult.data;
 
     // Gunakan shopee_user_name sebagai nama_akun jika tersedia
-    const nama_akun =
-      profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
+    const nama_akun = profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
     const email = profileData.email || null;
     const phone = profileData.phone || null;
+    const akunId = profileData.user_id; // ✅ ambil dari Shopee user_id
 
     const akun = await prisma.akun.create({
       data: {
+        id: akunId, // isi dengan Shopee user_id
         nama_akun,
         email,
         phone,
@@ -276,21 +278,27 @@ export const createAkun = async (req, res) => {
       if (target?.includes("email")) {
         return res
           .status(400)
-          .json({error: "Email sudah digunakan oleh akun lain"});
+          .json({ error: "Email sudah digunakan oleh akun lain" });
       }
       if (target?.includes("phone")) {
         return res
           .status(400)
-          .json({error: "Nomor telepon sudah digunakan oleh akun lain"});
+          .json({ error: "Nomor telepon sudah digunakan oleh akun lain" });
+      }
+      if (target?.includes("PRIMARY")) {
+        return res
+          .status(400)
+          .json({ error: "Akun dengan user_id ini sudah ada" });
       }
     }
-    res.status(500).json({error: err.message});
+    res.status(500).json({ error: err.message });
   }
 };
 
+
 export const getAkunById = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     const akun = await prisma.akun.findFirst({
@@ -322,7 +330,7 @@ export const getAkunById = async (req, res) => {
 export const updateAkun = async (req, res) => {
   const {id} = req.params;
   const {nama_akun, cookie} = req.body;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     // Cek apakah akun milik user yang login
@@ -415,7 +423,7 @@ export const updateAkun = async (req, res) => {
 
 export const deleteAkun = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     // Cek apakah akun milik user yang login
@@ -459,28 +467,45 @@ export const downloadCSVTemplate = (req, res) => {
 
 export const importAkunFromCSV = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.session.user.id;
 
     if (!req.file) {
       return res.status(400).json({error: "File CSV belum diupload"});
     }
 
-    const csvText = req.file.buffer.toString("utf8");
-
-    const {data, errors} = Papa.parse(csvText, {
-      header: true,
-      skipEmptyLines: true,
-    });
-
-    if (errors.length > 0) {
-      return res.status(400).json({
-        error: "CSV tidak valid",
-        details: errors.map((e) => e.message),
-      });
+    // Pastikan file adalah CSV
+    if (!req.file.originalname.endsWith('.csv') && req.file.mimetype !== 'text/csv') {
+      return res.status(400).json({error: "Hanya file CSV yang diizinkan"});
     }
 
-    if (!data || data.length === 0) {
-      return res.status(400).json({error: "CSV kosong atau tidak terbaca"});
+    const csvText = req.file.buffer.toString("utf8");
+
+    // Bersihkan teks CSV dari karakter yang tidak diinginkan
+    const cleanedCsvText = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+    
+    if (!cleanedCsvText) {
+      return res.status(400).json({error: "File CSV kosong"});
+    }
+
+    // Split manual berdasarkan baris baru (karena cookie mengandung koma)
+    const lines = cleanedCsvText.split('\n').filter(line => line.trim() !== '');
+    
+    // Hapus header jika ada
+    const header = lines[0].toLowerCase().trim();
+    const startIndex = header.includes('cookie') ? 1 : 0;
+    
+    const cookies = [];
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (line) {
+        cookies.push({ cookie: line });
+      }
+    }
+
+    console.log("Extracted cookies:", cookies.length);
+
+    if (cookies.length === 0) {
+      return res.status(400).json({error: "Tidak ada cookie yang ditemukan dalam file CSV"});
     }
 
     // Cek subscription aktif
@@ -512,10 +537,16 @@ export const importAkunFromCSV = async (req, res) => {
     let failedCount = 0;
     const failedRows = [];
 
-    for (const [index, row] of data.entries()) {
-      if (createdCount >= remainingSlots) break;
+    for (const [index, row] of cookies.entries()) {
+      if (createdCount >= remainingSlots) {
+        failedRows.push({
+          row: index + 2, 
+          reason: "Slot akun tidak mencukupi"
+        });
+        break;
+      }
 
-      const cookie = row.cookie?.trim();
+      const cookie = row.cookie ? row.cookie.trim() : '';
       if (!cookie) {
         failedCount++;
         failedRows.push({row: index + 2, reason: "Cookie kosong"});
@@ -526,7 +557,7 @@ export const importAkunFromCSV = async (req, res) => {
         // Ambil data profil dari Shopee API
         const profileResult = await fetchShopeeProfile(cookie);
 
-        let nama_akun, email, phone;
+        let nama_akun, email, phone, akunId;
 
         if (!profileResult.success) {
           // Jika cookie invalid (code 30002), tetap buat akun dengan data kosong
@@ -534,6 +565,7 @@ export const importAkunFromCSV = async (req, res) => {
             nama_akun = `Akun Shopee ${Date.now()}`;
             email = null;
             phone = null;
+            akunId = Date.now() + index; // fallback ID dengan timestamp + index
             failedRows.push({
               row: index + 2,
               reason: "Cookie tidak valid, akun dibuat dengan status logout",
@@ -549,14 +581,17 @@ export const importAkunFromCSV = async (req, res) => {
           }
         } else {
           const profileData = profileResult.data;
-          nama_akun =
-            profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
+          nama_akun = profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
           email = profileData.email || null;
           phone = profileData.phone || null;
+          
+          // ✅ Gunakan user_id dari Shopee jika tersedia, jika tidak gunakan timestamp yang unik
+          akunId = profileData.user_id || Date.now() + index;
         }
 
         await prisma.akun.create({
           data: {
+            id: akunId, // ✅ Gunakan ID yang sudah ditentukan
             nama_akun,
             email,
             phone,
@@ -568,7 +603,7 @@ export const importAkunFromCSV = async (req, res) => {
         createdCount++;
 
         // Delay kecil untuk menghindari rate limiting
-        if (index < data.length - 1) {
+        if (index < cookies.length - 1) {
           await new Promise((resolve) => setTimeout(resolve, 500));
         }
       } catch (err) {
@@ -576,10 +611,13 @@ export const importAkunFromCSV = async (req, res) => {
         let reason = "Error tidak diketahui";
 
         if (err.code === "P2002") {
-          if (err.meta?.target?.includes("email")) {
+          const target = err.meta?.target;
+          if (target?.includes("email")) {
             reason = "Email sudah digunakan";
-          } else if (err.meta?.target?.includes("phone")) {
+          } else if (target?.includes("phone")) {
             reason = "Nomor telepon sudah digunakan";
+          } else if (target?.includes("PRIMARY")) {
+            reason = "Akun dengan ID ini sudah ada";
           } else {
             reason = "Data duplikat";
           }
@@ -609,7 +647,7 @@ export const importAkunFromCSV = async (req, res) => {
 
 export const checkUserSubscription = async (req, res) => {
   try {
-    const userId = req.user.id;
+      const userId = req.session.user.id;
     const now = new Date();
 
     const userSubs = await prisma.userSubscription.findMany({
@@ -664,7 +702,7 @@ export const checkUserSubscription = async (req, res) => {
 // Endpoint untuk restore akun yang dihapus
 export const restoreAkun = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     const existingAkun = await prisma.akun.findFirst({
@@ -693,7 +731,7 @@ export const restoreAkun = async (req, res) => {
 // Endpoint khusus untuk mengecek status cookie
 export const checkCookieStatusEndpoint = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id;
+    const userId = req.session.user.id;
 
   try {
     const akun = await prisma.akun.findFirst({

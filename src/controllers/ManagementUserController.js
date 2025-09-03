@@ -4,6 +4,11 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+///////////////////////
+///     WEB    ///////
+/////////////////////
+
+
 // Render halaman utama
 export const renderUserManagement = async (req, res) => {
   try {
@@ -79,6 +84,11 @@ export const renderEditUser = async (req, res) => {
     });
   }
 };
+
+
+///////////////////////
+///     API    ///////
+/////////////////////
 
 // Get all users
 export async function index(req, res) {

@@ -53,8 +53,8 @@
                             <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Deskripsi</th>
                             <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Harga</th>
                             <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Durasi (hari)</th>
-                            <!-- TAMBAHKAN INI -->
                             <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Limit Akun</th>
+                            <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Komisi</th>
                             <th class="px-6 py-3 text-xs font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Tanggal Dibuat</th>
                             <th class="px-6 py-3 text-xs font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 tracking-none text-slate-400 opacity-70">Aksi</th>
                         </tr>
@@ -90,10 +90,14 @@
                                     <%= subscription.duration %> hari
                                     </span>
                                 </td>
-                                <!-- TAMBAHKAN INI -->
                                 <td class="px-6 py-4 align-middle border-b border-gray-200">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full bg-green-100 text-green-800">
                                     <%= subscription.limitAkun %> akun
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 align-middle border-b border-gray-200">
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full bg-purple-100 text-purple-800">
+                                    <%= (subscription.komisi * 100).toFixed(1) %>%
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 align-middle border-b border-gray-200">
@@ -113,7 +117,7 @@
                             <% }) %>
                             <% } else { %>
                             <tr>
-                                <td colspan="8" class="text-center py-8"> <!-- Ubah colspan dari 7 menjadi 8 -->
+                                <td colspan="9" class="text-center py-8">
                                 <div class="flex flex-col items-center text-gray-500">
                                     <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -275,4 +279,4 @@
       }
     }, 5000);
   }
-</script> 
+</script>

@@ -13,11 +13,14 @@ export const getstudioById = (req, res) => {
 
 export const renderAddStudio = async (req, res) => {
   try {
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     // ambil semua akun milik user yang login
     const akunList = await prisma.akun.findMany({
-      where: {userId: userId},
+      where: {
+        deletedAt: null,
+        userId: userId,
+      },
       select: {
         id: true,
         nama_akun: true,
@@ -40,7 +43,7 @@ export const renderAddStudio = async (req, res) => {
 
 export const renderStudioManagement = async (req, res) => {
   try {
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     const studios = await prisma.studio.findMany({
       where: {userId: userId}, // Hanya ambil studio milik user yang login
@@ -73,7 +76,7 @@ export const renderStudioManagement = async (req, res) => {
 
 export const renderEditStudio = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id; // Dapatkan ID user yang login
+    const userId = req.session.user.id; // Dapatkan ID user yang login
 
   try {
     // Get studio data dengan filter user ID
@@ -102,7 +105,10 @@ export const renderEditStudio = async (req, res) => {
 
     // Get all available accounts milik user yang login
     const allAccounts = await prisma.akun.findMany({
-      where: {userId: userId},
+            where: {
+        deletedAt: null,
+        userId: userId,
+      },
       select: {
         id: true,
         nama_akun: true,
@@ -130,7 +136,7 @@ export const renderEditStudio = async (req, res) => {
 
 export const renderDetailStudio = async (req, res) => {
   const {id} = req.params;
-  const userId = req.user.id; // Dapatkan ID user yang login
+    const userId = req.session.user.id; // Dapatkan ID user yang login
 
   try {
     // Get studio data dengan filter user ID
@@ -194,7 +200,7 @@ function formatGmv(value) {
 // API Functions
 export const getAllStudios = async (req, res) => {
   try {
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     const studios = await prisma.studio.findMany({
       where: {userId: userId}, // Hanya ambil studio milik user yang login
@@ -283,7 +289,7 @@ export const getAllStudios = async (req, res) => {
 export const getAkunStudioById = async (req, res) => {
   try {
     const {id} = req.params;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     // ambil studio beserta akun dengan filter user ID
     const studio = await prisma.studio.findFirst({
@@ -346,7 +352,7 @@ export const getAkunStudioById = async (req, res) => {
 export const renderStudioById = async (req, res) => {
   try {
     const {id} = req.params;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     const studio = await prisma.studio.findFirst({
       where: {
@@ -430,7 +436,7 @@ export const renderStudioById = async (req, res) => {
 
 export async function indexStudio(req, res) {
   try {
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     const studios = await prisma.studio.findMany({
       where: {userId: userId}, // Hanya ambil studio milik user yang login
@@ -448,7 +454,7 @@ export async function indexStudio(req, res) {
 export async function getStudio(req, res) {
   try {
     const {id} = req.params;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     const studio = await prisma.studio.findFirst({
       where: {
@@ -474,7 +480,7 @@ export async function getStudio(req, res) {
 export async function postStudios(req, res) {
   try {
     const {nama_studio, catatan, akun} = req.body;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     if (!nama_studio) {
       return res.status(400).json({error: "nama_studio is required"});
@@ -486,6 +492,7 @@ export async function postStudios(req, res) {
         where: {
           id: {in: akun.map((a) => a.id)},
           userId: userId,
+          deletedAt: null,
         },
       });
 
@@ -523,7 +530,7 @@ export async function putStudio(req, res) {
   try {
     const {id} = req.params;
     const {nama_studio, catatan, akun} = req.body;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     // Cek apakah studio milik user yang login
     const existingStudio = await prisma.studio.findFirst({
@@ -543,6 +550,7 @@ export async function putStudio(req, res) {
         where: {
           id: {in: akun.map((a) => a.id)},
           userId: userId,
+          deletedAt: null,
         },
       });
 
@@ -577,7 +585,7 @@ export async function putStudio(req, res) {
 export async function delStudio(req, res) {
   try {
     const {id} = req.params;
-    const userId = req.user.id; // Dapatkan ID user yang login
+      const userId = req.session.user.id; // Dapatkan ID user yang login
 
     // Cek apakah studio milik user yang login
     const existingStudio = await prisma.studio.findFirst({

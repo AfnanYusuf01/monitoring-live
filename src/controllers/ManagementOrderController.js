@@ -279,7 +279,7 @@ export const createOrder = async (req, res) => {
   try {
     const subscriptionId = parseInt(req.params.id);
     const method = req.query.method; // metode pembayaran dipilih user
-    const userId = req.user.id;
+      const userId = req.session.user.id;
 
     // ambil paket
     const subscription = await prisma.subscription.findUnique({
@@ -397,18 +397,19 @@ export const duitkuCallback = async (req, res) => {
 
     const merchantCode = req.body.merchantCode;
     const merchantOrderId = req.body.merchantOrderId;
+    const amount = req.body.amount;
     const reference = req.body.reference;
     const statusCode = req.body.statusCode;
     const signature = req.body.signature;
     const paymentAmount = req.body.paymentAmount;
-    const subscriptionIdOrder = parseInt(req.body.productDetail);
+    const subscriptionIdOrder = parseInt(req.body.productDetails);
 
-    console.log("📥 Callback amount diterima:", req.body.amount);
+    console.log("📥 Callback amount diterima:", amount);
 
     const signatureString =
-      req.body.merchantCode +
-      req.body.amount +
-      req.body.merchantOrderId +
+      merchantCode +
+      amount +
+      merchantOrderId +
       config.apiKey;
     const validSignature = crypto
       .createHash("md5")
@@ -424,7 +425,7 @@ export const duitkuCallback = async (req, res) => {
 
     // Cari order dengan include data yang diperlukan
     const order = await prisma.order.findUnique({
-      where: {transactionId: merchantOrderId},
+      where: { transactionId: merchantOrderId },
       include: {
         userSubscription: {
           include: {
@@ -432,6 +433,7 @@ export const duitkuCallback = async (req, res) => {
             subscription: true,
           },
         },
+        affiliate: true, // Include data affiliate jika ada
       },
     });
 
@@ -452,15 +454,15 @@ export const duitkuCallback = async (req, res) => {
 
     // Update status order
     await prisma.order.update({
-      where: {id: order.id},
-      data: {status: newStatus},
+      where: { id: order.id },
+      data: { status: newStatus },
     });
 
     // Logika untuk mengelola UserSubscription ketika pembayaran berhasil
     if (newStatus === "paid") {
       const user = order.userSubscription.user;
       const purchasedSubscription = await prisma.subscription.findUnique({
-        where: {id: subscriptionIdOrder},
+        where: { id: subscriptionIdOrder },
       });
 
       if (!purchasedSubscription) {
@@ -491,10 +493,10 @@ export const duitkuCallback = async (req, res) => {
             : new Date(new Date().setFullYear(new Date().getFullYear() + 10));
 
         await prisma.userSubscription.update({
-          where: {id: order.userSubscription.id},
+          where: { id: order.userSubscription.id },
           data: {
             status: "active",
-            subscription: {connect: {id: subscriptionIdOrder}},
+            subscription: { connect: { id: subscriptionIdOrder } },
             limitAkun: purchasedSubscription.limitAkun,
             startDate: new Date(),
             endDate: newEndDate,
@@ -510,7 +512,7 @@ export const duitkuCallback = async (req, res) => {
             purchasedSubscription.limitAkun;
 
           await prisma.userSubscription.update({
-            where: {id: activeUserSubscription.id},
+            where: { id: activeUserSubscription.id },
             data: {
               limitAkun: newLimitAkun,
             },
@@ -528,7 +530,7 @@ export const duitkuCallback = async (req, res) => {
             );
 
             await prisma.userSubscription.update({
-              where: {id: activeUserSubscription.id},
+              where: { id: activeUserSubscription.id },
               data: {
                 endDate: newEndDate,
               },
@@ -548,9 +550,9 @@ export const duitkuCallback = async (req, res) => {
                   );
 
             await prisma.userSubscription.update({
-              where: {id: activeUserSubscription.id},
+              where: { id: activeUserSubscription.id },
               data: {
-                subscription: {connect: {id: subscriptionIdOrder}},
+                subscription: { connect: { id: subscriptionIdOrder } },
                 limitAkun: purchasedSubscription.limitAkun,
                 startDate: new Date(),
                 endDate: newEndDate,
@@ -561,9 +563,63 @@ export const duitkuCallback = async (req, res) => {
         }
       }
 
+      // ✅ CEK AFFILIATE: Jika ada cookie affiliate dan subscription ID cocok
+      const affiliateCookie = req.cookies?.id_aff;
+      const subscriptionCookie = req.cookies?.id_sub;
+      
+      if (affiliateCookie && subscriptionCookie) {
+        const affiliateId = parseInt(affiliateCookie);
+        const subscriptionIdFromCookie = parseInt(subscriptionCookie);
+        
+        // Pastikan subscription yang dibeli sesuai dengan cookie
+        if (subscriptionIdOrder === subscriptionIdFromCookie) {
+          try {
+            // Cek apakah affiliate valid
+            const affiliate = await prisma.affiliate.findUnique({
+              where: { id: affiliateId },
+              include: { user: true }
+            });
+            
+            if (affiliate) {
+              // Hitung komisi berdasarkan persentase dari subscription
+              const komisiAmount = purchasedSubscription.price * (purchasedSubscription.komisi / 100);
+              
+              // Buat affiliate order
+              await prisma.affiliateOrder.create({
+                data: {
+                  affiliateId: affiliateId,
+                  orderId: order.id,
+                  komisi: komisiAmount,
+                  status: "pending"
+                }
+              });
+              
+              // Update total komisi affiliate
+              await prisma.affiliate.update({
+                where: { id: affiliateId },
+                data: {
+                  komisi: {
+                    increment: komisiAmount
+                  }
+                }
+              });
+              
+              console.log(`✅ Affiliate order created for affiliate ID: ${affiliateId}`);
+              
+              // Hapus cookie setelah digunakan
+              res.clearCookie("id_aff");
+              res.clearCookie("id_sub");
+            }
+          } catch (affiliateError) {
+            console.error("❌ Error creating affiliate order:", affiliateError);
+            // Jangan ganggu flow utama jika ada error di affiliate
+          }
+        }
+      }
+
       // Kirim notifikasi email
       const subscription = await prisma.subscription.findUnique({
-        where: {id: subscriptionIdOrder},
+        where: { id: subscriptionIdOrder },
       });
 
       console.log(
@@ -593,10 +649,10 @@ export const duitkuCallback = async (req, res) => {
             <p>Anda sekarang dapat mengakses akun Anda dengan fitur premium yang telah Anda beli.</p>
             
             <p><strong>Link Akses Aplikasi:</strong></p>
-            <p><a href="${appUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login ke Aplikasi</a></p>
+            <p><a href="${appUrl}/login" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login ke Aplikasi</a></p>
             
             <p>Atau salin link berikut di browser Anda:</p>
-            <p>${appUrl}</p>
+            <p>${appUrl}/login</p>
             
             <p>Terima kasih telah berlangganan!</p>
             <br>

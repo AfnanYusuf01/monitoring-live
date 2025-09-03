@@ -101,138 +101,204 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const form = document.getElementById('akun-form');
-      const importInput = document.getElementById('import-csv');
-      const importResultModal = document.getElementById('import-result-modal');
-      const importSuccess = document.getElementById('import-success');
-      const importErrors = document.getElementById('import-errors');
-      const successMessage = document.getElementById('success-message');
-      const errorList = document.getElementById('error-list');
-      const closeImportModal = document.getElementById('close-import-modal');
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('akun-form');
+    const importInput = document.getElementById('import-csv');
+    const importResultModal = document.getElementById('import-result-modal');
+    const importSuccess = document.getElementById('import-success');
+    const importErrors = document.getElementById('import-errors');
+    const successMessage = document.getElementById('success-message');
+    const errorList = document.getElementById('error-list');
+    const closeImportModal = document.getElementById('close-import-modal');
+    
+    // Handle form submit untuk tambah manual
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
       
-      // Handle form submit untuk tambah manual
-      form.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(form);
-        const data = {
-          cookie: formData.get('cookie')
-        };
-        
-        try {
-          const response = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            window.location.href = '/account-management?success=Akun berhasil ditambahkan';
-          } else {
-            alert('Gagal menambahkan akun: ' + (result.error || 'Error tidak diketahui'));
-          }
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Gagal menambahkan akun: ' + error.message);
-        }
-      });
+      const formData = new FormData(form);
+      const data = {
+        cookie: formData.get('cookie')
+      };
       
-      // Handle import CSV
-      importInput.addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
         
-        // Validasi tipe file
-        if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
-          alert('Hanya file CSV yang diizinkan');
-          e.target.value = '';
-          return;
+        const result = await response.json();
+        
+        if (response.ok) {
+          window.location.href = '/account-management?success=Akun berhasil ditambahkan';
+        } else {
+          alert('Gagal menambahkan akun: ' + (result.error || 'Error tidak diketahui'));
         }
-        
-        const formData = new FormData();
-        formData.append('csvFile', file);
-        
-        try {
-          const response = await fetch('/api/akun/import', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-            // Tampilkan hasil sukses
-            successMessage.textContent = result.message;
-            importSuccess.classList.remove('hidden');
-            
-            // Jika ada error, tampilkan juga
-            if (result.failedRows && result.failedRows.length > 0) {
-              importErrors.classList.remove('hidden');
-              errorList.innerHTML = '';
-              result.failedRows.forEach(error => {
-                const li = document.createElement('li');
-                li.textContent = `Baris ${error.row}: ${error.reason}`;
-                li.className = 'py-1 border-b border-gray-100 last:border-b-0';
-                errorList.appendChild(li);
-              });
-            } else {
-              importErrors.classList.add('hidden');
-            }
-            
-            // Tampilkan modal
-            showImportResultModal();
-          } else {
-            alert('Gagal mengimpor CSV: ' + result.error);
-          }
-        } catch (error) {
-          console.error('Error importing CSV:', error);
-          alert('Gagal mengimpor CSV: ' + error.message);
-        } finally {
-          // Reset input file
-          e.target.value = '';
-        }
-      });
-      
-      // Fungsi untuk menampilkan modal hasil import
-      function showImportResultModal() {
-        const modalContent = importResultModal.querySelector('div');
-        
-        importResultModal.classList.remove('hidden');
-        setTimeout(() => {
-          modalContent.classList.remove('scale-95', 'opacity-0');
-          modalContent.classList.add('scale-100', 'opacity-100');
-        }, 10);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Gagal menambahkan akun: ' + error.message);
       }
-      
-      // Fungsi untuk menyembunyikan modal hasil import
-      function hideImportResultModal() {
-        const modalContent = importResultModal.querySelector('div');
-        
-        modalContent.classList.remove('scale-100', 'opacity-100');
-        modalContent.classList.add('scale-95', 'opacity-0');
-        
-        setTimeout(() => {
-          importResultModal.classList.add('hidden');
-          // Redirect ke halaman utama jika import berhasil
-          if (importSuccess.classList.contains('hidden') === false && 
-              (!importErrors.classList.contains('hidden') || importErrors.classList.contains('hidden'))) {
-            window.location.href = '/account-management?success=Import CSV berhasil';
-          }
-        }, 300);
-      }
-      
-      // Event listener untuk tombol tutup modal
-      closeImportModal.addEventListener('click', hideImportResultModal);
-      
-      // Close modal when clicking outside
-      importResultModal.addEventListener('click', function(e) {
-        if (e.target.id === 'import-result-modal') hideImportResultModal();
-      });
     });
-  </script>
+    
+    // Handle import CSV
+    importInput.addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      // Validasi tipe file
+      if (!file.name.endsWith('.csv') && file.type !== 'text/csv') {
+        alert('Hanya file CSV yang diizinkan');
+        e.target.value = '';
+        return;
+      }
+      
+      // Debug: Tampilkan preview file
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const contents = e.target.result;
+        console.log("File contents:", contents);
+        
+        // Parse manual karena cookie mengandung koma
+        try {
+          const lines = contents.split('\n').filter(line => line.trim() !== '');
+          
+          // Cek header
+          const header = lines[0].toLowerCase().trim();
+          const hasHeader = header.includes('cookie');
+          const startIndex = hasHeader ? 1 : 0;
+          
+          const cookies = [];
+          for (let i = startIndex; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line) {
+              cookies.push({ cookie: line });
+            }
+          }
+          
+          console.log("Parsed cookies:", cookies);
+          
+          if (cookies.length === 0) {
+            alert('Tidak ada cookie yang ditemukan dalam file CSV. Pastikan format sesuai template.');
+            e.target.value = '';
+            return;
+          }
+          
+          // Lanjutkan dengan upload jika valid
+          uploadCSVFile(file);
+        } catch (parseError) {
+          console.error("Error parsing CSV:", parseError);
+          alert('File CSV tidak dapat dibaca. Pastikan format sesuai template.');
+          e.target.value = '';
+        }
+      };
+      reader.readAsText(file);
+    });
+    
+    // Fungsi untuk upload file CSV
+    async function uploadCSVFile(file) {
+      const formData = new FormData();
+      formData.append('csvFile', file);
+      
+      try {
+        // Tampilkan loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        loadingIndicator.innerHTML = `
+          <div class="bg-white rounded-lg p-6 flex items-center">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-3"></div>
+            <span>Sedang mengimpor CSV...</span>
+          </div>
+        `;
+        document.body.appendChild(loadingIndicator);
+        
+        const response = await fetch('/api/akun/import', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await response.json();
+        
+        // Hapus loading indicator
+        document.body.removeChild(loadingIndicator);
+        
+        if (response.ok) {
+          // Tampilkan hasil sukses
+          successMessage.textContent = result.message;
+          importSuccess.classList.remove('hidden');
+          
+          // Jika ada error, tampilkan juga
+          if (result.failedRows && result.failedRows.length > 0) {
+            importErrors.classList.remove('hidden');
+            errorList.innerHTML = '';
+            result.failedRows.forEach(error => {
+              const li = document.createElement('li');
+              li.textContent = `Baris ${error.row}: ${error.reason}`;
+              li.className = 'py-1 border-b border-gray-100 last:border-b-0';
+              errorList.appendChild(li);
+            });
+          } else {
+            importErrors.classList.add('hidden');
+          }
+          
+          // Tampilkan modal
+          showImportResultModal();
+        } else {
+          alert('Gagal mengimpor CSV: ' + (result.error || 'Error tidak diketahui'));
+          if (result.details) {
+            console.error("Error details:", result.details);
+          }
+        }
+      } catch (error) {
+        // Hapus loading indicator
+        const loadingIndicator = document.querySelector('.fixed.inset-0.bg-black');
+        if (loadingIndicator) {
+          document.body.removeChild(loadingIndicator);
+        }
+        
+        console.error('Error importing CSV:', error);
+        alert('Gagal mengimpor CSV: ' + error.message);
+      } finally {
+        // Reset input file
+        importInput.value = '';
+      }
+    }
+    
+    // Fungsi untuk menampilkan modal hasil import
+    function showImportResultModal() {
+      const modalContent = importResultModal.querySelector('div');
+      
+      importResultModal.classList.remove('hidden');
+      setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+    
+    // Fungsi untuk menyembunyikan modal hasil import
+    function hideImportResultModal() {
+      const modalContent = importResultModal.querySelector('div');
+      
+      modalContent.classList.remove('scale-100', 'opacity-100');
+      modalContent.classList.add('scale-95', 'opacity-0');
+      
+      setTimeout(() => {
+        importResultModal.classList.add('hidden');
+        // Redirect ke halaman utama jika import berhasil
+        if (importSuccess.classList.contains('hidden') === false) {
+          window.location.href = '/account-management?success=Import CSV berhasil';
+        }
+      }, 300);
+    }
+    
+    // Event listener untuk tombol tutup modal
+    closeImportModal.addEventListener('click', hideImportResultModal);
+    
+    // Close modal when clicking outside
+    importResultModal.addEventListener('click', function(e) {
+      if (e.target.id === 'import-result-modal') hideImportResultModal();
+    });
+  });
+</script>

@@ -1,0 +1,354 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gray-50">
+  <!-- Success Notification -->
+  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div id="success-notification" class="fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white z-50 transform transition-transform duration-300">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span><%= successMessage %></span>
+    </div>
+
+    <script>
+      setTimeout(() => {
+        const notification = document.getElementById('success-notification');
+        if (notification) notification.remove();
+      }, 5000);
+    </script>
+  <% } %>
+
+  <div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-gray-100">
+        <div class="flex flex-wrap justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">Dashboard Affiliate</h1>
+            <p class="text-sm text-gray-600 mt-1">Kelola program affiliate dan pantau komisi Anda</p>
+          </div>
+          <div>
+            <a href="/affiliate/edit/<%= affiliate.id %>" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+              <i class="fas fa-edit mr-2"></i>
+              Edit Data
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="px-6 py-4 bg-white border-b border-gray-100 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <div class="flex items-center">
+            <div class="rounded-full bg-blue-100 p-3 mr-4">
+              <i class="fas fa-wallet text-blue-600"></i>
+            </div>
+            <div>
+              <p class="text-sm text-blue-600 font-medium">Komisi Tersedia</p>
+              <p class="text-2xl font-bold text-gray-800">Rp <%= availableKomisi.toLocaleString('id-ID') %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+          <div class="flex items-center">
+            <div class="rounded-full bg-green-100 p-3 mr-4">
+              <i class="fas fa-money-bill-wave text-green-600"></i>
+            </div>
+            <div>
+              <p class="text-sm text-green-600 font-medium">Total Dibayar</p>
+              <p class="text-2xl font-bold text-gray-800">Rp <%= totalDibayar.toLocaleString('id-ID') %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+          <div class="flex items-center">
+            <div class="rounded-full bg-purple-100 p-3 mr-4">
+              <i class="fas fa-shopping-cart text-purple-600"></i>
+            </div>
+            <div>
+              <p class="text-sm text-purple-600 font-medium">Total Order</p>
+              <p class="text-2xl font-bold text-gray-800"><%= affiliate.affiliateOrders.length %></p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
+          <div class="flex items-center">
+            <div class="rounded-full bg-orange-100 p-3 mr-4">
+              <i class="fas fa-credit-card text-orange-600"></i>
+            </div>
+            <div>
+              <p class="text-sm text-orange-600 font-medium">Metode Pembayaran</p>
+              <p class="text-lg font-bold text-gray-800 capitalize"><%= affiliate.metodeBayar || 'Belum diatur' %></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Product Selection Section -->
+      <div class="px-6 py-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">Pilih Produk untuk Dipromosikan</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <% subscriptions.forEach((subscription) => { %>
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+              <div class="p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= subscription.name %></h3>
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2"><%= subscription.description %></p>
+                
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-2xl font-bold text-blue-600">Rp <%= subscription.price.toLocaleString('id-ID') %></span>
+                  <span class="text-sm text-gray-500"><%= subscription.limitAkun %> akun</span>
+                </div>
+                
+                <!-- Komisi yang akan didapat -->
+                <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
+                  <p class="text-sm text-yellow-800 font-medium">
+                    <i class="fas fa-coins mr-1"></i>
+                    Komisi: Rp <%= (subscription.price * subscription.komisi).toLocaleString('id-ID') %>
+                    <span class="text-xs">(<%= (subscription.komisi * 100).toFixed(0) %>% dari harga)</span>
+                  </p>
+                </div>
+                
+                <!-- Affiliate Link -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Link Affiliate:</label>
+                  <div class="flex">
+                    <input 
+                      type="text" 
+                      value="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id %>" 
+                      class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
+                      readonly
+                      id="link-<%= subscription.id %>"
+                    >
+                    <button 
+                      class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
+                      data-link="link-<%= subscription.id %>"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors share-btn" data-link="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id %>">
+                  <i class="fas fa-share-alt mr-2"></i> Bagikan
+                </button>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Recent Orders Section -->
+      <div class="px-6 py-6 border-t border-gray-100">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Terbaru</h2>
+        
+        <% if (affiliate.affiliateOrders && affiliate.affiliateOrders.length > 0) { %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Order</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Komisi</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <% affiliate.affiliateOrders.forEach((affiliateOrder) => { 
+                  // Hitung komisi yang benar untuk setiap order
+                  let calculatedKomisi = 0;
+                  if (affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
+                    const subscription = affiliateOrder.order.userSubscription.subscription;
+                    calculatedKomisi = subscription.price * subscription.komisi;
+                  }
+                %>
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#<%= affiliateOrder.order.id %></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <%= new Date(affiliateOrder.createdAt).toLocaleDateString('id-ID') %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      Rp <%= affiliateOrder.order.amount.toLocaleString('id-ID') %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
+                      Rp <%= calculatedKomisi.toLocaleString('id-ID') %>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        <% if (affiliateOrder.status === 'paid') { %>
+                          bg-green-100 text-green-800
+                        <% } else if (affiliateOrder.status === 'pending') { %>
+                          bg-yellow-100 text-yellow-800
+                        <% } else if (affiliateOrder.status === 'approved') { %>
+                          bg-blue-100 text-blue-800
+                        <% } else { %>
+                          bg-red-100 text-red-800
+                        <% } %>">
+                        <%= affiliateOrder.status %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="text-center py-8">
+            <div class="inline-flex items-center justify-center rounded-full bg-gray-100 p-4 mb-4">
+              <i class="fas fa-shopping-cart text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">Belum ada order</h3>
+            <p class="text-gray-500">Mulai bagikan link affiliate Anda untuk mendapatkan komisi.</p>
+          </div>
+        <% } %>
+      </div>
+
+      <!-- Affiliate Information -->
+      <div class="px-6 py-6 bg-gray-50">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Informasi Affiliate Anda</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white p-4 rounded-lg border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Data Pembayaran</h3>
+            <dl class="space-y-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Metode Bayar</dt>
+                <dd class="text-sm text-gray-900 capitalize"><%= affiliate.metodeBayar || 'Belum diatur' %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Provider</dt>
+                <dd class="text-sm text-gray-900"><%= affiliate.provider || 'Belum diatur' %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Nomor Tujuan</dt>
+                <dd class="text-sm text-gray-900"><%= affiliate.nomorTujuan || 'Belum diatur' %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Atas Nama</dt>
+                <dd class="text-sm text-gray-900"><%= affiliate.namaPemilik || 'Belum diatur' %></dd>
+              </div>
+            </dl>
+          </div>
+          
+          <div class="bg-white p-4 rounded-lg border border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">Statistik Komisi</h3>
+            <dl class="space-y-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Total Komisi</dt>
+                <dd class="text-sm text-gray-900">Rp <%= totalKomisi.toLocaleString('id-ID') %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Komisi Tersedia</dt>
+                <dd class="text-sm text-gray-900">Rp <%= availableKomisi.toLocaleString('id-ID') %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Total Dibayar</dt>
+                <dd class="text-sm text-gray-900">Rp <%= totalDibayar.toLocaleString('id-ID') %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Total Order</dt>
+                <dd class="text-sm text-gray-900"><%= affiliate.affiliateOrders.length %></dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Terakhir Dibayar</dt>
+                <dd class="text-sm text-gray-900">
+                  <%= affiliate.lastPaidAt ? new Date(affiliate.lastPaidAt).toLocaleDateString('id-ID') : 'Belum ada pembayaran' %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Tanggal Bergabung</dt>
+                <dd class="text-sm text-gray-900"><%= new Date(affiliate.createdAt).toLocaleDateString('id-ID') %></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Copy link functionality
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const linkId = this.getAttribute('data-link');
+      const input = document.getElementById(linkId);
+      input.select();
+      document.execCommand('copy');
+      
+      // Show tooltip or notification
+      const originalHtml = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-check"></i>';
+      setTimeout(() => {
+        this.innerHTML = originalHtml;
+      }, 2000);
+    });
+  });
+  
+  // Share link functionality
+  document.querySelectorAll('.share-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const link = this.getAttribute('data-link');
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Affiliate Link - Langganan Premium',
+          text: 'Dapatkan akses penuh ke fitur premium dengan berlangganan sekarang!',
+          url: link
+        }).catch(() => {
+          // Fallback jika share dibatalkan
+          copyToClipboard(link);
+        });
+      } else {
+        // Fallback: copy to clipboard
+        copyToClipboard(link);
+      }
+    });
+  });
+
+  // Function to copy to clipboard
+  function copyToClipboard(text) {
+    const tempInput = document.createElement('input');
+    tempInput.value = text;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+    
+    // Show notification
+    showNotification('Link berhasil disalin ke clipboard!');
+  }
+
+  // Function to show notification
+  function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white z-50 transform transition-transform duration-300';
+    notification.innerHTML = `
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span>${message}</span>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+});
+</script>
+
+<style>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>
