@@ -147,6 +147,18 @@
             position: relative;
             animation: modalopen 0.3s;
         }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-secondary-50 text-secondary-700">
@@ -264,8 +276,19 @@
                         
                         <div class="mb-6">
                             <label class="block text-secondary-700 text-sm font-medium mb-3">Pilih Metode Pembayaran</label>
-                            <div class="grid grid-cols-2 gap-3" id="paymentMethods">
+                            <div id="paymentMethodsLoading" class="text-center py-4">
+                                <div class="loading-spinner mx-auto mb-2"></div>
+                                <p class="text-secondary-600 text-sm">Memuat metode pembayaran...</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 hidden" id="paymentMethodsContainer">
                                 <!-- Payment methods will be populated by JavaScript -->
+                            </div>
+                            <div id="paymentMethodsError" class="hidden text-center py-4">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 text-xl mb-2"></i>
+                                <p class="text-secondary-600 text-sm mb-3">Gagal memuat metode pembayaran</p>
+                                <button id="retryPaymentMethods" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                                    <i class="fas fa-redo mr-1"></i> Coba lagi
+                                </button>
                             </div>
                         </div>
                         
@@ -413,18 +436,6 @@
 </script>
 
     <script>
-        // Data metode pembayaran yang diperbarui - HANYA VIRTUAL ACCOUNT
-        const availablePaymentMethods = [
-            // Virtual Accounts (Bank Transfer) ONLY
-            { paymentMethod: 'BC', paymentName: 'BCA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BCA.SVG' },
-            { paymentMethod: 'BR', paymentName: 'BRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/BR.PNG' },
-            { paymentMethod: 'M2', paymentName: 'MANDIRI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MV.PNG' },
-            { paymentMethod: 'B1', paymentName: 'CIMB NIAGA VA', paymentImage: 'https://images.duitku.com/hotlink-ok/B1.PNG' },
-            { paymentMethod: 'VA', paymentName: 'BNI VA', paymentImage: 'https://images.duitku.com/hotlink-ok/VA.PNG' },
-            { paymentMethod: 'I1', paymentName: 'Maybank VA', paymentImage: 'https://images.duitku.com/hotlink-ok/MAYBANK.PNG' },
-            { paymentMethod: 'A1', paymentName: 'Permata VA', paymentImage: 'https://images.duitku.com/hotlink-ok/PERMATABANK.PNG' }
-        ];
-
         // Fungsi untuk memformat nomor WhatsApp
         function formatNomorWA(input) {
             // Hapus semua karakter non-digit
@@ -471,22 +482,56 @@
             }).format(angka);
         }
 
-        // Fungsi untuk memuat metode pembayaran
-        function loadPaymentMethods() {
-            const paymentMethodsContainer = document.getElementById('paymentMethods');
-            paymentMethodsContainer.innerHTML = '';
+        // Fungsi untuk mengambil metode pembayaran dari API
+        async function fetchPaymentMethods() {
+            const loadingEl = document.getElementById('paymentMethodsLoading');
+            const containerEl = document.getElementById('paymentMethodsContainer');
+            const errorEl = document.getElementById('paymentMethodsError');
             
-            availablePaymentMethods.forEach(method => {
+            // Tampilkan loading, sembunyikan container dan error
+            loadingEl.classList.remove('hidden');
+            containerEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/api/payment-methods');
+                const data = await response.json();
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    // Sembunyikan loading, tampilkan container
+                    loadingEl.classList.add('hidden');
+                    containerEl.classList.remove('hidden');
+                    
+                    // Render metode pembayaran
+                    renderPaymentMethods(data.data);
+                } else {
+                    throw new Error('Data metode pembayaran tidak valid');
+                }
+            } catch (error) {
+                console.error('Error fetching payment methods:', error);
+                
+                // Sembunyikan loading, tampilkan error
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // Fungsi untuk merender metode pembayaran
+        function renderPaymentMethods(methods) {
+            const container = document.getElementById('paymentMethodsContainer');
+            container.innerHTML = '';
+            
+            methods.forEach(method => {
                 const methodElement = document.createElement('div');
                 methodElement.className = 'payment-method relative border border-secondary-200 rounded-lg p-3 cursor-pointer hover:border-primary-500 bg-white';
-                methodElement.dataset.method = method.paymentMethod;
-                methodElement.dataset.name = method.paymentName;
-                methodElement.dataset.image = method.paymentImage;
+                methodElement.dataset.method = method.pgCode;
+                methodElement.dataset.name = method.name;
+                methodElement.dataset.image = method.imageUrl;
                 
                 methodElement.innerHTML = `
                     <div class="flex flex-col items-center">
-                        <img src="${method.paymentImage}" alt="${method.paymentName}" class="h-6 mb-2 object-contain">
-                        <span class="text-xs text-secondary-700 text-center font-medium">${method.paymentName}</span>
+                        <img src="${method.imageUrl}" alt="${method.name}" class="h-6 mb-2 object-contain">
+                        <span class="text-xs text-secondary-700 text-center font-medium">${method.name}</span>
                     </div>
                     <div class="absolute top-2 right-2 hidden check-icon">
                         <i class="fas fa-check-circle text-primary-600"></i>
@@ -494,7 +539,7 @@
                 `;
                 
                 methodElement.addEventListener('click', () => selectPaymentMethod(methodElement));
-                paymentMethodsContainer.appendChild(methodElement);
+                container.appendChild(methodElement);
             });
         }
 
@@ -832,8 +877,6 @@
 
         // Inisialisasi saat halaman dimuat
         document.addEventListener('DOMContentLoaded', function() {
-            loadPaymentMethods();
-            
             // Setup modal login/register
             setupAuthModal();
             
@@ -843,6 +886,9 @@
             // Event listener untuk tombol bayar
             document.getElementById('payButton').addEventListener('click', handlePayment);
             
+            // Event listener untuk tombol retry
+            document.getElementById('retryPaymentMethods').addEventListener('click', fetchPaymentMethods);
+            
             // Nonaktifkan tombol bayar sampai metode dipilih
             document.getElementById('payButton').disabled = true;
             
@@ -850,6 +896,9 @@
             if (!user) {
                 document.getElementById('payButton').disabled = true;
             }
+            
+            // Ambil metode pembayaran dari API
+            fetchPaymentMethods();
         });
     </script>
 </body>

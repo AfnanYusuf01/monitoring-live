@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🚀 Starting extensive seed...");
 
-  // Hapus data existing (hati-hati di production!)
+  // Hapus data existing
   console.log("🧹 Cleaning existing data...");
   await prisma.affiliateOrder.deleteMany();
   await prisma.order.deleteMany();
@@ -24,7 +24,7 @@ async function main() {
   const password = await bcrypt.hash("password123", 10);
   const adminPassword = await bcrypt.hash("admin123", 10);
 
-  // 1️⃣ Buat users (10 users)
+  // 1️⃣ Buat users
   console.log("👥 Creating users...");
   const users = [];
   for (let i = 1; i <= 10; i++) {
@@ -35,13 +35,13 @@ async function main() {
         name: i === 1 ? "Administrator" : faker.person.fullName(),
         nomor_wa: faker.phone.number(),
         role: i === 1 ? "superadmin" : "user",
-        isAffiliate: i % 3 === 0, // Setiap user ke-3 jadi affiliate
+        isAffiliate: i % 3 === 0,
       },
     });
     users.push(user);
   }
 
-  // 2️⃣ Buat affiliates untuk beberapa user
+  // 2️⃣ Buat affiliates
   console.log("💰 Creating affiliates...");
   const affiliates = [];
   for (let i = 0; i < users.length; i++) {
@@ -61,7 +61,7 @@ async function main() {
     }
   }
 
-  // 3️⃣ Buat studios (1-2 studio per user)
+  // 3️⃣ Buat studios
   console.log("🎬 Creating studios...");
   const studios = [];
   for (const user of users) {
@@ -78,7 +78,7 @@ async function main() {
     }
   }
 
-  // 4️⃣ Buat akun (2-3 akun per studio)
+  // 4️⃣ Buat akun (dengan id manual)
   console.log("📱 Creating akuns...");
   const akuns = [];
   for (const studio of studios) {
@@ -86,6 +86,7 @@ async function main() {
     for (let i = 0; i < akunCount; i++) {
       const akun = await prisma.akun.create({
         data: {
+          id: faker.number.int({ min: 1000, max: 999999 }), // 🔑 generate id manual
           nama_akun: `${faker.person.firstName()}_${faker.number.int(1000)}`,
           email: faker.internet.email(),
           phone: faker.phone.number(),
@@ -98,7 +99,7 @@ async function main() {
     }
   }
 
-  // 5️⃣ Buat subscription plans
+  // 5️⃣ Subscriptions
   console.log("📦 Creating subscriptions...");
   const subscriptions = await Promise.all([
     prisma.subscription.create({
@@ -133,10 +134,10 @@ async function main() {
     }),
   ]);
 
-  // 6️⃣ Buat user subscriptions (1 per user)
+  // 6️⃣ User subscriptions
   console.log("🎫 Creating user subscriptions...");
   const userSubscriptions = [];
-  for (const user of users.slice(1)) { // Skip admin
+  for (const user of users.slice(1)) {
     const subscription = faker.helpers.arrayElement(subscriptions);
     const startDate = faker.date.recent({ days: 60 });
     const endDate = new Date(startDate);
@@ -155,7 +156,7 @@ async function main() {
     userSubscriptions.push(userSub);
   }
 
-  // 7️⃣ Buat orders
+  // 7️⃣ Orders
   console.log("🛒 Creating orders...");
   const orders = [];
   for (const userSub of userSubscriptions) {
@@ -178,7 +179,7 @@ async function main() {
     }
   }
 
-  // 8️⃣ Buat affiliate orders untuk orders yang ada affiliate
+  // 8️⃣ Affiliate orders
   console.log("💸 Creating affiliate orders...");
   const affiliateOrders = [];
   for (const order of orders) {
@@ -186,7 +187,6 @@ async function main() {
       const subscription = subscriptions.find(s => 
         userSubscriptions.find(us => us.id === order.userSubscriptionId)?.subscriptionId === s.id
       );
-      
       if (subscription) {
         const affiliateOrder = await prisma.affiliateOrder.create({
           data: {
@@ -201,7 +201,7 @@ async function main() {
     }
   }
 
-  // 9️⃣ Buat performance live stream data (3-5 per akun)
+  // 9️⃣ Performance live stream
   console.log("📊 Creating performance live stream data...");
   const performances = [];
   for (const akun of akuns) {
@@ -212,7 +212,7 @@ async function main() {
         data: {
           title: faker.commerce.productName() + " Live Stream",
           startTime,
-          durationMs: faker.number.int({ min: 300000, max: 7200000 }), // 5 menit - 2 jam
+          durationMs: faker.number.int({ min: 300000, max: 7200000 }),
           statusCode: faker.number.int({ min: 1, max: 3 }),
           conversionRate: faker.number.float({ min: 0, max: 0.1, precision: 0.0001 }),
           totalViews: faker.number.int({ min: 10, max: 1000 }),

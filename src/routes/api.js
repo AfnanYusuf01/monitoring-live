@@ -1,6 +1,8 @@
 // routes/api.js
 import express from "express";
+import axios from "axios";
 import upload from "../Middlewares/authMiddleware.js";
+import crypto from "crypto";
 import {requireApiLogin} from "../Middlewares/authMiddleware.js";
 import AuthController from "../controllers/AuthController.js";
 import {
@@ -195,5 +197,50 @@ router.get("/performance-live-streams/:id", requireApiLogin, showPerformance);
 router.post("/performance-live-streams", requireApiLogin, storePerformance);
 router.put("/performance-live-streams/:id", requireApiLogin, updatePerformance);
 router.delete("/performance-live-streams/:id", requireApiLogin, destroyPerformance);
+
+
+router.get("/payment-methods", async (req, res) => {
+  try {
+    const merchantCode = process.env.DUITKU_MERCHANT_CODE || "DS24664";
+    const apiKey = process.env.DUITKU_API_KEY || "df89c57c7b398dcb79a2a61aaad61145";
+
+    const amount = req.query.amount || 1000000; // Default amount
+
+    // ✅ Signature benar
+    const signatureString = merchantCode + amount + apiKey;
+    const signature = crypto
+      .createHash("md5")
+      .update(signatureString)
+      .digest("hex");
+      const response = await axios.get(
+      "https://sandbox.duitku.com/webapi/api/merchant/paymentmethod/getpaymentmethod",
+      {
+         params: {
+            merchantcode: merchantCode,
+            amount: amount,
+            signature: signature,
+         },
+      }
+      );
+
+      console.log("👉 Response status:", response.status);
+      console.log("👉 Response headers:", response.headers);
+      console.log("👉 Response data:", response.data);
+
+      res.json({
+      success: true,
+      data: response.data,
+      });
+
+  } catch (error) {
+    console.error("Error fetching payment methods:", error.response?.data || error.message);
+
+    res.status(500).json({
+      success: false,
+      message: "Gagal mengambil metode pembayaran",
+      error: error.response?.data || error.message,
+    });
+  }
+});
 
 export default router;

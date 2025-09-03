@@ -42,7 +42,7 @@ model Affiliate {
 }
 
 model Akun {
-  id         Int      @id
+  id         Int      @id                     // 🔑 manual id (tidak autoincrement)
   nama_akun  String?
   email      String?  @unique
   phone      String?  @unique
@@ -50,15 +50,12 @@ model Akun {
   createdAt  DateTime @default(now())
   deletedAt  DateTime?
 
-  // relasi ke Studio
   studioId   Int?
   studio     Studio?  @relation(fields: [studioId], references: [id])
 
-  // relasi ke User
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
 
-  // relasi ke PerformanceLiveStream (1 akun bisa punya banyak performance data)
   performanceLiveStreams PerformanceLiveStream[]
 }
 
@@ -67,10 +64,7 @@ model Studio {
   nama_studio String?
   catatan     String?  @db.Text
 
-  // relasi ke Akun
   akun        Akun[]
-
-  // relasi ke User
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
 }
@@ -102,7 +96,7 @@ model UserSubscription {
   startDate       DateTime                @default(now())
   endDate         DateTime
   status          UserSubscriptionStatus  @default(active)
-  limitAkun       Int
+  limitAkun       Int                     @default(0)
   createdAt       DateTime                @default(now())
   updatedAt       DateTime                @updatedAt
 
@@ -153,32 +147,31 @@ enum KomisiStatus {
 }
 
 model PerformanceLiveStream {
-  id                 Int      @id @default(autoincrement())
-  title              String
-  startTime          DateTime
-  durationMs         Int      // dalam milidetik
-  statusCode         Int
-  conversionRate     Float    @default(0.0000)
-  totalViews         Int      @default(0)
-  totalLikes         Int      @default(0)
-  followersGrowth    Int      @default(0)
-  productClicks      Int      @default(0)
-  uniqueViewers      Int      @default(0)
-  peakViewers        Int      @default(0)
-  avgViewDuration    Float    @default(0.0)    // dalam milidetik
-  totalComments      Int      @default(0)
-  addToCart          Int      @default(0)
-  placedOrders       Int      @default(0)
-  placedSalesAmount  Float    @default(0.0)
-  confirmedOrders    Int      @default(0)
-  confirmedSalesAmount Float  @default(0.0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                   Int      @id @default(autoincrement())
+  title                String
+  startTime            DateTime
+  durationMs           Int
+  statusCode           Int
+  conversionRate       Float    @default(0.0000)
+  totalViews           Int      @default(0)
+  totalLikes           Int      @default(0)
+  followersGrowth      Int      @default(0)
+  productClicks        Int      @default(0)
+  uniqueViewers        Int      @default(0)
+  peakViewers          Int      @default(0)
+  avgViewDuration      Float    @default(0.0)
+  totalComments        Int      @default(0)
+  addToCart            Int      @default(0)
+  placedOrders         Int      @default(0)
+  placedSalesAmount    Float    @default(0.0)
+  confirmedOrders      Int      @default(0)
+  confirmedSalesAmount Float    @default(0.0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  // Relasi ke Akun
-  akunId             Int
-  akun               Akun     @relation(fields: [akunId], references: [id])
+  akunId               Int
+  akun                 Akun     @relation(fields: [akunId], references: [id])
 
   @@index([akunId])
   @@index([startTime])
-}   
+}
