@@ -154,7 +154,7 @@ export const renderEditAffiliatePage = async (req, res) => {
 async function fetchSubscriptions() {
   try {
     const APP_BASE_URL = process.env.APP_URL || "http://localhost:3000";
-    const url = `${APP_BASE_URL}api/subscriptions`;
+    const url = `${APP_BASE_URL}/api/subscriptions`;
 
     console.log("👉 Fetching from:", url);
 
