@@ -42,10 +42,10 @@ model Affiliate {
 }
 
 model Akun {
-  id         Int      @id                     // 🔑 manual id (tidak autoincrement)
+  id         BigInt   @id // pakai BigInt kalau user_id sangat besar
   nama_akun  String?
-  email      String?  @unique
-  phone      String?  @unique
+  email      String?  
+  phone      String?  
   cookie     String?  @db.Text
   createdAt  DateTime @default(now())
   deletedAt  DateTime?
@@ -58,6 +58,7 @@ model Akun {
 
   performanceLiveStreams PerformanceLiveStream[]
 }
+
 
 model Studio {
   id          Int      @id @default(autoincrement())
@@ -169,9 +170,10 @@ model PerformanceLiveStream {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  akunId               Int
+  akunId               BigInt   // <---- Ubah ke BigInt
   akun                 Akun     @relation(fields: [akunId], references: [id])
 
   @@index([akunId])
   @@index([startTime])
 }
+

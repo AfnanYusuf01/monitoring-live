@@ -72,12 +72,11 @@
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Ord</th>
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Rev</th>
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Conf Item</th>
-                                    <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="data-table-body">
                                 <tr>
-                                    <td colspan="15" class="text-center py-4">Pilih akun untuk melihat data produk</td>
+                                    <td colspan="14" class="text-center py-4">Pilih akun untuk melihat data produk</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -352,7 +351,7 @@ async function loadProductData(accountId, accountName) {
         const tbody = document.getElementById('data-table-body');
         tbody.innerHTML = `
             <tr>
-                <td colspan="15" class="text-center py-4">
+                <td colspan="14" class="text-center py-4">
                     <div class="flex justify-center items-center">
                         <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -396,7 +395,7 @@ async function loadProductData(accountId, accountName) {
         const tbody = document.getElementById('data-table-body');
         tbody.innerHTML = `
             <tr>
-                <td colspan="15" class="text-center py-4 text-red-500">Gagal memuat data produk: ${error.message}</td>
+                <td colspan="14" class="text-center py-4 text-red-500">Gagal memuat data produk: ${error.message}</td>
             </tr>
         `;
         
@@ -419,7 +418,7 @@ function renderProductData() {
     if (!allProducts || allProducts.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="15" class="text-center py-4">Tidak ada data produk untuk akun ini</td>
+                <td colspan="14" class="text-center py-4">Tidak ada data produk untuk akun ini</td>
             </tr>
         `;
         hidePagination();
@@ -485,14 +484,6 @@ function renderProductData() {
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
                 <span class="text-sm">${item.confItem}</span>
-            </td>
-            <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
-                <span class="px-2 py-1 text-xs rounded-full ${
-                    item.status === 'Laris' ? 'bg-green-100 text-green-800' : 
-                    item.status === 'Tidak Laris' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                }">
-                    ${item.status}
-                </span>
             </td>
         </tr>
     `).join('');
@@ -573,8 +564,8 @@ function exportToCSV() {
         return;
     }
     
-    // Define CSV headers
-    const headers = ['No', 'Nama Produk', 'Harga Min', 'Harga Max', 'Klik', 'Ctr', 'ACT', 'Order', 'Revenue', 'Item', 'COR', 'Conf Ord', 'Conf Rev', 'Conf Item', 'Status'];
+    // Define CSV headers (without status)
+    const headers = ['No', 'Nama Produk', 'Harga Min', 'Harga Max', 'Klik', 'Ctr', 'ACT', 'Order', 'Revenue', 'Item', 'COR', 'Conf Ord', 'Conf Rev', 'Conf Item'];
     
     // Convert data to CSV format
     let csvContent = headers.join(',') + '\n';
@@ -594,8 +585,7 @@ function exportToCSV() {
             (product.cor * 100).toFixed(2) + '%' || '',
             product.confOrder || '',
             product.confRev || '',
-            product.confItem || '',
-            product.status || ''
+            product.confItem || ''
         ];
         csvContent += row.join(',') + '\n';
     });

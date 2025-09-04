@@ -94,8 +94,7 @@
                 class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
               />
               <p class="text-xs text-gray-500 mt-1">
-                Nomor telepon diambil otomatis dari API Shopee berdasarkan
-                cookie
+                Nomor telepon diambil otomatis dari API Shopee berdasarkan cookie
               </p>
             </div>
 
@@ -109,15 +108,11 @@
                 id="cookie"
                 name="cookie"
                 rows="6"
-                required
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors font-mono text-sm"
-                placeholder="Masukkan cookie dari akun Shopee Affiliate (SPC_IU=...)"
-              >
-<%= akun.cookie || '' %></textarea
-              >
+                readonly
+                class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed font-mono text-sm"
+              ><%= akun.cookie || '' %></textarea>
               <p class="text-xs text-gray-500 mt-1">
-                Cookie dari akun Shopee Affiliate. Jika diubah, data nama akun,
-                email, dan phone akan diperbarui otomatis dari API Shopee.
+                Cookie dari akun Shopee Affiliate. Tidak dapat diubah melalui form ini.
               </p>
             </div>
           </form>
@@ -134,8 +129,8 @@
             Batal
           </a>
           <button
-            type="submit"
-            form="akun-form"
+            id="submit-button"
+            type="button"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
           >
             Simpan Perubahan
@@ -149,23 +144,21 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("akun-form");
-    const originalCookie = '<%= akun.cookie || "" %>';
+    const submitBtn = document.getElementById("submit-button");
+    const originalText = submitBtn.textContent;
 
-    form.addEventListener("submit", async function (e) {
+    submitBtn.addEventListener("click", async function (e) {
       e.preventDefault();
 
       const formData = new FormData(form);
       const data = {
-        nama_akun: formData.get("nama_akun"),
-        cookie: formData.get("cookie"),
+        nama_akun: formData.get("nama_akun")
+        // Hanya nama_akun yang dikirim, cookie tidak dikirim
       };
 
       // Tampilkan loading state
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
 
       try {
         const response = await fetch(form.action, {
@@ -179,27 +172,18 @@
         const result = await response.json();
 
         if (response.ok) {
-          // Jika cookie diubah, tampilkan informasi bahwa data profil diperbarui
-          if (data.cookie !== originalCookie) {
-            showNotification(
-              "Akun berhasil diperbarui. Data profil telah diupdate dari API Shopee.",
-              "success"
-            );
-          } else {
-            showNotification("Akun berhasil diperbarui.", "success");
-          }
+          showNotification("Nama akun berhasil diperbarui.", "success");
 
           // Redirect setelah delay singkat
           setTimeout(() => {
-            window.location.href =
-              "/account-management?success=Akun berhasil diperbarui";
+            window.location.href = "/account-management?success=Nama akun berhasil diperbarui";
           }, 1500);
         } else {
           throw new Error(result.error || "Error tidak diketahui");
         }
       } catch (error) {
         console.error("Error:", error);
-        showNotification("Gagal memperbarui akun: " + error.message, "error");
+        showNotification("Gagal memperbarui nama akun: " + error.message, "error");
 
         // Reset button state
         submitBtn.disabled = false;

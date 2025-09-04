@@ -31,7 +31,7 @@ export const renderPerformanceLiveStream = async (req, res) => {
     
     // Filter by akunId (hanya akun milik user ini)
     if (akunId) {
-      where.akunId = parseInt(akunId);
+      where.akunId = BigInt(akunId); // DIUBAH: parseInt -> BigInt
     }
     
     // Filter by studioId (hanya studio milik user ini)
@@ -149,7 +149,7 @@ export const renderPerformanceLiveStream = async (req, res) => {
     const totalPages = Math.ceil(totalCount / parseInt(limit));
 
     res.render("pages/performance/performance-live-stream", {
-      navbar: "Performance Live Stream",
+      navbar: "Performance",
       performances,
       akunList,
       studioList,
@@ -158,7 +158,7 @@ export const renderPerformanceLiveStream = async (req, res) => {
       totalCount,
       limit: parseInt(limit),
       filters: { 
-        akunId: akunId ? parseInt(akunId) : '',
+        akunId: akunId ? akunId.toString() : '', // DIUBAH: BigInt perlu diubah ke string
         studioId: studioId ? parseInt(studioId) : '',
         startDate: startDate || '',
         endDate: endDate || '',
@@ -169,12 +169,11 @@ export const renderPerformanceLiveStream = async (req, res) => {
   } catch (error) {
     console.error("Error fetching performance data:", error);
     res.status(500).render("pages/500", {
-      navbar: "",
+      navbar: "Performance",
       message: "Gagal memuat data performance live stream",
     });
   }
 };
-
 
 // Render halaman tambah performance
 export const renderAddPerformance = async (req, res) => {
@@ -257,110 +256,6 @@ export const renderEditPerformance = async (req, res) => {
 ///     API        ///
 /////////////////////
 
-// Get all performance live streams
-export async function indexPerformance(req, res) {
-  try {
-    const {
-      page = 1,
-      limit = 10,
-      akunId,
-      startDate,
-      endDate,
-      search,
-    } = req.query;
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Build filter conditions
-    const where = {};
-
-    if (akunId) {
-      where.akunId = parseInt(akunId);
-    }
-
-    if (startDate && endDate) {
-      where.startTime = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
-    }
-
-    if (search) {
-      where.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        {
-          akun: {
-            nama_akun: { contains: search, mode: "insensitive" },
-          },
-        },
-      ];
-    }
-
-    const [performances, totalCount] = await Promise.all([
-      prisma.performanceLiveStream.findMany({
-        where,
-        include: {
-          akun: {
-            select: {
-              id: true,
-              nama_akun: true,
-              email: true,
-            },
-          },
-        },
-        orderBy: {
-          startTime: "desc",
-        },
-        skip,
-        take: parseInt(limit),
-      }),
-      prisma.performanceLiveStream.count({ where }),
-    ]);
-
-    res.json({
-      data: performances,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(totalCount / parseInt(limit)),
-        totalCount,
-        limit: parseInt(limit),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching performance data:", error);
-    res.status(500).json({ error: "Failed to fetch performance data" });
-  }
-}
-
-// Get single performance live stream
-export async function showPerformance(req, res) {
-  try {
-    const { id } = req.params;
-    const performance = await prisma.performanceLiveStream.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        akun: {
-          select: {
-            id: true,
-            nama_akun: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
-    });
-
-    if (!performance) {
-      return res.status(404).json({ error: "Performance data not found" });
-    }
-
-    res.json(performance);
-  } catch (error) {
-    console.error("Error fetching performance data:", error);
-    res.status(500).json({ error: "Failed to fetch performance data" });
-  }
-}
-
 // Create new performance live stream
 export async function storePerformance(req, res) {
   try {
@@ -395,7 +290,7 @@ export async function storePerformance(req, res) {
 
     // Cek jika akun exists
     const akun = await prisma.akun.findUnique({
-      where: { id: parseInt(akunId) },
+      where: { id: BigInt(akunId) },
     });
 
     if (!akun) {
@@ -422,7 +317,7 @@ export async function storePerformance(req, res) {
         placedSalesAmount: parseFloat(placedSalesAmount) || 0,
         confirmedOrders: parseInt(confirmedOrders) || 0,
         confirmedSalesAmount: parseFloat(confirmedSalesAmount) || 0,
-        akunId: parseInt(akunId),
+        akunId: BigInt(akunId),
       },
       include: {
         akun: {
@@ -435,7 +330,17 @@ export async function storePerformance(req, res) {
       },
     });
 
-    res.status(201).json(performance);
+    // Convert BigInt to string for JSON response
+    const responseData = {
+      ...performance,
+      akunId: performance.akunId.toString(),
+      akun: {
+        ...performance.akun,
+        id: performance.akun.id.toString() // Jika akun.id juga BigInt
+      }
+    };
+
+    res.status(201).json(responseData);
   } catch (error) {
     console.error("Error creating performance data:", error);
     
@@ -485,7 +390,7 @@ export async function updatePerformance(req, res) {
     // Jika ada akunId, validasi akun exists
     if (akunId) {
       const akun = await prisma.akun.findUnique({
-        where: { id: parseInt(akunId) },
+        where: { id: BigInt(akunId) },
       });
 
       if (!akun) {
@@ -512,7 +417,7 @@ export async function updatePerformance(req, res) {
       placedSalesAmount: placedSalesAmount !== undefined ? parseFloat(placedSalesAmount) : undefined,
       confirmedOrders: confirmedOrders !== undefined ? parseInt(confirmedOrders) : undefined,
       confirmedSalesAmount: confirmedSalesAmount !== undefined ? parseFloat(confirmedSalesAmount) : undefined,
-      akunId: akunId !== undefined ? parseInt(akunId) : undefined,
+      akunId: akunId !== undefined ? BigInt(akunId) : undefined,
     };
 
     // Remove undefined values
@@ -534,7 +439,17 @@ export async function updatePerformance(req, res) {
       },
     });
 
-    res.json(performance);
+    // Convert BigInt to string for JSON response
+    const responseData = {
+      ...performance,
+      akunId: performance.akunId.toString(),
+      akun: {
+        ...performance.akun,
+        id: performance.akun.id.toString()
+      }
+    };
+
+    res.json(responseData);
   } catch (error) {
     console.error("Error updating performance data:", error);
     
@@ -547,6 +462,130 @@ export async function updatePerformance(req, res) {
     }
     
     res.status(500).json({ error: "Failed to update performance data" });
+  }
+}
+
+// Get all performance live streams
+export async function indexPerformance(req, res) {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      akunId,
+      startDate,
+      endDate,
+      search,
+    } = req.query;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Build filter conditions
+    const where = {};
+
+    if (akunId) {
+      where.akunId = BigInt(akunId);
+    }
+
+    if (startDate && endDate) {
+      where.startTime = {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      };
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        {
+          akun: {
+            nama_akun: { contains: search, mode: "insensitive" },
+          },
+        },
+      ];
+    }
+
+    const [performances, totalCount] = await Promise.all([
+      prisma.performanceLiveStream.findMany({
+        where,
+        include: {
+          akun: {
+            select: {
+              id: true,
+              nama_akun: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: {
+          startTime: "desc",
+        },
+        skip,
+        take: parseInt(limit),
+      }),
+      prisma.performanceLiveStream.count({ where }),
+    ]);
+
+    // Convert BigInt to string for JSON response
+    const responseData = performances.map(performance => ({
+      ...performance,
+      akunId: performance.akunId.toString(),
+      akun: {
+        ...performance.akun,
+        id: performance.akun.id.toString()
+      }
+    }));
+
+    res.json({
+      data: responseData,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalCount / parseInt(limit)),
+        totalCount,
+        limit: parseInt(limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching performance data:", error);
+    res.status(500).json({ error: "Failed to fetch performance data" });
+  }
+}
+
+// Get single performance live stream
+export async function showPerformance(req, res) {
+  try {
+    const { id } = req.params;
+    const performance = await prisma.performanceLiveStream.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        akun: {
+          select: {
+            id: true,
+            nama_akun: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
+    if (!performance) {
+      return res.status(404).json({ error: "Performance data not found" });
+    }
+
+    // Convert BigInt to string for JSON response
+    const responseData = {
+      ...performance,
+      akunId: performance.akunId.toString(),
+      akun: {
+        ...performance.akun,
+        id: performance.akun.id.toString()
+      }
+    };
+
+    res.json(responseData);
+  } catch (error) {
+    console.error("Error fetching performance data:", error);
+    res.status(500).json({ error: "Failed to fetch performance data" });
   }
 }
 

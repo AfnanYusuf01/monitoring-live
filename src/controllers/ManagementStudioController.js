@@ -3,6 +3,24 @@ import {getShopeeDataByAkunList} from "./MonitoringLiveController.js";
 
 const prisma = new PrismaClient();
 
+// Fungsi untuk menangani serialisasi BigInt
+function replacer(key, value) {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
+
+// Middleware untuk menangani response BigInt
+function handleBigIntResponse(req, res, next) {
+  const originalJson = res.json;
+  res.json = function(data) {
+    const jsonString = JSON.stringify(data, replacer);
+    return originalJson.call(this, JSON.parse(jsonString));
+  };
+  next();
+}
+
 export const getstudioById = (req, res) => {
   const {id} = req.params;
   res.render("pages/monitoring-live-studio", {
@@ -31,9 +49,15 @@ export const renderAddStudio = async (req, res) => {
       orderBy: {nama_akun: "asc"},
     });
 
+    // Convert BigInt to string for rendering
+    const akunListFormatted = akunList.map(akun => ({
+      ...akun,
+      id: akun.id.toString()
+    }));
+
     res.render("pages/studio/studios-management-add", {
       navbar: "Studio Management",
-      akunList,
+      akunList: akunListFormatted,
     });
   } catch (error) {
     console.error("Error fetching akun:", error);
@@ -58,11 +82,20 @@ export const renderStudioManagement = async (req, res) => {
       },
     });
 
+    // Convert BigInt to string for rendering
+    const studiosFormatted = studios.map(studio => ({
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    }));
+
     const successMessage = req.query.success || null;
 
     res.render("pages/studio/studios-management", {
       navbar: "Management Studio",
-      studios: studios,
+      studios: studiosFormatted,
       successMessage: successMessage,
     });
   } catch (error) {
@@ -105,7 +138,7 @@ export const renderEditStudio = async (req, res) => {
 
     // Get all available accounts milik user yang login
     const allAccounts = await prisma.akun.findMany({
-            where: {
+      where: {
         deletedAt: null,
         userId: userId,
       },
@@ -120,10 +153,25 @@ export const renderEditStudio = async (req, res) => {
       },
     });
 
+    // Convert BigInt to string for rendering
+    const studioFormatted = {
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    };
+
+    const allAccountsFormatted = allAccounts.map(account => ({
+      ...account,
+      id: account.id.toString(),
+      studioId: account.studioId ? account.studioId.toString() : null
+    }));
+
     res.render("pages/studio/studios-management-edit", {
       navbar: "Management Studio",
-      studio: studio,
-      akunList: allAccounts,
+      studio: studioFormatted,
+      akunList: allAccountsFormatted,
     });
   } catch (error) {
     console.error("Error fetching studio:", error);
@@ -166,9 +214,18 @@ export const renderDetailStudio = async (req, res) => {
       });
     }
 
+    // Convert BigInt to string for rendering
+    const studioFormatted = {
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    };
+
     res.render("pages/studio/studios-management-detail", {
       navbar: "Studio Management",
-      studio: studio,
+      studio: studioFormatted,
     });
   } catch (error) {
     console.error("Error fetching studio detail:", error);
@@ -196,7 +253,6 @@ function formatGmv(value) {
   }
 }
 
-
 // API Functions
 export const getAllStudios = async (req, res) => {
   try {
@@ -220,7 +276,13 @@ export const getAllStudios = async (req, res) => {
 
     const studioSummary = await Promise.all(
       studios.map(async (studio) => {
-        const shopeeData = await getShopeeDataByAkunList(studio.akun);
+        // Convert akun IDs to string for getShopeeDataByAkunList
+        const akunFormatted = studio.akun.map(akun => ({
+          ...akun,
+          id: akun.id.toString()
+        }));
+
+        const shopeeData = await getShopeeDataByAkunList(akunFormatted);
 
         let totalPlacedGmv = 0;
         let totalDitonton = 0;
@@ -285,7 +347,6 @@ export const getAllStudios = async (req, res) => {
   }
 };
 
-
 export const getAkunStudioById = async (req, res) => {
   try {
     const {id} = req.params;
@@ -309,7 +370,13 @@ export const getAkunStudioById = async (req, res) => {
       });
     }
 
-    const shopeeData = await getShopeeDataByAkunList(studio.akun);
+    // Convert akun IDs to string for getShopeeDataByAkunList
+    const akunFormatted = studio.akun.map(akun => ({
+      ...akun,
+      id: akun.id.toString()
+    }));
+
+    const shopeeData = await getShopeeDataByAkunList(akunFormatted);
 
     const resultArray = shopeeData.map((akunData) => {
       return {
@@ -379,7 +446,13 @@ export const renderStudioById = async (req, res) => {
       });
     }
 
-    const shopeeData = await getShopeeDataByAkunList(studio.akun);
+    // Convert akun IDs to string for getShopeeDataByAkunList
+    const akunFormatted = studio.akun.map(akun => ({
+      ...akun,
+      id: akun.id.toString()
+    }));
+
+    const shopeeData = await getShopeeDataByAkunList(akunFormatted);
 
     let totalPlacedGmv = 0;
     let totalDitonton = 0;
@@ -444,7 +517,17 @@ export async function indexStudio(req, res) {
         akun: true,
       },
     });
-    res.json(studios);
+
+    // Convert BigInt to string for JSON response
+    const studiosFormatted = studios.map(studio => ({
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    }));
+
+    res.json(studiosFormatted);
   } catch (error) {
     console.error("Error fetching studios:", error);
     res.status(500).json({error: "Failed to fetch studios"});
@@ -470,7 +553,16 @@ export async function getStudio(req, res) {
       return res.status(404).json({error: "Studio not found or no access"});
     }
 
-    res.json(studio);
+    // Convert BigInt to string for JSON response
+    const studioFormatted = {
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    };
+
+    res.json(studioFormatted);
   } catch (error) {
     console.error("Error fetching studio:", error);
     res.status(500).json({error: "Failed to fetch studio"});
@@ -488,9 +580,12 @@ export async function postStudios(req, res) {
 
     // Validasi: Pastikan semua akun yang dipilih milik user yang login
     if (akun && akun.length > 0) {
+      // Konversi ID akun ke BigInt
+      const akunIds = akun.map(a => BigInt(a.id));
+      
       const userAkun = await prisma.akun.findMany({
         where: {
-          id: {in: akun.map((a) => a.id)},
+          id: {in: akunIds},
           userId: userId,
           deletedAt: null,
         },
@@ -510,7 +605,7 @@ export async function postStudios(req, res) {
         userId: userId, // Set user ID yang membuat studio
         akun: akun?.length
           ? {
-              connect: akun.map((a) => ({id: a.id})),
+              connect: akun.map((a) => ({id: BigInt(a.id)})),
             }
           : undefined,
       },
@@ -519,7 +614,16 @@ export async function postStudios(req, res) {
       },
     });
 
-    res.json(studio);
+    // Convert BigInt to string for JSON response
+    const studioFormatted = {
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    };
+
+    res.json(studioFormatted);
   } catch (error) {
     console.error("Error creating studio:", error);
     res.status(500).json({error: "Failed to create studio"});
@@ -530,7 +634,7 @@ export async function putStudio(req, res) {
   try {
     const {id} = req.params;
     const {nama_studio, catatan, akun} = req.body;
-      const userId = req.session.user.id; // Dapatkan ID user yang login
+    const userId = req.session.user.id;
 
     // Cek apakah studio milik user yang login
     const existingStudio = await prisma.studio.findFirst({
@@ -546,36 +650,67 @@ export async function putStudio(req, res) {
 
     // Validasi: Pastikan semua akun yang dipilih milik user yang login
     if (akun && akun.length > 0) {
+      const akunIds = akun.map(a => BigInt(a.id));
+      
       const userAkun = await prisma.akun.findMany({
         where: {
-          id: {in: akun.map((a) => a.id)},
+          id: {in: akunIds},
           userId: userId,
           deletedAt: null,
         },
       });
 
       if (userAkun.length !== akun.length) {
-        return res
-          .status(403)
-          .json({error: "Some accounts don't belong to you"});
+        return res.status(403).json({error: "Some accounts don't belong to you"});
       }
     }
 
+    // Hapus semua hubungan akun dengan studio ini terlebih dahulu
+    await prisma.akun.updateMany({
+      where: {
+        studioId: parseInt(id)
+      },
+      data: {
+        studioId: null
+      }
+    });
+
+    // Kemudian set hubungan baru hanya untuk akun yang dipilih
+    if (akun && akun.length > 0) {
+      const akunIds = akun.map(a => BigInt(a.id));
+      
+      await prisma.akun.updateMany({
+        where: {
+          id: {in: akunIds}
+        },
+        data: {
+          studioId: parseInt(id)
+        }
+      });
+    }
+
+    // Update data studio
     const studio = await prisma.studio.update({
       where: {id: parseInt(id)},
       data: {
         nama_studio,
         catatan: catatan || null,
-        akun: {
-          set: akun?.map((a) => ({id: a.id})) || [],
-        },
       },
       include: {
         akun: true,
       },
     });
 
-    res.json(studio);
+    // Convert BigInt to string for JSON response
+    const studioFormatted = {
+      ...studio,
+      akun: studio.akun.map(akun => ({
+        ...akun,
+        id: akun.id.toString()
+      }))
+    };
+
+    res.json(studioFormatted);
   } catch (error) {
     console.error("Error updating studio:", error);
     res.status(500).json({error: "Failed to update studio"});

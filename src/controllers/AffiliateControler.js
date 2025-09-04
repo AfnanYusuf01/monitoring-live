@@ -69,7 +69,7 @@ export const renderAffiliatePage = async (req, res) => {
         console.log("👉 APP_BASE_URL:", process.env.APP_URL || "http://localhost:3000");
         
         return res.render("pages/affiliate/affiliate-dashboard", {
-          navbar: "Dashboard Affiliate",
+          navbar: "Affiliate",
           affiliate,
           subscriptions,
           totalKomisi,
@@ -93,7 +93,7 @@ export const renderAffiliatePage = async (req, res) => {
     });
 
     res.render("pages/affiliate/affiliate-registration", {
-      navbar: "Daftar Affiliate",
+      navbar: "Affiliate",
       user,
       successMessage
     });

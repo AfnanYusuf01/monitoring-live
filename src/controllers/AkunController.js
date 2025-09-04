@@ -125,7 +125,7 @@ export const renderEditAccount = async (req, res) => {
   try {
     const akun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
         userId: userId,
         deletedAt: null, // Hanya bisa edit yang tidak dihapus
       },
@@ -158,8 +158,8 @@ export const getAllAkun = async (req, res) => {
   try {
     console.log("👉 getAllAkun dipanggil");
 
-    if (!req.session.user.id) {
-      return res.status(401).json({error: "Unauthorized: req.user kosong"});
+    if (!req.session.user?.id) {
+      return res.status(401).json({ error: "Unauthorized: req.user kosong" });
     }
 
     const userId = req.session.user.id;
@@ -178,8 +178,10 @@ export const getAllAkun = async (req, res) => {
       akun.map(async (account) => {
         try {
           const cookieStatus = await checkCookieStatus(account.cookie);
+
           return {
             ...account,
+            id: account.id.toString(), // 🟢 fix BigInt jadi string
             cookie_status: cookieStatus.status,
             cookie_error: cookieStatus.error,
           };
@@ -188,8 +190,10 @@ export const getAllAkun = async (req, res) => {
             `❌ Gagal check cookie akun ${account.id}:`,
             err.message
           );
+
           return {
             ...account,
+            id: account.id.toString(), // 🟢 fix BigInt jadi string
             cookie_status: "error",
             cookie_error: err.message,
           };
@@ -200,13 +204,23 @@ export const getAllAkun = async (req, res) => {
     res.json(akunWithStatus);
   } catch (err) {
     console.error("🔥 Error di getAllAkun:", err.message);
-    res.status(500).json({error: err.message});
+    res.status(500).json({ error: err.message });
   }
 };
 
+
+// ✅ helper biar BigInt bisa dikirim lewat JSON
+function serializeBigInt(obj) {
+  return JSON.parse(
+    JSON.stringify(obj, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    )
+  );
+}
+
 export const createAkun = async (req, res) => {
   const { cookie } = req.body;
-    const userId = req.session.user.id;
+  const userId = req.session.user.id;
 
   if (!cookie) {
     return res.status(400).json({ error: "Cookie wajib diisi" });
@@ -217,13 +231,12 @@ export const createAkun = async (req, res) => {
     const profileResult = await fetchShopeeProfile(cookie);
 
     if (!profileResult.success) {
-      // Jika cookie invalid, tetap buat akun tapi beri status logout
       if (profileResult.code === 30002) {
         const nama_akun = `Akun Shopee ${Date.now()}`;
 
         const akun = await prisma.akun.create({
           data: {
-            id: Date.now(), // fallback id (wajib unique)
+            id: BigInt(Date.now()), // fallback id unik
             nama_akun,
             email: null,
             phone: null,
@@ -234,7 +247,7 @@ export const createAkun = async (req, res) => {
 
         return res.json({
           message: "Akun berhasil dibuat, namun cookie tidak valid",
-          akun: akun,
+          akun: serializeBigInt(akun), // ✅ ubah BigInt ke string
           cookie_status: "logout",
           warning: "Cookie tidak valid, silakan perbarui cookie",
         });
@@ -247,16 +260,14 @@ export const createAkun = async (req, res) => {
     }
 
     const profileData = profileResult.data;
-
-    // Gunakan shopee_user_name sebagai nama_akun jika tersedia
     const nama_akun = profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
     const email = profileData.email || null;
     const phone = profileData.phone || null;
-    const akunId = profileData.user_id; // ✅ ambil dari Shopee user_id
+    const akunId = BigInt(profileData.user_id);
 
     const akun = await prisma.akun.create({
       data: {
-        id: akunId, // isi dengan Shopee user_id
+        id: akunId,
         nama_akun,
         email,
         phone,
@@ -267,28 +278,21 @@ export const createAkun = async (req, res) => {
 
     res.json({
       message: "Akun berhasil dibuat",
-      akun: akun,
+      akun: serializeBigInt(akun), // ✅ ubah BigInt ke string
       profile: profileData,
       cookie_status: "active",
     });
   } catch (err) {
-    // Handle error unique constraint
     if (err.code === "P2002") {
       const target = err.meta?.target;
       if (target?.includes("email")) {
-        return res
-          .status(400)
-          .json({ error: "Email sudah digunakan oleh akun lain" });
+        return res.status(400).json({ error: "Email sudah digunakan oleh akun lain" });
       }
       if (target?.includes("phone")) {
-        return res
-          .status(400)
-          .json({ error: "Nomor telepon sudah digunakan oleh akun lain" });
+        return res.status(400).json({ error: "Nomor telepon sudah digunakan oleh akun lain" });
       }
       if (target?.includes("PRIMARY")) {
-        return res
-          .status(400)
-          .json({ error: "Akun dengan user_id ini sudah ada" });
+        return res.status(400).json({ error: "Akun dengan user_id ini sudah ada" });
       }
     }
     res.status(500).json({ error: err.message });
@@ -303,7 +307,7 @@ export const getAkunById = async (req, res) => {
   try {
     const akun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
         userId: userId,
         deletedAt: null, // Hanya ambil yang tidak dihapus
       },
@@ -328,15 +332,15 @@ export const getAkunById = async (req, res) => {
 };
 
 export const updateAkun = async (req, res) => {
-  const {id} = req.params;
-  const {nama_akun, cookie} = req.body;
-    const userId = req.session.user.id;
+  const { id } = req.params;
+  const { nama_akun } = req.body;
+  const userId = req.session.user.id;
 
   try {
     // Cek apakah akun milik user yang login
     const existingAkun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
         userId: userId,
         deletedAt: null,
       },
@@ -345,91 +349,37 @@ export const updateAkun = async (req, res) => {
     if (!existingAkun) {
       return res
         .status(404)
-        .json({message: "Akun tidak ditemukan atau tidak memiliki akses"});
+        .json({ message: "Akun tidak ditemukan atau tidak memiliki akses" });
     }
 
-    // Jika cookie diupdate, ambil data profil baru
-    let updateData = {nama_akun};
-    let profileData = null;
-    let cookieStatus = "active";
-
-    if (cookie && cookie !== existingAkun.cookie) {
-      const profileResult = await fetchShopeeProfile(cookie);
-
-      if (profileResult.success) {
-        profileData = profileResult.data;
-        updateData = {
-          ...updateData,
-          cookie,
-          email: profileData.email || null,
-          phone: profileData.phone || null,
-          nama_akun: profileData.shopee_user_name || nama_akun,
-        };
-      } else {
-        // Jika cookie invalid, tetap update tapi set email/phone ke null
-        if (profileResult.code === 30002) {
-          updateData = {
-            ...updateData,
-            cookie,
-            email: null,
-            phone: null,
-          };
-          cookieStatus = "logout";
-        } else {
-          return res.status(400).json({
-            error: "Gagal memverifikasi cookie baru",
-            detail: profileResult.error,
-          });
-        }
-      }
-    }
-
+    // Update hanya nama_akun
     const akun = await prisma.akun.update({
-      where: {id: parseInt(id)},
-      data: updateData,
+      where: { id: BigInt(id) },
+      data: { nama_akun },
     });
 
     res.json({
-      message:
-        cookieStatus === "logout"
-          ? "Cookie diperbarui, namun cookie tidak valid"
-          : "Akun berhasil diupdate",
-      akun: akun,
-      profile: profileData,
-      cookie_status: cookieStatus,
-      warning:
-        cookieStatus === "logout"
-          ? "Cookie tidak valid, silakan perbarui cookie"
-          : undefined,
+      message: "Nama akun berhasil diupdate",
+      akun: {
+        ...akun,
+        id: akun.id.toString(), // ✅ ubah BigInt ke string
+      },
     });
   } catch (err) {
-    // Handle error unique constraint
-    if (err.code === "P2002") {
-      const target = err.meta?.target;
-      if (target?.includes("email")) {
-        return res
-          .status(400)
-          .json({error: "Email sudah digunakan oleh akun lain"});
-      }
-      if (target?.includes("phone")) {
-        return res
-          .status(400)
-          .json({error: "Nomor telepon sudah digunakan oleh akun lain"});
-      }
-    }
-    res.status(500).json({error: err.message});
+    res.status(500).json({ error: err.message });
   }
 };
 
+
 export const deleteAkun = async (req, res) => {
-  const {id} = req.params;
-    const userId = req.session.user.id;
+  const { id } = req.params;
+  const userId = req.session.user.id;
 
   try {
-    // Cek apakah akun milik user yang login
+    // Cari akun milik user
     const existingAkun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: parseInt(id, 10), // atau BigInt kalau id besar
         userId: userId,
         deletedAt: null,
       },
@@ -438,20 +388,28 @@ export const deleteAkun = async (req, res) => {
     if (!existingAkun) {
       return res
         .status(404)
-        .json({message: "Akun tidak ditemukan atau tidak memiliki akses"});
+        .json({ message: "Akun tidak ditemukan atau tidak memiliki akses" });
     }
 
-    // Soft delete: set deletedAt timestamp
+    // Buat id baru unik (misalnya pakai timestamp + random)
+    const newId = Date.now(); // atau faker.number.int(), UUID hash, dll.
+
+    // Update: ganti id dan set deletedAt
     await prisma.akun.update({
-      where: {id: parseInt(id)},
-      data: {deletedAt: new Date()},
+      where: { id: existingAkun.id },
+      data: {
+        id: newId,
+        deletedAt: new Date(),
+      },
     });
 
-    res.json({message: "Akun berhasil dihapus"});
+    res.json({ message: "Akun berhasil dihapus (soft delete)" });
   } catch (err) {
-    res.status(500).json({error: err.message});
+    console.error("❌ Error deleteAkun:", err);
+    res.status(500).json({ error: err.message });
   }
 };
+
 
 export const downloadCSVTemplate = (req, res) => {
   const csvData = "cookie\nSPC_IU=...\nSPC_IU=...";
@@ -565,7 +523,7 @@ export const importAkunFromCSV = async (req, res) => {
             nama_akun = `Akun Shopee ${Date.now()}`;
             email = null;
             phone = null;
-            akunId = Date.now() + index; // fallback ID dengan timestamp + index
+            akunId = BigInt(Date.now() + index); // fallback ID dengan timestamp + index (konversi ke BigInt)
             failedRows.push({
               row: index + 2,
               reason: "Cookie tidak valid, akun dibuat dengan status logout",
@@ -586,12 +544,12 @@ export const importAkunFromCSV = async (req, res) => {
           phone = profileData.phone || null;
           
           // ✅ Gunakan user_id dari Shopee jika tersedia, jika tidak gunakan timestamp yang unik
-          akunId = profileData.user_id || Date.now() + index;
+          akunId = profileData.user_id ? BigInt(profileData.user_id) : BigInt(Date.now() + index);
         }
 
         await prisma.akun.create({
           data: {
-            id: akunId, // ✅ Gunakan ID yang sudah ditentukan
+            id: akunId, // ✅ Gunakan ID yang sudah ditentukan (BigInt)
             nama_akun,
             email,
             phone,
@@ -707,7 +665,7 @@ export const restoreAkun = async (req, res) => {
   try {
     const existingAkun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
         userId: userId,
         deletedAt: {not: null}, // Hanya yang sudah dihapus
       },
@@ -718,7 +676,7 @@ export const restoreAkun = async (req, res) => {
     }
 
     await prisma.akun.update({
-      where: {id: parseInt(id)},
+      where: {id: BigInt(id)},
       data: {deletedAt: null},
     });
 
@@ -736,7 +694,7 @@ export const checkCookieStatusEndpoint = async (req, res) => {
   try {
     const akun = await prisma.akun.findFirst({
       where: {
-        id: parseInt(id),
+        id: BigInt(id),
         userId: userId,
         deletedAt: null,
       },
