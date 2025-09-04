@@ -282,36 +282,19 @@ export const createOrder = async (req, res) => {
     const subscriptionId = parseInt(req.params.id);
     const method = req.query.method;
     const userId = req.session.user.id;
+    console.log("Cookies diterima:", req.cookies);
 
-    // Ambil affiliate data dari cookie jika ada
-    const affiliateCookie = req.cookies?.id_aff;
-    const subscriptionCookie = req.cookies?.id_sub;
-    let affiliateId = null;
+    let affiliateId = req.cookies?.id_aff && !isNaN(req.cookies.id_aff) 
+        ? parseInt(req.cookies.id_aff) 
+        : null;
 
-    // Validasi affiliate cookie
-    if (affiliateCookie && subscriptionCookie) {
-      const subscriptionIdFromCookie = parseInt(subscriptionCookie);
-      
-      // Pastikan subscription yang dibeli sesuai dengan cookie affiliate
-      if (subscriptionId === subscriptionIdFromCookie) {
-        affiliateId = parseInt(affiliateCookie);
-        
-        // Verifikasi bahwa affiliate exists
-        const affiliate = await prisma.affiliate.findUnique({
-          where: { id: affiliateId },
-        });
-        
-        if (!affiliate) {
-          affiliateId = null; // Invalid affiliate, ignore
-          console.log("❌ Affiliate tidak valid, diabaikan");
-        } else {
-          console.log(`✅ Affiliate valid: ${affiliateId}`);
-        }
-      } else {
-        console.log("❌ Subscription ID tidak cocok dengan cookie affiliate");
-        affiliateId = null;
-      }
-    }
+    let subscriptionIdFromCookie = req.cookies?.id_sub && !isNaN(req.cookies.id_sub) 
+        ? parseInt(req.cookies.id_sub) 
+        : null;
+
+    console.log("Affiliate ID:", affiliateId);
+    console.log("Subscription ID dari Cookie:", subscriptionIdFromCookie);
+
 
     // ambil paket
     const subscription = await prisma.subscription.findUnique({
@@ -337,7 +320,7 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // buat UserSubscription (status canceled dulu, akan diupdate setelah payment success)
+    // buat UserSubscription (status canceled dulu, akan diupdate setelah pembayaran berhasil)
     const startDate = new Date();
     const endDate = new Date();
     endDate.setDate(startDate.getDate() + subscription.duration);
@@ -352,6 +335,24 @@ export const createOrder = async (req, res) => {
       },
     });
 
+    // Cek affiliate dan buat order dengan affiliateId jika valid
+    let affiliateData = null;
+    
+    // Validasi affiliate hanya jika cookie affiliate dan subscription cocok
+    if (affiliateId && subscriptionIdFromCookie === subscriptionId) {
+      affiliateData = await prisma.affiliate.findUnique({
+        where: { id: affiliateId },
+        include: { user: true }
+      });
+      
+      // Jika affiliate tidak ditemukan atau tidak valid, set ke null
+      if (!affiliateData) {
+        affiliateId = null;
+      }
+    } else {
+      affiliateId = null;
+    }
+
     // buat Order
     const orderId = "TRX-" + Date.now();
     const order = await prisma.order.create({
@@ -361,30 +362,24 @@ export const createOrder = async (req, res) => {
         status: "pending",
         paymentMethod: method,
         transactionId: orderId,
+        affiliateId: affiliateId, // Simpan affiliateId di order
       },
     });
 
-    // Buat AffiliateOrder PENDING jika ada affiliate (tanpa mengubah schema)
-    if (affiliateId) {
-      try {
-        const komisiAmount = subscription.price * (subscription.komisi / 100);
-        
-        await prisma.affiliateOrder.create({
-          data: {
-            affiliateId: affiliateId,
-            orderId: order.id,
-            komisi: komisiAmount,
-            status: "pending" // Status pending, akan diupdate setelah payment success
-          }
-        });
-        
-        console.log(`✅ AffiliateOrder created for affiliate ID: ${affiliateId}, Komisi: ${komisiAmount}`);
-      } catch (affiliateError) {
-        console.error("❌ Error creating affiliate order:", affiliateError);
-        // Jangan ganggu flow utama jika ada error di affiliate
-      }
-    } else {
-      console.log("ℹ️ Tidak ada affiliate untuk order ini");
+    // Jika affiliate valid, buat AffiliateOrder dengan status pending
+    if (affiliateId && affiliateData) {
+      const komisiAmount = subscription.price * (subscription.komisi / 100);
+      
+      await prisma.affiliateOrder.create({
+        data: {
+          affiliateId: affiliateId,
+          orderId: order.id,
+          komisi: komisiAmount,
+          status: "pending"
+        }
+      });
+      
+      console.log(`✅ Affiliate order created for affiliate ID: ${affiliateId}`);
     }
 
     const paymentAmount = subscription.price.toString();
@@ -426,8 +421,12 @@ export const createOrder = async (req, res) => {
     });
 
     if (response.data && response.data.paymentUrl) {
-      // Hapus cookie affiliate setelah digunakan
-
+      // Hapus cookie affiliate setelah berhasil membuat order
+      if (affiliateId) {
+        res.clearCookie("id_aff");
+        res.clearCookie("id_sub");
+      }
+      
       return res.json({ paymentUrl: response.data.paymentUrl });
     } else {
       return res
@@ -443,6 +442,8 @@ export const createOrder = async (req, res) => {
   }
 };
 
+
+
 export const duitkuCallback = async (req, res) => {
   try {
     console.log("📥 Callback diterima:", req.body);
@@ -450,14 +451,16 @@ export const duitkuCallback = async (req, res) => {
     const merchantCode = req.body.merchantCode;
     const merchantOrderId = req.body.merchantOrderId;
     const amount = req.body.amount;
+    const reference = req.body.reference;
     const statusCode = req.body.statusCode;
     const signature = req.body.signature;
     const paymentAmount = req.body.paymentAmount;
 
-    console.log("📥 Callback amount diterima:", amount);
-
     const signatureString =
-      merchantCode + amount + merchantOrderId + config.apiKey;
+      merchantCode +
+      amount +
+      merchantOrderId +
+      config.apiKey;
     const validSignature = crypto
       .createHash("md5")
       .update(signatureString)
@@ -480,11 +483,8 @@ export const duitkuCallback = async (req, res) => {
             subscription: true,
           },
         },
-        affiliateOrders: { // Include affiliate orders
-          include: {
-            affiliate: true
-          }
-        },
+        affiliate: true,
+        affiliateOrders: true, // Include affiliate orders
       },
     });
 
@@ -494,10 +494,6 @@ export const duitkuCallback = async (req, res) => {
       console.warn("⚠️ Order tidak ditemukan:", merchantOrderId);
       return res.status(404).send("Order tidak ditemukan");
     }
-
-    // Ambil subscriptionId dari order (bukan dari callback)
-    const subscriptionIdOrder = order.userSubscription.subscriptionId;
-    console.log("📥 Subscription ID dari database:", subscriptionIdOrder);
 
     // Tentukan status
     let newStatus = "pending";
@@ -513,17 +509,19 @@ export const duitkuCallback = async (req, res) => {
       data: { status: newStatus },
     });
 
+    // Jika pembayaran berhasil, update status affiliate order menjadi approved
+    if (newStatus === "paid" && order.affiliateOrders.length > 0) {
+      await prisma.affiliateOrder.updateMany({
+        where: { orderId: order.id },
+        data: { status: "approved" }
+      });
+      console.log("✅ Affiliate order status updated to approved");
+    }
+
     // Logika untuk mengelola UserSubscription ketika pembayaran berhasil
     if (newStatus === "paid") {
       const user = order.userSubscription.user;
-      const purchasedSubscription = await prisma.subscription.findUnique({
-        where: { id: subscriptionIdOrder },
-      });
-
-      if (!purchasedSubscription) {
-        console.warn("⚠️ Subscription tidak ditemukan:", subscriptionIdOrder);
-        return res.status(404).send("Subscription tidak ditemukan");
-      }
+      const purchasedSubscription = order.userSubscription.subscription;
 
       // 1. CEK: Apakah user punya UserSubscription dengan status = "active" ?
       const activeUserSubscription = await prisma.userSubscription.findFirst({
@@ -574,7 +572,7 @@ export const duitkuCallback = async (req, res) => {
           console.log(`➕ Limit akun ditambah menjadi: ${newLimitAkun}`);
         } else {
           // ──> JIKA TIDAK (subscription utama)
-          if (activeUserSubscription.subscriptionId === subscriptionIdOrder) {
+          if (activeUserSubscription.subscriptionId === purchasedSubscription.id) {
             // 3. JIKA SAMA (paket yang sama): Perpanjang endDate
             const currentDuration =
               activeUserSubscription.subscription?.duration || 0;
@@ -606,7 +604,7 @@ export const duitkuCallback = async (req, res) => {
             await prisma.userSubscription.update({
               where: { id: activeUserSubscription.id },
               data: {
-                subscription: { connect: { id: subscriptionIdOrder } },
+                subscription: { connect: { id: purchasedSubscription.id } },
                 limitAkun: purchasedSubscription.limitAkun,
                 startDate: new Date(),
                 endDate: newEndDate,
@@ -617,43 +615,9 @@ export const duitkuCallback = async (req, res) => {
         }
       }
 
-      // ✅ CEK AFFILIATE: Gunakan affiliateOrders yang sudah dibuat sebelumnya
-      if (order.affiliateOrders && order.affiliateOrders.length > 0) {
-        try {
-          const affiliateOrder = order.affiliateOrders[0]; // Ambil affiliate order pertama
-          
-          // Update status affiliate order menjadi approved
-          await prisma.affiliateOrder.update({
-            where: { id: affiliateOrder.id },
-            data: {
-              status: "approved"
-            }
-          });
-          
-          // Update total komisi affiliate
-          await prisma.affiliate.update({
-            where: { id: affiliateOrder.affiliateId },
-            data: {
-              komisi: {
-                increment: affiliateOrder.komisi
-              }
-            }
-          });
-          
-          console.log(`✅ Affiliate order approved for affiliate ID: ${affiliateOrder.affiliateId}`);
-        } catch (affiliateError) {
-          console.error("❌ Error updating affiliate order:", affiliateError);
-          // Jangan ganggu flow utama jika ada error di affiliate
-        }
-      }
-
       // Kirim notifikasi email
-      const subscription = await prisma.subscription.findUnique({
-        where: { id: subscriptionIdOrder },
-      });
-
       console.log(
-        `📧 Kirim email ke ${user.email} untuk paket ${subscription.name}`
+        `📧 Kirim email ke ${user.email} untuk paket ${purchasedSubscription.name}`
       );
 
       try {
@@ -675,7 +639,7 @@ export const duitkuCallback = async (req, res) => {
           subject: "Pembayaran Berhasil - Akses Akun Anda",
           html: `
             <p>Halo ${user.name || "Customer"},</p>
-            <p>Pembayaran paket <strong>${subscription.name}</strong> sebesar Rp${order.amount} telah berhasil.</p>
+            <p>Pembayaran paket <strong>${purchasedSubscription.name}</strong> sebesar Rp${order.amount} telah berhasil.</p>
             <p>Anda sekarang dapat mengakses akun Anda dengan fitur premium yang telah Anda beli.</p>
             
             <p><strong>Link Akses Aplikasi:</strong></p>
@@ -713,7 +677,7 @@ export const duitkuCallback = async (req, res) => {
         
         📋 *Detail Transaksi:*
         ➤ Order ID: ${merchantOrderId}
-        ➤ Paket: ${subscription.name}
+        ➤ Paket: ${purchasedSubscription.name}
         ➤ Jumlah: ${formattedAmount}
         ➤ Status: ✅ BERHASIL
         
@@ -732,24 +696,6 @@ export const duitkuCallback = async (req, res) => {
           console.error("❌ Gagal kirim WhatsApp:", waError.message);
         }
       }
-    } else if (newStatus === "failed" || newStatus === "expired") {
-      // Jika payment failed/expired, update affiliate order status menjadi canceled
-      if (order.affiliateOrders && order.affiliateOrders.length > 0) {
-        try {
-          const affiliateOrder = order.affiliateOrders[0];
-          
-          await prisma.affiliateOrder.update({
-            where: { id: affiliateOrder.id },
-            data: {
-              status: "canceled"
-            }
-          });
-          
-          console.log(`❌ Affiliate order canceled for order ID: ${order.id}`);
-        } catch (affiliateError) {
-          console.error("❌ Error canceling affiliate order:", affiliateError);
-        }
-      }
     }
 
     console.log("✅ Callback berhasil diproses untuk order:", merchantOrderId);
@@ -759,6 +705,8 @@ export const duitkuCallback = async (req, res) => {
     res.status(200).send("OK");
   }
 };
+
+
 export const checkSubscription = async (req, res) => {
   const user = req.session.user;
   const subscriptionId = parseInt(req.params.subscriptionId);

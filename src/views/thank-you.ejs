@@ -3,220 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status Pembayaran</title>
+    <title>Status Pembayaran | Sistem Manajemen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#4F46E5',
-                        secondary: '#10B981',
-                        danger: '#EF4444',
-                        warning: '#F59E0B',
-                        info: '#3B82F6',
-                        success: '#10B981'
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        gray: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                        },
+                        success: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        warning: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                        },
+                        danger: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
                     },
                     animation: {
-                        'bounce-slow': 'bounce 3s infinite',
-                        'pulse-slow': 'pulse 3s infinite',
-                        'celebrate': 'celebrate 2s ease-out'
+                        'fade-in-up': 'fadeInUp 0.6s ease-out',
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'bounce-light': 'bounce 1s infinite',
                     }
                 }
             }
         }
     </script>
     <style type="text/css">
+        :root {
+            --color-primary: #0ea5e9;
+            --color-primary-dark: #0369a1;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-danger: #ef4444;
+        }
+        
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            min-height: 100vh;
         }
+        
         .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
-        .card:hover {
-            transform: translateY(-5px);
+        
+        .status-icon {
+            transition: transform 0.3s ease;
         }
-        .wave-top {
-            color: #D1FAE5;
+        
+        .status-icon:hover {
+            transform: scale(1.05);
         }
-        .wave-bottom {
-            color: #D1FAE5;
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            opacity: 0;
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        .checkmark {
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            animation: draw 1s ease-in-out forwards;
+        
+        .btn-outline {
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
         }
-        @keyframes draw {
+        
+        .btn-outline:hover {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
             to {
-                stroke-dashoffset: 0;
+                opacity: 1;
+                transform: translateY(0);
             }
         }
-        @keyframes celebrate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
-        .progress-bar {
-            transition: width 2s ease-in-out;
+        
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            opacity: 0;
+            z-index: 10;
+        }
+        
+        .feature-list {
+            position: relative;
+        }
+        
+        .feature-list li {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .feature-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--color-primary);
+            font-weight: bold;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .divider::before {
+            margin-right: 0.5rem;
+        }
+        
+        .divider::after {
+            margin-left: 0.5rem;
+        }
+        
+        .logo-text {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <!-- Confetti animation elements -->
-    <% if (paymentData.success) { %>
-    <div class="confetti" style="top: 10%; left: 20%; background-color: #10B981;"></div>
-    <div class="confetti" style="top: 15%; left: 50%; background-color: #4F46E5;"></div>
-    <div class="confetti" style="top: 5%; left: 80%; background-color: #F59E0B;"></div>
-    <div class="confetti" style="top: 20%; left: 40%; background-color: #EF4444;"></div>
-    <div class="confetti" style="top: 8%; left: 60%; background-color: #3B82F6;"></div>
-    <% } %>
-    
-    <div class="absolute top-0 left-0 w-full overflow-hidden pointer-events-none">
-        <svg class="relative block w-full h-20 wave-top" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V6c0,21.6,291,111.46,741,110.26,445.39,3.6,459-88.3,459-110.26V0Z" class="shape-fill" fill="currentColor"></path>
-        </svg>
-    </div>
-    
-    <div class="max-w-lg w-full space-y-8 p-10 bg-white rounded-2xl shadow-xl card border border-gray-100">
-        <div class="text-center">
-            <% if (paymentData.success) { %>
-            <div class="mx-auto flex items-center justify-center h-32 w-32 rounded-full bg-green-100 relative animate-celebrate">
-                <svg class="checkmark h-20 w-20 text-green-500" viewBox="0 0 52 52">
-                    <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path class="checkmark-check" fill="none" stroke="currentColor" stroke-width="4" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                </svg>
-                <div class="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-20"></div>
+<body class="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header with logo -->
+    <div class="absolute top-6 left-6">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow-md">
+                <i class="fas fa-credit-card text-white text-lg"></i>
             </div>
-            
-            <h1 class="mt-6 text-4xl font-bold bg-gradient-to-r from-green-500 to-green-700 bg-clip-text text-transparent">
-                Pembayaran Berhasil!
-            </h1>
-            <% } else { %>
-            <div class="mx-auto flex items-center justify-center h-32 w-32 rounded-full bg-yellow-100 relative">
-                <i class="fa-solid fa-exclamation-triangle text-yellow-500 text-5xl"></i>
-            </div>
-            
-            <h1 class="mt-6 text-4xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-700 bg-clip-text text-transparent">
-                Status Pembayaran
-            </h1>
-            <% } %>
-            
-            <div class="mt-4 p-4 rounded-lg border-l-4 <%= paymentData.success ? 'bg-green-50 border-green-500' : 'bg-yellow-50 border-yellow-500' %>">
-                <p class="<%= paymentData.success ? 'text-green-700' : 'text-yellow-700' %> font-medium">
-                    <%= paymentData.message %>
-                </p>
-            </div>
-            
-            <div class="mt-6 bg-gray-50 p-4 rounded-lg text-left">
-                <h3 class="font-semibold text-gray-800 mb-2">Detail Transaksi:</h3>
-                <div class="space-y-2">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Order ID</span>
-                        <span class="font-medium"><%= paymentData.merchantOrderId %></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Reference</span>
-                        <span class="font-medium"><%= paymentData.reference %></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Kode Result</span>
-                        <span class="font-medium <%= paymentData.success ? 'text-green-600' : 'text-yellow-600' %>">
-                            <%= paymentData.resultCode %>
-                        </span>
-                    </div>
-                    
-                    <% if (paymentData.price) { %>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Paket</span>
-                        <span class="font-medium"><%= paymentData.price.subscriptionName %></span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Durasi</span>
-                        <span class="font-medium"><%= paymentData.price.duration %> hari</span>
-                    </div>
-                    <div class="flex justify-between pt-2 border-t border-gray-200">
-                        <span class="text-gray-600 font-semibold">Total Pembayaran</span>
-                        <span class="text-green-600 font-bold">
-                            Rp <%= new Intl.NumberFormat('id-ID').format(paymentData.price.price) %>
-                        </span>
-                    </div>
-                    <% } else { %>
-                    <div class="flex justify-between pt-2 border-t border-gray-200">
-                        <span class="text-gray-600 font-semibold">Status</span>
-                        <span class="font-medium <%= paymentData.success ? 'text-green-600' : 'text-yellow-600' %>">
-                            <%= paymentData.success ? 'Berhasil' : 'Pending' %>
-                        </span>
-                    </div>
-                    <% } %>
-                </div>
-            </div>
-            
-            <% if (paymentData.success && paymentData.price) { %>
-            <div class="mt-6 bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                <h3 class="font-semibold text-blue-800 mb-1">Fitur Paket:</h3>
-                <ul class="text-sm text-blue-700 list-disc list-inside space-y-1">
-                    <% const features = paymentData.price.features ? JSON.parse(paymentData.price.features) : []; %>
-                    <% features.forEach(feature => { %>
-                        <li><%= feature %></li>
-                    <% }); %>
-                </ul>
-            </div>
-            <% } %>
-            
-            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/dashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary to-purple-700 hover:from-purple-600 hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
-                    <i class="fa-solid fa-house mr-2"></i> Kembali ke Dashboard
-                </a>
-                <% if (paymentData.success) { %>
-                <a href="/account-management" class="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-300">
-                    <i class="fa-solid fa-user mr-2"></i> Kelola Akun
-                </a>
-                <% } %>
-            </div>
-            
-            <div class="mt-8 text-center">
-                <p class="text-sm text-gray-500">Butuh bantuan? <a href="#" class="text-primary hover:underline">Hubungi kami</a></p>
-            </div>
+            <span class="ml-3 text-xl font-bold logo-text">PaySystem</span>
         </div>
     </div>
     
-    <div class="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none rotate-180">
-        <svg class="relative block w-full h-20 wave-bottom" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V6c0,21.6,291,111.46,741,110.26,445.39,3.6,459-88.3,459-110.26V0Z" class="shape-fill" fill="currentColor"></path>
-        </svg>
+    <!-- Confetti animation elements -->
+    <% if (paymentData && paymentData.status === 'paid') { %>
+    <div class="confetti" style="top: 5%; left: 10%; background-color: #10B981;"></div>
+    <div class="confetti" style="top: 7%; left: 30%; background-color: #4F46E5;"></div>
+    <div class="confetti" style="top: 10%; left: 50%; background-color: #F59E0B;"></div>
+    <div class="confetti" style="top: 5%; left: 70%; background-color: #EF4444;"></div>
+    <div class="confetti" style="top: 8%; left: 90%; background-color: #3B82F6;"></div>
+    <div class="confetti" style="top: 15%; left: 20%; background-color: #8B5CF6;"></div>
+    <div class="confetti" style="top: 12%; left: 60%; background-color: #EC4899;"></div>
+    <div class="confetti" style="top: 18%; left: 80%; background-color: #06B6D4;"></div>
+    <% } %>
+    
+    <div class="max-w-md w-full space-y-6 animate-fade-in-up">
+        <div class="bg-white card p-8">
+            <div class="text-center">
+                <!-- Status Icon - Updated to use database status -->
+                <% if (paymentData && paymentData.status === 'paid') { %>
+                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-success-100 relative status-icon mb-6">
+                    <div class="absolute inset-0 rounded-full bg-success-100 animate-ping opacity-20"></div>
+                    <svg class="h-12 w-12 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Pembayaran Berhasil!
+                </h1>
+                <% } else if (paymentData && paymentData.status === 'pending') { %>
+                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-warning-100 relative status-icon mb-6">
+                    <svg class="h-12 w-12 text-warning-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Pembayaran Diproses
+                </h1>
+                <% } else { %>
+                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-danger-100 relative status-icon mb-6">
+                    <svg class="h-12 w-12 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Pembayaran Gagal
+                </h1>
+                <% } %>
+                
+                <!-- Status Message -->
+                <div class="mt-4 p-4 rounded-lg border-l-4 
+                    <% if (paymentData && paymentData.status === 'paid') { %> 
+                        bg-success-50 border-success-500
+                    <% } else if (paymentData && paymentData.status === 'pending') { %> 
+                        bg-warning-50 border-warning-500
+                    <% } else { %> 
+                        bg-danger-50 border-danger-500 
+                    <% } %> mb-6">
+                    <p class="<% if (paymentData && paymentData.status === 'paid') { %> text-success-700 <% } else if (paymentData && paymentData.status === 'pending') { %> text-warning-700 <% } else { %> text-danger-700 <% } %> font-medium text-sm">
+                        <% if (paymentData) { %>
+                            <%= paymentData.message %>
+                        <% } else { %>
+                            Status pembayaran tidak diketahui.
+                        <% } %>
+                    </p>
+                </div>
+                
+                <!-- Transaction Details -->
+                <% if (paymentData) { %>
+                <div class="bg-gray-50 p-5 rounded-lg text-left mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">Detail Transaksi</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 text-sm">Order ID</span>
+                            <span class="font-medium text-gray-800 text-sm"><%= paymentData.merchantOrderId || 'N/A' %></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 text-sm">Reference</span>
+                            <span class="font-medium text-gray-800 text-sm"><%= paymentData.reference || 'N/A' %></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 text-sm">Status Pembayaran</span>
+                            <span class="font-medium 
+                                <% if (paymentData.status === 'paid') { %>text-success-600
+                                <% } else if (paymentData.status === 'pending') { %>text-warning-600
+                                <% } else { %>text-danger-600<% } %> text-sm">
+                                <% if (paymentData.status === 'paid') { %>Berhasil
+                                <% } else if (paymentData.status === 'pending') { %>Diproses
+                                <% } else if (paymentData.status === 'failed') { %>Gagal
+                                <% } else { %>Tidak Diketahui<% } %>
+                            </span>
+                        </div>
+                        
+                        <!-- Kode Result (sebagai informasi tambahan) -->
+                        <% if (paymentData.resultCode && paymentData.resultCode !== 'Tidak tersedia') { %>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 text-sm">Kode Gateway</span>
+                            <span class="font-medium text-gray-800 text-sm"><%= paymentData.resultCode %></span>
+                        </div>
+                        <% } %>
+                        
+                        <% if (paymentData.price) { %>
+                        <div class="pt-3 border-t border-gray-200 mt-3">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-600 text-sm">Paket</span>
+                                <span class="font-medium text-gray-800 text-sm"><%= paymentData.price.subscriptionName %></span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-600 text-sm">Durasi</span>
+                                <span class="font-medium text-gray-800 text-sm"><%= paymentData.price.duration %> hari</span>
+                            </div>
+                            <div class="flex justify-between pt-3 border-t border-gray-200 mt-3">
+                                <span class="text-gray-800 font-semibold text-sm">Total Pembayaran</span>
+                                <span class="text-success-600 font-bold text-sm">
+                                    Rp <%= new Intl.NumberFormat('id-ID').format(paymentData.price.price) %>
+                                </span>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <!-- Package Features -->
+                <% if (paymentData.status === 'paid' && paymentData.price) { %>
+                <div class="bg-blue-50 p-5 rounded-lg border-l-4 border-blue-500 mb-6">
+                    <h3 class="font-semibold text-blue-800 mb-3 text-sm uppercase tracking-wide">Keuntungan Paket</h3>
+                    <ul class="text-sm text-blue-700 feature-list space-y-2">
+                        <li>Akses monitoring live stream</li>
+                        <li>Laporan performa lengkap</li>
+                        <li>Analitik real-time</li>
+                    </ul>
+                </div>
+                <% } %>
+                <% } else { %>
+                <!-- Failure Information -->
+                <div class="bg-gray-50 p-5 rounded-lg text-left mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">Informasi</h3>
+                    <p class="text-gray-600 text-sm mb-3">
+                        Transaksi tidak dapat diproses karena beberapa kemungkinan:
+                    </p>
+                    <ul class="text-sm text-gray-600 feature-list space-y-2">
+                        <li>Pembayaran dibatalkan</li>
+                        <li>Waktu pembayaran telah habis</li>
+                        <li>Terjadi kesalahan selama proses pembayaran</li>
+                        <li>Data transaksi tidak tersedia</li>
+                    </ul>
+                </div>
+                <% } %>
+                
+                <!-- Action Buttons -->
+                <div class="mt-8 flex flex-col gap-3">
+                    <a href="/dashboard" class="btn-primary inline-flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fa-solid fa-house mr-2"></i> Kembali ke Dashboard
+                    </a>
+                    
+                    <% if (paymentData && paymentData.status === 'paid') { %>
+                    <% } else if (paymentData && (paymentData.status === 'failed' || paymentData.status === 'unknown' || paymentData.status === 'error')) { %>
+                    <a href="/pricing" class="btn-primary inline-flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fa-solid fa-credit-card mr-2"></i> Coba Lagi
+                    </a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center">
+            <p class="text-xs text-gray-500">Butuh bantuan? <a href="#" class="text-primary-600 hover:text-primary-700 font-medium">Hubungi dukungan pelanggan</a></p>
+            <p class="text-xs text-gray-400 mt-1">© 2023 PaySystem. All rights reserved.</p>
+        </div>
     </div>
 
     <script>
         // Animasi konfeti hanya untuk pembayaran sukses
         document.addEventListener('DOMContentLoaded', function() {
-            <% if (paymentData.success) { %>
+            <% if (paymentData && paymentData.status === 'paid') { %>
             const confettiElements = document.querySelectorAll('.confetti');
             confettiElements.forEach((el, index) => {
                 setTimeout(() => {
-                    el.style.animation = `fall ${Math.random() * 2 + 2}s ease-in ${Math.random() * 1}s forwards`;
+                    const duration = Math.random() * 3 + 2;
+                    const delay = Math.random() * 1;
+                    el.style.animation = `confettiFall ${duration}s ease-in ${delay}s forwards`;
                     el.style.opacity = '1';
                 }, index * 200);
             });
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fall {
-                    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-                    100% { transform: translateY(100vh) rotate(${Math.random() * 360}deg); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
             <% } %>
+            
+            // Tambahkan animasi subtle pada card
+            const card = document.querySelector('.card');
+            card.classList.add('animate__animated', 'animate__fadeInUp');
         });
     </script>
 </body>

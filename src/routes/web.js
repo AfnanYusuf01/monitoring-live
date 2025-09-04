@@ -309,15 +309,10 @@ router.get('/affiliate-management', requireLogin, renderAffiliateManagement);
 router.get('/performance', requireLogin, renderPerformanceLiveStream);
 
 
-
-
-
-
-
 router.get("/thank-you", requireLogin, async (req, res) => {
   try {
     // Ambil parameter dari query string
-    const {merchantOrderId, resultCode, reference} = req.query;
+    const { merchantOrderId, resultCode, reference } = req.query;
 
     console.log("Payment data received:", {
       merchantOrderId,
@@ -325,73 +320,104 @@ router.get("/thank-you", requireLogin, async (req, res) => {
       reference,
     });
 
-    // Cek status pembayaran
-    const isPaymentSuccess = resultCode === "00";
-
-    // Dapatkan data order dari database untuk mendapatkan harga
+    // Dapatkan data order dari database
     let orderData = null;
     let priceData = null;
+    let paymentStatus = "unknown";
 
     if (merchantOrderId) {
       orderData = await prisma.order.findUnique({
-        where: {orderId: merchantOrderId},
+        where: { transactionId: merchantOrderId },
         include: {
-          subscription: {
-            select: {
-              id: true,
-              name: true,
-              price: true,
-              duration: true,
-              features: true,
-            },
-          },
-          user: {
-            select: {
-              name: true,
-              email: true,
+          userSubscription: {
+            include: {
+              subscription: {
+                select: {
+                  id: true,
+                  name: true,
+                  price: true,
+                  duration: true,
+                },
+              },
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
             },
           },
         },
       });
 
-      if (orderData && orderData.subscription) {
-        priceData = {
-          subscriptionName: orderData.subscription.name,
-          price: orderData.subscription.price,
-          duration: orderData.subscription.duration,
-          features: orderData.subscription.features,
-          orderDate: orderData.createdAt,
-        };
+      if (orderData) {
+        // Ambil status pembayaran dari database, bukan dari resultCode
+        paymentStatus = orderData.status;
+        
+        if (orderData.userSubscription && orderData.userSubscription.subscription) {
+          priceData = {
+            subscriptionName: orderData.userSubscription.subscription.name,
+            price: orderData.userSubscription.subscription.price,
+            duration: orderData.userSubscription.subscription.duration,
+            orderDate: orderData.createdAt,
+          };
+        }
       }
+    }
+
+    // Tentukan pesan berdasarkan status dari database
+    let statusMessage = "Status pembayaran tidak diketahui.";
+    let isPaymentSuccess = false;
+    let isPaymentPending = false;
+
+    switch (paymentStatus) {
+      case "paid":
+        isPaymentSuccess = true;
+        statusMessage = "Pembayaran berhasil! Terima kasih telah berlangganan.";
+        break;
+      case "pending":
+        isPaymentPending = true;
+        statusMessage = "Pembayaran sedang diproses. Silakan tunggu konfirmasi.";
+        break;
+      case "failed":
+        statusMessage = "Pembayaran gagal. Silakan coba lagi.";
+        break;
+      default:
+        statusMessage = "Status pembayaran tidak diketahui.";
     }
 
     res.render("thank-you", {
       navbar: "thank-you",
+      paymentStatus: paymentStatus, // Pass paymentStatus separately
       paymentData: {
         success: isPaymentSuccess,
+        pending: isPaymentPending,
         merchantOrderId: merchantOrderId || "Tidak tersedia",
-        resultCode: resultCode || "Tidak tersedia",
+        resultCode: resultCode || "Tidak tersedia", // Masih ditampilkan sebagai info tambahan
         reference: reference || "Tidak tersedia",
-        message: isPaymentSuccess
-          ? "Pembayaran berhasil! Terima kasih telah berlangganan."
-          : "Pembayaran gagal atau sedang diproses.",
+        message: statusMessage,
         price: priceData,
+        status: paymentStatus, // Status dari database
       },
     });
   } catch (error) {
     console.error("Error processing thank-you page:", error);
     res.render("thank-you", {
       navbar: "thank-you",
+      paymentStatus: "error",
       paymentData: {
         success: false,
+        pending: false,
         merchantOrderId: "Error",
         resultCode: "Error",
         reference: "Error",
         message: "Terjadi kesalahan dalam memproses informasi pembayaran",
         price: null,
+        status: "error",
       },
     });
   }
 });
+
 
 export default router;
