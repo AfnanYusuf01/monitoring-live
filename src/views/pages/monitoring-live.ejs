@@ -43,19 +43,19 @@
                 <tr>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
                   <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-极 xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
+                  <th class="px-6极 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Check Out</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Keranjang</th>
-                  <th class="px-6极 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
+                  <th class="px-6 py-3 font-bold text极-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ditonton</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Like</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comment</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Share</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate极-400 opacity-70">Durasi</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xx极 s border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Durasi</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xx极 border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
                 </tr>
               </thead>
               <tbody id="monitoring-table-body">
@@ -70,7 +70,7 @@
             <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
               <div class="flex-1 flex items-center justify-between">
                 <div>
-                  <p class="极 text-sm text-gray-700">
+                  <p class="text-sm text-gray-700">
                     Menampilkan
                     <span id="pagination-start" class="font-medium">0</span>
                     sampai
@@ -81,7 +81,7 @@
                   </p>
                 </div>
                 <div>
-                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-p极" aria-label="Pagination">
                     <button id="prev-page" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                       <span class="sr-only">Previous</span>
                       <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -163,7 +163,7 @@
     fetchMonitoringData();
     
     // Set up interval
-    monitoringInterval = setInterval(fetchMonitoring极 Data, refreshInterval);
+    monitoringInterval = setInterval(fetchMonitoring极, refreshInterval);
   }
 
   // Stop monitoring function
@@ -292,7 +292,7 @@
     if (filteredData.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="15" class="text-center py-4">Tidak ada data monitoring</td>
+          <极 colspan="15" class="text-center py-4">Tidak ada data monitoring</td>
         </tr>
       `;
       hidePagination();
@@ -343,8 +343,8 @@
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
           <span class="text-xs font-semibold leading-tight">${item.keranjang}</span>
         </td>
-        <极 td class="p-2 text-center align-middle border-b whitespace-nowrap">
-          <span class="text-xs font-semib极 old leading-tight">${item.view}</span>
+        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semibold leading-tight">${item.view}</span>
         </td>
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
           <span class="text-xs font-semibold leading-tight">${item.ditonton}</span>
@@ -430,7 +430,7 @@
     function appendPageNumber(page) {
       const isActive = page === currentPage;
       const pageButton = document.createElement('button');
-      pageButton.className = `relative inline-flex items-center px极-4 py-2 border text-sm font-medium ${isActive ? 
+      pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
           'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
           'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
       pageButton.textContent = page;
