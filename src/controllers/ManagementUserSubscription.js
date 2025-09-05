@@ -245,27 +245,50 @@ export const destroyUserSubscription = async (req, res) => {
     const {id} = req.params;
     const userSubscriptionId = parseInt(id);
 
-    // Hapus semua order terkait
-    await prisma.order.deleteMany({
-      where: {userSubscriptionId},
-    });
+    // Gunakan transaction untuk memastikan atomic operation
+    await prisma.$transaction(async (tx) => {
+      // 1. Pertama hapus AffiliateOrder yang terkait dengan Order dari user subscription ini
+      await tx.affiliateOrder.deleteMany({
+        where: {
+          order: {
+            userSubscriptionId: userSubscriptionId
+          }
+        }
+      });
 
-    // Hapus user subscription
-    await prisma.userSubscription.delete({
-      where: {id: userSubscriptionId},
+      // 2. Hapus semua order terkait
+      await tx.order.deleteMany({
+        where: {userSubscriptionId},
+      });
+
+      // 3. Hapus user subscription
+      await tx.userSubscription.delete({
+        where: {id: userSubscriptionId},
+      });
     });
 
     res.json({
       status: "success",
-      message: "User subscription dan order terkait berhasil dihapus",
+      message: "User subscription dan semua data terkait berhasil dihapus",
     });
   } catch (error) {
+    console.error("Error deleting user subscription:", error);
+
     if (error.code === "P2025") {
       return res.status(404).json({
         status: "error",
         message: "Data tidak ditemukan",
       });
     }
+
+    if (error.code === "P2003") {
+      return res.status(400).json({
+        status: "error",
+        message: "Terdapat constraint violation pada data terkait",
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       status: "error",
       message: "Gagal menghapus data",

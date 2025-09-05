@@ -1,5 +1,25 @@
 <% layout("layouts/main") %>
 <div class="min-h-screen bg-gray-50">
+  <!-- Success Notification - Hapus atau komentari bagian ini jika tidak diperlukan -->
+  <!--
+  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div id="success-notification" class="fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg bg-green-500 text-white z-50 transform transition-transform duration-300">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      <span><%= successMessage %></span>
+    </div>
+
+    <script>
+      // Auto hide success notification after 5 seconds
+      setTimeout(() => {
+        const notification = document.getElementById('success-notification');
+        if (notification) notification.remove();
+      }, 5000);
+    </script>
+  <% } %>
+  -->
+
   <!-- Order Table -->
   <div class="flex flex-wrap -mx-3">
     <div class="flex-none w-full max-w-full px-3">
@@ -94,6 +114,27 @@
   </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus -->
+<div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity duration-300">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 transform transition-transform duration-300 scale-95 opacity-0">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-800">Konfirmasi Hapus</h3>
+    </div>
+    <div class="px-6 py-4">
+      <p class="text-gray-700">Apakah Anda yakin ingin menghapus order ini?</p>
+      <input type="hidden" id="delete-id">
+    </div>
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+      <button type="button" id="cancel-delete" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 transition-colors">
+        Batal
+      </button>
+      <button type="button" id="confirm-delete" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+        Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
   // Global variables
   let currentData = [];
@@ -129,6 +170,15 @@
         currentPage++;
         renderData();
       }
+    });
+    
+    // Setup event listeners untuk modal konfirmasi hapus
+    document.getElementById('cancel-delete').addEventListener('click', hideConfirmModal);
+    document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+    
+    // Close modal when clicking outside
+    document.getElementById('confirm-modal').addEventListener('click', function(e) {
+      if (e.target.id === 'confirm-modal') hideConfirmModal();
     });
   });
 
@@ -228,7 +278,7 @@
       });
       
       return `
-      <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100">
+      <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} hover:bg-gray-100 transition-colors">
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
           <span class="text-xs font-semibold leading-tight">${startIndex + index + 1}</span>
         </td>
@@ -259,12 +309,20 @@
           <span class="text-xs font-semibold leading-tight">${createdAt}</span>
         </td>
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
-          <button onclick="deleteOrder(${item.id})" class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors">
-            <i class="fas fa-trash mr-1"></i> Hapus
+          <button class="delete-order px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors" data-id="${item.id}">
+            Hapus
           </button>
         </td>
       </tr>
     `}).join('');
+    
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-order').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.target.getAttribute('data-id');
+        showConfirmModal(id);
+      });
+    });
     
     // Show pagination controls
     showPagination();
@@ -274,21 +332,47 @@
     document.getElementById('next-page').disabled = currentPage === totalPages;
   }
 
-  // Delete order function
-  async function deleteOrder(orderId) {
-    if (!confirm('Apakah Anda yakin ingin menghapus order ini?')) {
-      return;
-    }
+  // Tampilkan modal konfirmasi hapus
+  function showConfirmModal(id) {
+    document.getElementById('delete-id').value = id;
+    
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
+  // Sembunyikan modal konfirmasi hapus
+  function hideConfirmModal() {
+    const modal = document.getElementById('confirm-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
+  }
+
+  // Konfirmasi hapus
+  async function confirmDelete() {
+    const id = document.getElementById('delete-id').value;
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/${id}`, {
         method: 'DELETE'
       });
       
       const result = await response.json();
       
       if (result.status === 'success') {
-        alert('Order berhasil dihapus');
+        hideConfirmModal();
+        showNotification('Order berhasil dihapus', 'success');
         // Refresh data
         loadOrderData();
       } else {
@@ -296,8 +380,58 @@
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(`Gagal menghapus order: ${error.message}`);
+      hideConfirmModal();
+      showNotification(`Gagal menghapus order: ${error.message}`, 'error');
     }
+  }
+
+  // Show notification
+  function showNotification(message, type = 'info') {
+    // Hapus notifikasi sebelumnya jika ada
+    const existingNotification = document.getElementById('notification');
+    if (existingNotification) {
+      existingNotification.remove();
+    }
+    
+    const colors = {
+      success: 'bg-green-500',
+      error: 'bg-red-500',
+      warning: 'bg-yellow-500',
+      info: 'bg-blue-500'
+    };
+    
+    const icons = {
+      success: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>',
+      error: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>',
+      warning: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>',
+      info: '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+    };
+    
+    const notification = document.createElement('div');
+    notification.id = 'notification';
+    notification.className = `fixed top-4 right-4 flex items-center px-4 py-3 rounded-lg shadow-lg ${colors[type]} text-white z-50 transform transition-transform duration-300 translate-x-full`;
+    notification.innerHTML = `${icons[type]}<span>${message}</span>`;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+      notification.classList.add('translate-x-0');
+    }, 10);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.classList.remove('translate-x-0');
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }
+    }, 5000);
   }
 
   // Render page numbers for pagination

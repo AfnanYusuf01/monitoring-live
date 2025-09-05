@@ -223,51 +223,85 @@ export async function update(req, res) {
   }
 }
 
+
 export async function destroy(req, res) {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
     const userId = parseInt(id);
 
-    // Mulai transaction untuk memastikan semua operasi berhasil atau tidak sama sekali
     await prisma.$transaction(async (tx) => {
-      // 1️⃣ Hapus semua data terkait secara berurutan
+      // 1. Hapus PerformanceLiveStream melalui Akun
+      await tx.performanceLiveStream.deleteMany({
+        where: {
+          akun: {
+            userId: userId
+          }
+        }
+      });
 
-      // Hapus Order yang terkait dengan UserSubscription user ini
+      // 2. Hapus AffiliateOrder melalui Order (user subscription orders)
+      await tx.affiliateOrder.deleteMany({
+        where: {
+          OR: [
+            // AffiliateOrder yang terkait dengan orders user
+            {
+              order: {
+                userSubscription: {
+                  userId: userId
+                }
+              }
+            },
+            // AffiliateOrder yang terkait dengan affiliate user
+            {
+              affiliate: {
+                userId: userId
+              }
+            }
+          ]
+        }
+      });
+
+      // 3. Hapus Order melalui UserSubscription
       await tx.order.deleteMany({
         where: {
           userSubscription: {
-            userId: userId,
-          },
-        },
+            userId: userId
+          }
+        }
       });
 
-      // Hapus UserSubscription user ini
+      // 4. Hapus Affiliate user
+      await tx.affiliate.deleteMany({
+        where: { userId: userId }
+      });
+
+      // 5. Hapus UserSubscription user
       await tx.userSubscription.deleteMany({
-        where: {userId: userId},
+        where: { userId: userId }
       });
 
-      // Hapus Akun user ini
+      // 6. Hapus Akun user
       await tx.akun.deleteMany({
-        where: {userId: userId},
+        where: { userId: userId }
       });
 
-      // Hapus Studio user ini
+      // 7. Hapus Studio user
       await tx.studio.deleteMany({
-        where: {userId: userId},
+        where: { userId: userId }
       });
 
-      // 2️⃣ Baru hapus user
+      // 8. Hapus user
       await tx.user.delete({
-        where: {id: userId},
+        where: { id: userId }
       });
     });
 
-    res.json({message: "User deleted successfully"});
+    res.json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
 
     if (error.code === "P2025") {
-      return res.status(404).json({error: "User not found"});
+      return res.status(404).json({ error: "User not found" });
     }
     if (error.code === "P2003") {
       return res.status(400).json({
@@ -276,6 +310,9 @@ export async function destroy(req, res) {
       });
     }
 
-    res.status(500).json({error: "Failed to delete user"});
+    res.status(500).json({ 
+      error: "Failed to delete user",
+      message: error.message 
+    });
   }
 }

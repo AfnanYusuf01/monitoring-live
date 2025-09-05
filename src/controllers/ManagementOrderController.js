@@ -197,9 +197,16 @@ export async function updateOrder(req, res) {
 export async function destroyOrder(req, res) {
   try {
     const {id} = req.params;
+    const orderId = parseInt(id);
 
+    // Hapus affiliate orders terkait terlebih dahulu
+    await prisma.affiliateOrder.deleteMany({
+      where: { orderId: orderId }
+    });
+
+    // Hapus order
     await prisma.order.delete({
-      where: {id: parseInt(id)},
+      where: { id: orderId },
     });
 
     res.status(200).json({
@@ -208,12 +215,14 @@ export async function destroyOrder(req, res) {
     });
   } catch (error) {
     console.error("Error deleting order:", error);
+    
     if (error.code === "P2025") {
       return res.status(404).json({
         status: "error",
         message: "Order not found",
       });
     }
+
     res.status(500).json({
       status: "error",
       message: "Failed to delete order",

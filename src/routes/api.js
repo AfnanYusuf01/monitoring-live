@@ -17,7 +17,7 @@ import {
 } from "../controllers/AkunController.js";
 import {getShopeeData} from "../controllers/MonitoringLiveController.js";
 import {getDataPembayaran} from "../controllers/CekPembayaranController.js";
-import {getLiveHistory} from "../controllers/HistoriLiveController.js";
+import {getLiveHistory, getStudioLiveHistory} from "../controllers/HistoriLiveController.js";
 import {getShopeeProducts} from "../controllers/MonitoringProductController.js";
 import {
   requireLogin,
@@ -136,6 +136,7 @@ router.post("/cek-pembayaran",   requireApiLogin,   getDataPembayaran);
    HISTORI LIVE CONTROLLER
 ============================================================ */
 router.post("/history",   requireApiLogin,   getLiveHistory);
+router.post("/histori_studio",   requireApiLogin,   getStudioLiveHistory);
 
 /* ============================================================
    MONITORING PRODUCT CONTROLLER
@@ -147,7 +148,7 @@ router.post("/products",   requireApiLogin,   getShopeeProducts);
 ============================================================ */
 router.get("/studios",    requireApiLogin,   getAllStudios);
 router.get("/studio/:id",   requireApiLogin,   getAkunStudioById);
-router.get("/studios",   requireApiLogin,   indexStudio);
+router.get("/studios_akun",   requireApiLogin,   indexStudio);
 router.get("/studios/:id",   requireApiLogin,   getStudio);
 router.post("/studios",   requireApiLogin,   postStudios);
 router.put("/studios/:id",   requireApiLogin,   putStudio);

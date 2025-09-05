@@ -64,14 +64,74 @@ const fetchShopeeProfile = async (cookie) => {
   }
 };
 
-// Fungsi untuk mengecek status cookie
+const fetchShopeeCookieStatus = async (cookie) => {
+  try {
+    // format cookie supaya rapi
+    const cookies = cookie
+      .split(";")
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .join("; ");
+
+    const response = await axios.get(
+      "https://affiliate.shopee.co.id/api/v3/user/check_program_permission?program_type=2",
+      {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "accept-language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+          "affiliate-program-type": "1",
+          priority: "u=1, i",
+          referer: "https://affiliate.shopee.co.id/dashboard",
+          "sec-ch-ua":
+            '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"',
+          "sec-ch-ua-mobile": "?0",
+          "sec-ch-ua-platform": '"Windows"',
+          "sec-fetch-dest": "empty",
+          "sec-fetch-mode": "cors",
+          "sec-fetch-site": "same-origin",
+          "user-agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+          cookie: cookies, // gunakan cookies yang sudah diformat
+        },
+      }
+    );
+
+    // Handle response sesuai struktur yang kamu kasih
+    if (response.data.code === 0) {
+      return {
+        success: true,
+        data: response.data.data, // { has_permission: true }
+      };
+    } else if (response.data.code === 30002) {
+      return {
+        success: false,
+        error: "Cookie incorrect",
+        code: response.data.code,
+      };
+    } else {
+      return {
+        success: false,
+        error: response.data.msg || "Gagal mengecek permission",
+        code: response.data.code,
+      };
+    }
+  } catch (error) {
+    console.error("❌ Error Shopee:", error.message);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 const checkCookieStatus = async (cookie) => {
   try {
-    const profileResult = await fetchShopeeProfile(cookie);
+    const result = await fetchShopeeCookieStatus(cookie);
     return {
-      status: profileResult.success ? "active" : "logout",
-      error: profileResult.error,
-      code: profileResult.code,
+      status: result.success ? "active" : "logout",
+      error: result.error,
+      code: result.code,
+      data: result.data,
     };
   } catch (error) {
     return {
@@ -80,6 +140,7 @@ const checkCookieStatus = async (cookie) => {
     };
   }
 };
+
 
 export const renderAccountManagement = async (req, res) => {
   try {
