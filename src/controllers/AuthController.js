@@ -65,14 +65,14 @@ export default {
         });
       }
 
-      if (!terms) {
-        return res.render("pages/sign-up", {
-          navbar: "Sign Up",
-          error: "Anda harus menyetujui syarat dan ketentuan",
-          success: null,
-          formData: {name, email, nomor_wa},
-        });
-      }
+      // if (!terms) {
+      //   return res.render("pages/sign-up", {
+      //     navbar: "Sign Up",
+      //     error: "Anda harus menyetujui syarat dan ketentuan",
+      //     success: null,
+      //     formData: {name, email, nomor_wa},
+      //   });
+      // }
 
       // Cek apakah email sudah terdaftar
       const existingUser = await prisma.user.findUnique({
@@ -278,12 +278,12 @@ export default {
           .json({success: false, message: "Semua field harus diisi"});
       }
 
-      if (!terms) {
-        return res.status(400).json({
-          success: false,
-          message: "Anda harus menyetujui syarat dan ketentuan",
-        });
-      }
+      // if (!terms) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Anda harus menyetujui syarat dan ketentuan",
+      //   });
+      // }
 
       // Cek email sudah terdaftar
       const existingUser = await prisma.user.findUnique({where: {email}});

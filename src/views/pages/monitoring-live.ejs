@@ -1,94 +1,5 @@
 <% layout("layouts/main") %>
 <div class="min-h-screen bg-gray-50">
-  <!-- Summary Cards -->
-  <div class="flex flex-wrap -mx-3 mb-6">
-    <!-- Total GMV -->
-    <div class="w-full md:w-1/2 lg:w-1/4 xl:w-1/5 px-3 mb-4">
-      <div class="bg-white rounded-2xl shadow-soft-xl p-4">
-        <div class="flex items-center">
-          <div class="p-3 rounded-lg bg-gradient-to-tl from-emerald-500 to-teal-400 text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-semibold text-slate-600">Total GMV</p>
-            <h4 class="text-lg font-bold" id="total-gmv">-</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Rata-rata Like -->
-    <div class="w-full md:w-1/2 lg:w-1/4 xl:w-1/5 px-3 mb-4">
-      <div class="bg-white rounded-2xl shadow-soft-xl p-4">
-        <div class="flex items-center">
-          <div class="p-3 rounded-lg bg-gradient-to-tl from-purple-700 to-pink-500 text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 极 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-semibold text-slate-600">Rata-rata Like</p>
-            <h4 class="text-lg font-bold" id="avg-like">-</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Rata-rata View -->
-    <div class="w-full md:w-1/2 lg:w-1/4 xl:w-1/5 px-3 mb-4">
-      <div class="bg-white rounded-2xl shadow-soft-xl p-4">
-        <div class="flex items-center">
-          <div class="p-3 rounded-lg bg-gradient-to-tl from-blue-600 to-cyan-400 text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-semibold text-slate-600">Rata-rata View</p>
-            <h4 class="text-lg font-bold" id="avg-view">-</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Akun Live -->
-    <div class="w-full md:w-1/2 lg:w-1/4 xl:w-1/5 px-3 mb-4">
-      <div class="bg-white rounded-2xl shadow-soft-xl p-4">
-        <div class="flex items-center">
-          <div class="p-3 rounded-lg bg-gradient-to-tl from-green-600 to-emerald-400 text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-semibold text-slate-600">Akun Live</p>
-            <h4 class="text-lg font-bold" id="live-accounts">-</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Akun Tidak Live -->
-    <div class="w-full md:w-1/2 lg:w-1/4 xl:w-1/5 px-3 mb-4">
-      <div class="bg-white rounded-2xl shadow-soft-xl p-4">
-        <div class="flex items-center">
-          <div class="p-3 rounded-lg bg-gradient-to-tl from-red-600 to-rose-400 text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728M5.636 5.636a9 9 0 000 12.728M13 12a1 1 0 11-2 0 1 1 0 012 0z"></path>
-            </svg>
-          </div>
-          <div class="ml-4">
-            <p class="text-sm font-semibold text-slate-600">Akun Tidak Live</p>
-            <h4 class="text-lg font-bold" id="nonlive-accounts">-</h4>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Monitoring Table -->
   <div class="flex flex-wrap -mx-3">
     <div class="flex-none w-full max-w-full px-3">
@@ -118,7 +29,7 @@
               <input type="text" id="search-input" placeholder="Cari data..." class="pl-10 pr-4 py-2 text-sm leading-normal text-slate-500 border border-gray-200 rounded-lg focus:shadow-soft-primary-outline ease-soft-in outline-none transition-all focus:border-fuchsia-300 focus:outline-none" />
               <div class="absolute left-3 text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-极 m2-5a7 7 0 11-14 极 7 7 0 0114 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </div>
             </div>
@@ -132,18 +43,18 @@
                 <tr>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
                   <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-极 xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Check Out</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none极 whitespace-nowrap text-slate-400 opacity-70">Keranjang</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-极 xs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Keranjang</th>
+                  <th class="px-6极 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ditonton</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Like</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comment</极>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comment</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Share</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Durasi</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate极-400 opacity-70">Durasi</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xx极 s border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
                   <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
                 </tr>
               </thead>
@@ -159,7 +70,7 @@
             <div id="pagination-controls" class="hidden flex-col md:flex-row items-center justify-between px-4 py-3 border-t border-gray-200 sm:px-6">
               <div class="flex-1 flex items-center justify-between">
                 <div>
-                  <p class="text-sm text-gray-700">
+                  <p class="极 text-sm text-gray-700">
                     Menampilkan
                     <span id="pagination-start" class="font-medium">0</span>
                     sampai
@@ -182,8 +93,8 @@
                     </div>
                     <button id="next-page" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                       <span class="sr-only">Next</span>
-                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="极 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 极 01-1.414 0z" clip-rule="evenodd" />
+                      <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                       </svg>
                     </button>
                   </nav>
@@ -252,7 +163,7 @@
     fetchMonitoringData();
     
     // Set up interval
-    monitoringInterval = setInterval(fetchMonitoringData, refreshInterval);
+    monitoringInterval = setInterval(fetchMonitoring极 Data, refreshInterval);
   }
 
   // Stop monitoring function
@@ -304,7 +215,6 @@
         filteredData = [...currentData];
         currentPage = 1;
         renderData();
-        updateSummaryCards(); // Update summary cards with new data
       }
     } catch (error) {
       console.error('Error fetching monitoring data:', error);
@@ -350,7 +260,6 @@
       filteredData = [...currentData];
       currentPage = 1;
       renderData();
-      updateSummaryCards(); // Update summary cards with initial data
     } catch (error) {
       console.error('Error:', error);
       document.getElementById('monitoring-table-body').innerHTML = `
@@ -434,8 +343,8 @@
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
           <span class="text-xs font-semibold leading-tight">${item.keranjang}</span>
         </td>
-        <td class="p-2 text-center align-middle border-b whitespace-nowrap">
-          <span class="text-xs font-semibold leading-tight">${item.view}</span>
+        <极 td class="p-2 text-center align-middle border-b whitespace-nowrap">
+          <span class="text-xs font-semib极 old leading-tight">${item.view}</span>
         </td>
         <td class="p-2 text-center align-middle border-b whitespace-nowrap">
           <span class="text-xs font-semibold leading-tight">${item.ditonton}</span>
@@ -484,56 +393,6 @@
     document.getElementById('next-page').disabled = currentPage === totalPages;
   }
 
-  // Update summary cards with current data
-  function updateSummaryCards() {
-    if (currentData.length === 0) {
-      document.getElementById('total-gmv').textContent = '-';
-      document.getElementById('avg-like').textContent = '-';
-      document.getElementById('avg-view').textContent = '-';
-      document.getElementById('live-accounts').textContent = '-';
-      document.getElementById('nonlive-accounts').textContent = '-';
-      return;
-    }
-    
-    // Calculate total GMV
-    const totalGmv = currentData.reduce((sum, item) => {
-      const gmvValue = parseFloat(item.gmv) || 0;
-      return sum + gmvValue;
-    }, 0);
-    document.getElementById('total-gmv').textContent = formatCurrency(totalGmv);
-    
-    // Calculate average likes
-    const likes = currentData.map(item => parseInt(item.like) || 0);
-    const avgLikes = likes.reduce((sum, like) => sum + like, 0) / likes.length;
-    document.getElementById('avg-like').textContent = isNaN(avgLikes) ? '0' : Math.round(avgLikes);
-    
-    // Calculate average views
-    const views = currentData.map(item => parseInt(item.view) || 0);
-    const avgViews = views.reduce((sum, view) => sum + view, 0) / views.length;
-    document.getElementById('avg-view').textContent = isNaN(avgViews) ? '0' : Math.round(avgViews);
-    
-    // Count live and non-live accounts
-    const liveAccounts = currentData.filter(item => 
-      item.status && item.status.toLowerCase().includes('live') || 
-      item.status && item.status.toLowerCase().includes('aktif')
-    ).length;
-    
-    const nonLiveAccounts = currentData.length - liveAccounts;
-    
-    document.getElementById('live-accounts').textContent = liveAccounts;
-    document.getElementById('nonlive-accounts').textContent = nonLiveAccounts;
-  }
-
-  // Helper function to format currency
-  function formatCurrency(amount) {
-    if (isNaN(amount)) return '-';
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
-  }
-
   // Render page numbers for pagination
   function renderPageNumbers(totalPages) {
     const pageNumbersContainer = document.getElementById('page-numbers');
@@ -571,7 +430,7 @@
     function appendPageNumber(page) {
       const isActive = page === currentPage;
       const pageButton = document.createElement('button');
-      pageButton.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${isActive ? 
+      pageButton.className = `relative inline-flex items-center px极-4 py-2 border text-sm font-medium ${isActive ? 
           'z-10 bg-blue-50 border-blue-500 text-blue-600' : 
           'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`;
       pageButton.textContent = page;

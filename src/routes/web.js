@@ -93,9 +93,6 @@ router.post("/profile/update", requireLogin, AuthController.updateProfile);
 
 
 
-router.get("/dashboard", requireLogin, (req, res) => {
-  res.render("pages/dashboard", {navbar: "Dashboard"});
-});
 router.get("/monitoring-live", requireLogin, (req, res) => {
   res.render("pages/monitoring-live", {navbar: "Monitoring-Live"});
 });

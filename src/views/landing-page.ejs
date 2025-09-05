@@ -100,86 +100,83 @@
         .nav-link:hover::after {
             width: 100%;
         }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-700">
     <!-- Navigation -->
-<nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-            <!-- Logo & Brand -->
-            <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <div class="rounded-full bg-blue-600 p-2 flex items-center justify-center w-10 h-10">
-                        <i class="fas fa-broadcast-tower text-white text-lg"></i>
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Brand -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="rounded-full bg-blue-600 p-2 flex items-center justify-center w-10 h-10">
+                            <i class="fas fa-broadcast-tower text-white text-lg"></i>
+                        </div>
+                        <span class="ml-3 text-xl font-bold text-gray-900">LiveShopMonitor</span>
                     </div>
-                    <span class="ml-3 text-xl font-bold text-gray-900">LiveShopMonitor</span>
-                </div>
-                
-                <!-- Navigation Links - Desktop -->
-                <div class="hidden lg:ml-10 lg:flex lg:space-x-6">
-                    <a href="#features" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Fitur</a>
-                    <a href="#pricing" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Paket</a>
-                    <a href="#testimonials" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Testimoni</a>
-                    <a href="#faq" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">FAQ</a>
-                </div>
-            </div>
-
-            <!-- User Actions -->
-            <div class="flex items-center">
-                <% if (!user) { %>
-                    <!-- User NOT logged in -->
-                    <div class="hidden md:flex items-center space-x-3">
-                        <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors duration-200">
-                            Login
-                        </a>
-                        <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 shadow-sm">
-                            Daftar
-                        </a>
+                    
+                    <!-- Navigation Links - Desktop -->
+                    <div class="hidden lg:ml-10 lg:flex lg:space-x-6">
+                        <a href="#features" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Fitur</a>
+                        <a href="#pricing" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Paket</a>
+                        <a href="#testimonials" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Testimoni</a>
+                        <a href="#faq" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">FAQ</a>
                     </div>
-                <% } else { %>
-                    <!-- User IS logged in -->
-                    <div x-data="{ open: false }" class="relative hidden md:block">
-                        <button @click="open = !open" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                            <span>Halo, <%= user.name %></span>
-                            <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                        </button>
+                </div>
 
-                        <!-- Dropdown Menu -->
-                        <div x-show="open" x-cloak @click.away="open = false" 
-                            x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="transform opacity-0 scale-95"
-                            x-transition:enter-end="transform opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="transform opacity-100 scale-100"
-                            x-transition:leave-end="transform opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1">
-                            <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
-                                <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
+                <!-- User Actions -->
+                <div class="flex items-center">
+                    <% if (!user) { %>
+                        <!-- User NOT logged in -->
+                        <div class="hidden md:flex items-center space-x-3">
+                            <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors duration-200">
+                                Login
                             </a>
-                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
-                                <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
-                            </a>
-                            <div class="border-t border-gray-100 my-1"></div>
-                            <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-200">
-                                <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
+                            <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 shadow-sm">
+                                Daftar
                             </a>
                         </div>
-                    </div>
-                <% } %>
+                    <% } else { %>
+                        <!-- User IS logged in -->
+                        <div x-data="{ open: false }" class="relative hidden md:block">
+                            <button @click="open = !open" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                                <span>Halo, <%= user.name %></span>
+                                <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                            </button>
 
-                <!-- Mobile menu button -->
-                <button class="lg:hidden ml-4 p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" x-cloak @click.away="open = false" 
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1">
+                                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                    <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
+                                </a>
+                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                    <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
+                                </a>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-200">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <!-- Mobile menu button -->
+                    <button class="lg:hidden ml-4 p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
-
-<style>
-[x-cloak] { display: none !important; }
-</style>
+    </nav>
 
     <!-- Hero Section -->
     <section class="pt-32 pb-20 gradient-bg text-white overflow-hidden">
@@ -350,6 +347,59 @@
         </div>
     </section>
 
+    <!-- Payment Methods Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Metode Pembayaran</h2>
+                <p class="mt-4 text-xl text-gray-600">Kami menerima berbagai metode pembayaran melalui Duitku</p>
+            </div>
+
+            <div class="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-credit-card text-3xl text-blue-500"></i>
+                        <p class="mt-2 text-sm font-medium">Kartu Kredit</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-mobile-alt text-3xl text-green-500"></i>
+                        <p class="mt-2 text-sm font-medium">Transfer Bank</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-university text-3xl text-purple-500"></i>
+                        <p class="mt-2 text-sm font-medium">Virtual Account</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-wallet text-3xl text-orange-500"></i>
+                        <p class="mt-2 text-sm font-medium">E-Wallet</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-store text-3xl text-red-500"></i>
+                        <p class="mt-2 text-sm font-medium">Retail</p>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-qrcode text-3xl text-indigo-500"></i>
+                        <p class="mt-2 text-sm font-medium">QRIS</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <p class="text-gray-600">Semua transaksi dalam <strong>mata uang Rupiah (IDR)</strong> dan diproses dengan aman melalui Duitku</p>
+            </div>
+        </div>
+    </section>
+
     <!-- Pricing Section -->
     <section id="pricing" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -367,7 +417,7 @@
             </div>
             
             <div class="mt-12 text-center">
-                <p class="text-gray-600">Butuh paket custom untuk bisnis Anda? <a href="#" class="text-primary-500 font-medium hover:text-primary-600">Hubungi kami</a></p>
+                <p class="text-gray-600">Butuh paket custom untuk bisnis Anda? <a href="https://wa.me/6285727174825?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20paket%20custom" class="text-primary-500 font-medium hover:text-primary-600">Hubungi kami</a></p>
             </div>
         </div>
     </section>
@@ -497,11 +547,8 @@
             <h2 class="text-3xl font-extrabold sm:text-4xl">Siap Meningkatkan Penjualan Live Streaming Anda?</h2>
             <p class="mt-4 text-xl text-blue-100">Bergabung dengan ratusan seller yang telah meningkatkan penjualan hingga 45% menggunakan platform kami.</p>
             <div class="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="#" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
-                    Mulai Gratis 14 Hari
-                </a>
-                <a href="#" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
-                    <i class="fas fa-comment-dots mr-2"></i> Hubungi Sales
+                <a href="https://wa.me/6285727174825?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20LiveShopMonitor" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
+                    <i class="fas fa-comment-dots mr-2"></i> Hubungi via WhatsApp
                 </a>
             </div>
             <p class="mt-6 text-blue-100">Tidak perlu kartu kredit • Set-up dalam 5 menit</p>
@@ -555,19 +602,28 @@
                         <li><a href="#" class="hover:text-white transition duration-300">Partner</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-6">Support</h3>
-                    <ul class="space-y-3 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition duration-300">Help Center</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Documentation</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">API Reference</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Community</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Status</a></li>
-                    </ul>
+            </div>
+            
+            <!-- Contact Information in Footer -->
+            <div class="mt-12 pt-8 border-t border-gray-700">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="flex items-center">
+                        <i class="fas fa-phone-alt text-primary-500 mr-3"></i>
+                        <span>+62 857-2717-4825</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-envelope text-primary-500 mr-3"></i>
+                        <span>indosofhouse@gmail.com</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-map-marker-alt text-primary-500 mr-3"></i>
+                        <span>Brebes, Jawa Tengah</span>
+                    </div>
                 </div>
             </div>
-            <div class="mt-16 pt-8 border-t border-gray-700 text-center text-gray-400">
-                <p>&copy; 2023 LiveShopMonitor. All rights reserved.</p>
+            
+            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
+                <p>&copy; 2025 LiveShopMonitor. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -575,7 +631,7 @@
     <script>
         // Fetch subscription plans from API
         document.addEventListener('DOMContentLoaded', function() {
-            fetch('http://localhost:3000/api/subscriptions')
+            fetch('/api/subscriptions')
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
@@ -595,18 +651,6 @@
                                         <li class="flex items-center">
                                             <i class="fas fa-check-circle text-success"></i>
                                             <span class="ml-3 text-gray-600">Limit Akun: ${plan.limitAkun}</span>
-                                        </li>
-                                        <li class="flex items-center">
-                                            <i class="fas fa-check-circle text-success"></i>
-                                            <span class="ml-3 text-gray-600">Akses Semua Fitur</span>
-                                        </li>
-                                        <li class="flex items-center">
-                                            <i class="fas fa-check-circle text-success"></i>
-                                            <span class="ml-3 text-gray-600">Support 24/7</span>
-                                        </li>
-                                        <li class="flex items-center">
-                                            <i class="fas fa-check-circle text-success"></i>
-                                            <span class="ml-3 text-gray-600">Laporan Bulanan</span>
                                         </li>
                                         <li class="flex items-center">
                                             <i class="fas fa-check-circle text-success"></i>
