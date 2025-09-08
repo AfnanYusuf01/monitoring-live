@@ -70,6 +70,10 @@ const prisma = new PrismaClient();
 ============================================================ */
 router.get("/login", redirectIfLoggedIn, AuthController.index);
 router.post("/login", redirectIfLoggedIn, AuthController.login);
+router.get("/forget-password", AuthController.forgetPasswordPage);
+router.post("/forget-password", AuthController.forgetPassword);
+router.get("/reset-password/:token", AuthController.resetPasswordPage);
+router.post("/reset-password", AuthController.resetPassword);
 router.get("/logout", AuthController.logout);
 router.post("/register", AuthController.register);
 

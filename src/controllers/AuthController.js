@@ -1,5 +1,8 @@
 import {PrismaClient} from "@prisma/client";
 import bcrypt from "bcrypt";
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
@@ -346,4 +349,180 @@ export default {
       });
     });
   },
+
+  // render forget password page
+  forgetPasswordPage: (req, res) => {
+    res.render("pages/forget-password", {
+      navbar: "Forget Password",
+      error: null,
+      success: null
+    });
+  },
+
+  // handle forget password request
+  forgetPassword: async (req, res) => {
+    const { email } = req.body;
+
+    try {
+      // cari user by email
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        // Untuk keamanan, jangan beri tahu bahwa email tidak ditemukan
+        return res.render("pages/forget-password", {
+          navbar: "Forget Password",
+          success: "Jika email terdaftar, link reset password akan dikirim",
+          error: null
+        });
+      }
+
+      // Generate reset token dengan JWT
+      const resetToken = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email,
+          // Tambahkan random string untuk memastikan token unik
+          random: crypto.randomBytes(20).toString('hex')
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '1h' } // Token berlaku 1 jam
+      );
+
+      // Buat reset URL
+      const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+
+      // Kirim email
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT),
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM,
+          to: user.email,
+          subject: "Reset Password - Streamo",
+          html: `
+            <p>Halo ${user.name || "User"},</p>
+            <p>Anda menerima email ini karena meminta reset password untuk akun Streamo Anda.</p>
+            <p>Silakan klik link di bawah ini untuk reset password:</p>
+            <p><a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
+            <p>Link ini akan kedaluwarsa dalam 1 jam.</p>
+            <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
+            <br>
+            <p>Hormat kami,<br>Tim Streamo</p>
+          `,
+        });
+      } catch (mailErr) {
+        console.error("❌ Gagal kirim email:", mailErr.message);
+        return res.render("pages/forget-password", {
+          navbar: "Forget Password",
+          error: "Gagal mengirim email reset password",
+          success: null
+        });
+      }
+
+      return res.render("pages/forget-password", {
+        navbar: "Forget Password",
+        success: "Jika email terdaftar, link reset password akan dikirim",
+        error: null
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.render("pages/forget-password", {
+        navbar: "Forget Password",
+        error: "Terjadi kesalahan server",
+        success: null
+      });
+    }
+  },
+
+  // render reset password page
+  resetPasswordPage: (req, res) => {
+    const { token } = req.params;
+    
+    res.render("pages/reset-password", {
+      navbar: "Reset Password",
+      token,
+      error: null,
+      success: null
+    });
+  },
+
+  // handle reset password form
+  resetPassword: async (req, res) => {
+    const { token, password, confirmPassword } = req.body;
+
+    try {
+      // Validasi password
+      if (password !== confirmPassword) {
+        return res.render("pages/reset-password", {
+          navbar: "Reset Password",
+          token,
+          error: "Password dan konfirmasi password tidak cocok",
+          success: null
+        });
+      }
+
+      // Verifikasi token
+      let decoded;
+      try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      } catch (jwtErr) {
+        return res.render("pages/reset-password", {
+          navbar: "Reset Password",
+          token,
+          error: "Token reset password tidak valid atau sudah kedaluwarsa",
+          success: null
+        });
+      }
+
+      // Cari user berdasarkan ID dari token
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
+
+      if (!user) {
+        return res.render("pages/reset-password", {
+          navbar: "Reset Password",
+          token,
+          error: "User tidak ditemukan",
+          success: null
+        });
+      }
+
+      // Hash password baru
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Update password user
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      });
+
+      return res.render("pages/reset-password", {
+        navbar: "Reset Password",
+        token: null,
+        error: null,
+        success: "Password berhasil direset. Silakan login dengan password baru Anda."
+      });
+
+    } catch (err) {
+      console.error(err);
+      return res.render("pages/reset-password", {
+        navbar: "Reset Password",
+        token,
+        error: "Terjadi kesalahan server",
+        success: null
+      });
+    }
+  }
 };

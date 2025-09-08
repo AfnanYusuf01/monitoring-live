@@ -184,77 +184,122 @@
 <body class="font-sans antialiased bg-gray-50 text-gray-700">
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo & Brand -->
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <img src="/assets/img/logos/logo-streamo.jpg" 
-                             alt="streamo Logo - Platform Monitor Live Shopee" 
-                             class="h-10 w-auto">
-                        <span class="ml-3 text-xl font-bold text-gray-900">Streamo</span>
-                    </div>
-                </div>
-                
-                <!-- Desktop Navigation -->
-                <div class="hidden lg:ml-10 lg:flex lg:space-x-6">
-                    <a href="#features" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Fitur</a>
-                    <a href="#pricing" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Paket</a>
-                    <a href="#testimonials" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Testimoni</a>
-                    <a href="#faq" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">FAQ</a>
-                </div>
-
-                <!-- User Actions -->
-                <div class="flex items-center">
-                    <% if (!user) { %>
-                        <!-- User NOT logged in -->
-                        <div class="hidden md:flex items-center space-x-3">
-                            <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors duration-200">
-                                Login
-                            </a>
-                            <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200 shadow-sm">
-                                Daftar
-                            </a>
-                        </div>
-                    <% } else { %>
-                        <!-- User IS logged in -->
-                        <div x-data="{ open: false }" class="relative hidden md:block">
-                            <button @click="open = !open" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">
-                                <span>Halo, <%= user.name %></span>
-                                <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" x-cloak @click.away="open = false" 
-                                x-transition:enter="transition ease-out duration-100"
-                                x-transition:enter-start="transform opacity-0 scale-95"
-                                x-transition:enter-end="transform opacity-100 scale-100"
-                                x-transition:leave="transition ease-in duration-75"
-                                x-transition:leave-start="transform opacity-100 scale-100"
-                                x-transition:leave-end="transform opacity-0 scale-95"
-                                class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1">
-                                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
-                                    <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
-                                </a>
-                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
-                                    <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
-                                </a>
-                                <div class="border-t border-gray-100 my-1"></div>
-                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors duration-200">
-                                    <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
-                                </a>
-                            </div>
-                        </div>
-                    <% } %>
-
-                    <!-- Mobile menu button -->
-                    <button class="lg:hidden ml-4 p-2 rounded-md text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition-colors duration-200">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            
+            <!-- Logo & Brand -->
+            <div class="flex items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <img src="/assets/img/logos/logo-streamo.jpg" 
+                         alt="streamo Logo - Platform Monitor Live Shopee" 
+                         class="h-10 w-auto">
+                    <span class="ml-3 text-xl font-bold text-gray-900"></span>
                 </div>
             </div>
+            
+            <!-- Desktop Navigation -->
+            <div class="hidden lg:flex lg:space-x-6">
+                <a href="#features" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Fitur</a>
+                <a href="#pricing" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Paket</a>
+                <a href="#testimonials" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Testimoni</a>
+                <a href="#faq" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">FAQ</a>
+            </div>
+
+            <!-- User Actions -->
+            <div class="flex items-center space-x-3">
+                <% if (!user) { %>
+                    <!-- User NOT logged in -->
+                    <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition">
+                        Login
+                    </a>
+                    <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition shadow-sm">
+                        Daftar
+                    </a>
+                <% } else { %>
+                    <!-- User IS logged in -->
+                    <div class="relative" id="dropdownWrapper">
+                        <button id="dropdownButton" 
+                                class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">
+                            <span>Halo, <%= user.name %></span>
+                            <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200"></i>
+                        </button>
+
+                        <!-- Dropdown -->
+                        <div id="dropdownMenu" 
+                             class="hidden absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1 transition transform origin-top-right">
+                            <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
+                            </a>
+                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                <% } %>
+
+                <!-- Mobile menu button -->
+                <button id="mobileMenuButton" 
+                        class="lg:hidden p-2 rounded-md text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
         </div>
-    </nav>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-gray-200">
+        <div class="px-4 py-3 space-y-2">
+            <a href="#features" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Fitur</a>
+            <a href="#pricing" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Paket</a>
+            <a href="#testimonials" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Testimoni</a>
+            <a href="#faq" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">FAQ</a>
+            <% if (!user) { %>
+                <a href="/sign-in" class="block text-primary-600 hover:text-primary-700 text-sm font-medium">Login</a>
+                <a href="/sign-up" class="block text-white bg-primary-600 hover:bg-primary-700 px-3 py-2 rounded-md text-sm font-medium">Daftar</a>
+            <% } else { %>
+                <a href="/dashboard" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Dashboard</a>
+                <a href="/profile" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Profile</a>
+                <a href="/logout" class="block text-red-600 hover:text-red-700 text-sm font-medium">Logout</a>
+            <% } %>
+        </div>
+    </div>
+</nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const dropdownButton = document.getElementById("dropdownButton");
+    const dropdownMenu = document.getElementById("dropdownMenu");
+    const chevron = dropdownButton ? dropdownButton.querySelector("i") : null;
+
+    if (dropdownButton) {
+        dropdownButton.addEventListener("click", function () {
+            dropdownMenu.classList.toggle("hidden");
+            chevron.classList.toggle("rotate-180");
+        });
+
+        // Tutup dropdown jika klik di luar
+        document.addEventListener("click", function (event) {
+            if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                dropdownMenu.classList.add("hidden");
+                chevron.classList.remove("rotate-180");
+            }
+        });
+    }
+
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const mobileMenu = document.getElementById("mobileMenu");
+
+    mobileMenuButton.addEventListener("click", function () {
+        mobileMenu.classList.toggle("hidden");
+    });
+});
+</script>
+
 
     <!-- Hero Section -->
     <section class="pt-32 pb-20 gradient-bg text-white overflow-hidden">
