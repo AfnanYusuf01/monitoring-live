@@ -65,14 +65,6 @@ export default {
         });
       }
 
-      // if (!terms) {
-      //   return res.render("pages/sign-up", {
-      //     navbar: "Sign Up",
-      //     error: "Anda harus menyetujui syarat dan ketentuan",
-      //     success: null,
-      //     formData: {name, email, nomor_wa},
-      //   });
-      // }
 
       // Cek apakah email sudah terdaftar
       const existingUser = await prisma.user.findUnique({
@@ -111,7 +103,7 @@ export default {
       };
 
       // Redirect ke halaman utama setelah registrasi berhasil
-      return res.redirect("/");
+      return res.redirect("/dashboard");
     } catch (err) {
       console.error(err);
       return res.render("pages/sign-up", {

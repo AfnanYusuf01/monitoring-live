@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LiveHub - Platform Monitoring Live Shopee</title>
+    <title>streamo - Platform Monitoring Live Shopee</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/assets/img/logos/favicon.png" type="image/png">
     <script>
         tailwind.config = {
             theme: {
@@ -45,6 +46,11 @@
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
                         }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+                        'medium': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+                        'strong': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                     }
                 }
             }
@@ -53,6 +59,12 @@
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #4e73df 0%, #6f42c1 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #4e73df 0%, #6f42c1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .card-hover {
             transition: all 0.3s ease;
@@ -100,6 +112,12 @@
         .nav-link:hover::after {
             width: 100%;
         }
+        .logo-company {
+        height: 20px;
+        vertical-align: middle;
+        display: inline-block;
+        margin-left: 4px;
+      }
         [x-cloak] { display: none !important; }
     </style>
 </head>
@@ -111,19 +129,19 @@
                 <!-- Logo & Brand -->
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
-                        <div class="rounded-full bg-blue-600 p-2 flex items-center justify-center w-10 h-10">
-                            <i class="fas fa-broadcast-tower text-white text-lg"></i>
-                        </div>
-                        <span class="ml-3 text-xl font-bold text-gray-900">LiveHub</span>
+                        <img src="/assets/img/logos/logo-streamo.jpg" 
+                             alt="streamo Logo" 
+                             class="h-10 w-auto">
+                        <span class="ml-3 text-xl font-bold text-gray-900"></span>
                     </div>
-                    
-                    <!-- Navigation Links - Desktop -->
-                    <div class="hidden lg:ml-10 lg:flex lg:space-x-6">
-                        <a href="#features" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Fitur</a>
-                        <a href="#pricing" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Paket</a>
-                        <a href="#testimonials" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Testimoni</a>
-                        <a href="#faq" class="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors duration-200">FAQ</a>
-                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:ml-10 lg:flex lg:space-x-6">
+                    <a href="#features" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Fitur</a>
+                    <a href="#pricing" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Paket</a>
+                    <a href="#testimonials" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">Testimoni</a>
+                    <a href="#faq" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition-colors duration-200">FAQ</a>
                 </div>
 
                 <!-- User Actions -->
@@ -131,17 +149,17 @@
                     <% if (!user) { %>
                         <!-- User NOT logged in -->
                         <div class="hidden md:flex items-center space-x-3">
-                            <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-colors duration-200">
+                            <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition-colors duration-200">
                                 Login
                             </a>
-                            <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 shadow-sm">
+                            <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200 shadow-sm">
                                 Daftar
                             </a>
                         </div>
                     <% } else { %>
                         <!-- User IS logged in -->
                         <div x-data="{ open: false }" class="relative hidden md:block">
-                            <button @click="open = !open" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                            <button @click="open = !open" class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">
                                 <span>Halo, <%= user.name %></span>
                                 <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                             </button>
@@ -170,7 +188,7 @@
                     <% } %>
 
                     <!-- Mobile menu button -->
-                    <button class="lg:hidden ml-4 p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200">
+                    <button class="lg:hidden ml-4 p-2 rounded-md text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition-colors duration-200">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
@@ -189,19 +207,6 @@
                         <a href="#" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
                             Mulai Sekarang <i class="fas fa-arrow-right ml-2"></i>
                         </a>
-                        <a href="#" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg text-white bg-primary-500 bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-300">
-                            <i class="fas fa-play-circle mr-2"></i> Lihat Demo
-                        </a>
-                    </div>
-                    <div class="mt-10 flex items-center space-x-8">
-                        <div class="flex items-center">
-                            <i class="fas fa-check-circle text-green-300 text-xl"></i>
-                            <span class="ml-2 text-blue-100">Gratis 14 hari</span>
-                        </div>
-                        <div class="flex items-center">
-                            <i class="fas fa-check-circle text-green-300 text-xl"></i>
-                            <span class="ml-2 text-blue-100">Tidak perlu kartu kredit</span>
-                        </div>
                     </div>
                 </div>
                 <div class="mt-10 md:mt-0 md:w-1/2 relative">
@@ -249,7 +254,7 @@
 
             <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Feature 1 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-primary-100 text-primary-500">
                         <i class="fas fa-tachometer-alt text-2xl"></i>
                     </div>
@@ -258,7 +263,7 @@
                 </div>
 
                 <!-- Feature 2 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-green-100 text-success">
                         <i class="fas fa-user-circle text-2xl"></i>
                     </div>
@@ -267,7 +272,7 @@
                 </div>
 
                 <!-- Feature 3 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-blue-100 text-info">
                         <i class="fas fa-store text-2xl"></i>
                     </div>
@@ -276,7 +281,7 @@
                 </div>
 
                 <!-- Feature 4 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-yellow-100 text-warning">
                         <i class="fas fa-desktop text-2xl"></i>
                     </div>
@@ -285,7 +290,7 @@
                 </div>
 
                 <!-- Feature 5 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-red-100 text-danger">
                         <i class="fas fa-users text-2xl"></i>
                     </div>
@@ -294,7 +299,7 @@
                 </div>
 
                 <!-- Feature 6 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-purple-100 text-secondary-500">
                         <i class="fas fa-box text-2xl"></i>
                     </div>
@@ -303,7 +308,7 @@
                 </div>
 
                 <!-- Feature 7 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-indigo-100 text-primary-600">
                         <i class="fas fa-receipt text-2xl"></i>
                     </div>
@@ -312,7 +317,7 @@
                 </div>
 
                 <!-- Feature 8 -->
-                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
                     <div class="feature-icon bg-teal-100 text-info">
                         <i class="fas fa-history text-2xl"></i>
                     </div>
@@ -432,7 +437,7 @@
 
             <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
                 <!-- Testimonial 1 -->
-                <div class="bg-white rounded-xl p-6 shadow-md testimonial-card">
+                <div class="bg-white rounded-xl p-6 shadow-soft testimonial-card">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-12 h-12 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold">BS</div>
@@ -449,11 +454,11 @@
                         <i class="fas fa-star text-yellow-400"></i>
                         <i class="fas fa-star text-yellow-400"></i>
                     </div>
-                    <p class="mt-4 text-gray-600">"Sejak menggunakan LiveHub, penjualan live streaming saya meningkat 45%. Fitur monitoring produk sangat membantu menentukan produk unggulan!"</p>
+                    <p class="mt-4 text-gray-600">"Sejak menggunakan streamo, penjualan live streaming saya meningkat 45%. Fitur monitoring produk sangat membantu menentukan produk unggulan!"</p>
                 </div>
 
                 <!-- Testimonial 2 -->
-                <div class="bg-white rounded-xl p-6 shadow-md testimonial-card">
+                <div class="bg-white rounded-xl p-6 shadow-soft testimonial-card">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">SD</div>
@@ -474,7 +479,7 @@
                 </div>
 
                 <!-- Testimonial 3 -->
-                <div class="bg-white rounded-xl p-6 shadow-md testimonial-card">
+                <div class="bg-white rounded-xl p-6 shadow-soft testimonial-card">
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold">AW</div>
@@ -509,7 +514,7 @@
                 <div class="bg-gray-50 rounded-xl p-6 shadow-sm">
                     <h3 class="text-lg font-medium text-gray-900 flex items-center">
                         <i class="fas fa-question-circle text-primary-500 mr-2"></i>
-                        Bagaimana cara mulai menggunakan LiveHub?
+                        Bagaimana cara mulai menggunakan streamo?
                     </h3>
                     <p class="mt-2 text-gray-600">Daftar akun gratis, pilih paket langganan yang sesuai, dan integrasikan akun Shopee Anda. Kami akan memandu Anda melalui proses setup yang mudah dan cepat.</p>
                 </div>
@@ -547,86 +552,100 @@
             <h2 class="text-3xl font-extrabold sm:text-4xl">Siap Meningkatkan Penjualan Live Streaming Anda?</h2>
             <p class="mt-4 text-xl text-blue-100">Bergabung dengan ratusan seller yang telah meningkatkan penjualan hingga 45% menggunakan platform kami.</p>
             <div class="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="https://wa.me/6285727174825?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20LiveHub" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
+                <a href="https://wa.me/6285727174825?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20streamo" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
                     <i class="fas fa-comment-dots mr-2"></i> Hubungi via WhatsApp
                 </a>
             </div>
-            <p class="mt-6 text-blue-100">Tidak perlu kartu kredit • Set-up dalam 5 menit</p>
         </div>
     </section>
-
-    <!-- Footer -->
+    
     <footer class="bg-gray-800 text-white pt-16 pb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-                <div>
-                    <h3 class="text-lg font-bold mb-6 flex items-center">
-                        <div class="rounded-full bg-primary-500 p-2 mr-2">
-                            <i class="fas fa-broadcast-tower text-white"></i>
-                        </div>
-                        LiveHub
-                    </h3>
-                    <p class="text-gray-400 mb-6">Platform monitoring live Shopee terdepan dengan fitur lengkap untuk meningkatkan penjualan Anda.</p>
-                    <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-facebook-f text-lg"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-twitter text-lg"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-instagram text-lg"></i>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
-                            <i class="fab fa-linkedin-in text-lg"></i>
-                        </a>
-                    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+            <!-- Logo & Deskripsi -->
+            <div class="lg:pr-4">
+                <div class="flex items-center mb-6">
+                    <img src="/assets/img/logos/favicon.png" 
+                         alt="Streamo Logo" 
+                         class="h-12 w-auto">
+                    <span class="text-lg font-bold ml-2">Streamo</span>
                 </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-6">Fitur</h3>
-                    <ul class="space-y-3 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition duration-300">Dashboard</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Management Akun</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Monitoring Live</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Histori Pembayaran</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Analytics</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-6">Perusahaan</h3>
-                    <ul class="space-y-3 text-gray-400">
-                        <li><a href="#" class="hover:text-white transition duration-300">Tentang Kami</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Karir</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Blog</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Kontak</a></li>
-                        <li><a href="#" class="hover:text-white transition duration-300">Partner</a></li>
-                    </ul>
+                <p class="text-gray-400 mb-6 leading-relaxed">
+                    Platform monitoring live Shopee terdepan dengan fitur lengkap 
+                    untuk meningkatkan penjualan Anda.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                        <i class="fab fa-facebook-f text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                        <i class="fab fa-twitter text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                        <i class="fab fa-linkedin-in text-lg"></i>
+                    </a>
                 </div>
             </div>
-            
-            <!-- Contact Information in Footer -->
-            <div class="mt-12 pt-8 border-t border-gray-700">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="flex items-center">
-                        <i class="fas fa-phone-alt text-primary-500 mr-3"></i>
-                        <span>+62 857-2717-4825</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-envelope text-primary-500 mr-3"></i>
-                        <span>indosofhouse@gmail.com</span>
-                    </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-map-marker-alt text-primary-500 mr-3"></i>
-                        <span>Brebes, Jawa Tengah</span>
-                    </div>
-                </div>
+
+            <!-- Fitur -->
+            <div>
+                <h3 class="text-lg font-bold mb-6">Fitur</h3>
+                <ul class="space-y-3">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Dashboard</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Management Akun</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Monitoring Live</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Histori Pembayaran</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Analytics</a></li>
+                </ul>
             </div>
-            
-            <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-400">
-                <p>&copy; 2025 LiveHub. All rights reserved.</p>
+
+            <!-- Dukungan Pelanggan -->
+            <div class="lg:col-span-1">
+                <h3 class="text-lg font-bold mb-6">Dukungan Pelanggan</h3>
+                <ul class="space-y-4">
+                    <li class="flex items-start">
+                        <i class="fas fa-envelope text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                        <span class="text-gray-400">indosofhouse@gmail.com</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-phone-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                        <span class="text-gray-400">+62 857-2717-4825</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                        <span class="text-gray-400">
+                            Jl. Raya Petunjungan No.4000, Petunjungan, 
+                            Kec. Bulakamba, Kabupaten Brebes, 
+                            Jawa Tengah 52253
+                        </span>
+                    </li>
+                </ul>
             </div>
         </div>
-    </footer>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-700 mt-12 pt-8">
+            <div class="flex flex-col md:flex-row justify-center items-center">
+                <p class="text-slate-400 text-sm mb-4 md:mb-0 text-center md:text-left">
+                    Copyright © <script>document.write(new Date().getFullYear());</script>
+                    <a href="https://streamo.id" class="font-semibold text-streamo-gradient hover:underline ml-1">Streamo</a>.
+                    A product of 
+                    <a href="https://indosofthouse.com" target="_blank" class="font-semibold text-slate-400 hover:text-white ml-1">
+                        IndoSoftHouse
+                    </a>
+                </p>
+                <a href="https://indosofthouse.com" target="_blank">
+                    <img src="/assets/img/logos/logo-indosofthouse.png" 
+                         alt="IndoSoftHouse" 
+                         class="h-6 w-auto">
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
 
     <script>
         // Fetch subscription plans from API
@@ -638,7 +657,7 @@
                         const plansContainer = document.getElementById('subscription-plans');
                         data.data.forEach(plan => {
                             const planElement = document.createElement('div');
-                            planElement.className = 'bg-white rounded-xl shadow-md overflow-hidden pricing-card';
+                            planElement.className = 'bg-white rounded-xl shadow-soft overflow-hidden pricing-card';
                             planElement.innerHTML = `
                                 <div class="p-8">
                                     <h3 class="text-2xl font-bold text-gray-900">${plan.name}</h3>
@@ -673,7 +692,7 @@
                     // Fallback plan if API fails
                     const plansContainer = document.getElementById('subscription-plans');
                     plansContainer.innerHTML = `
-                        <div class="bg-white rounded-xl shadow-md overflow-hidden pricing-card">
+                        <div class="bg-white rounded-xl shadow-soft overflow-hidden pricing-card">
                             <div class="p-8">
                                 <h3 class="text-2xl font-bold text-gray-900">Premium</h3>
                                 <p class="mt-4 text-gray-600">Akses semua fitur tanpa batas</p>
