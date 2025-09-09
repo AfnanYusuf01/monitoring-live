@@ -51,16 +51,10 @@ import {
 import {
   renderAffiliatePage,
   renderEditAffiliatePage,
-  renderAffiliateManagement
+  renderAffiliateManagement,
 } from "../controllers/AffiliateControler.js";
 
-
-import {
-  renderPerformanceLiveStream,
-} from '../controllers/PerformanceLiveStreamController.js';
-
-
-
+import {renderPerformanceLiveStream} from "../controllers/PerformanceLiveStreamController.js";
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -89,13 +83,9 @@ router.get("/profile", requireLogin, (req, res) => {
 router.get("/profile", requireLogin, AuthController.profile);
 router.post("/profile/update", requireLogin, AuthController.updateProfile);
 
-
-
 /* ============================================================
    DASHBOARD & STATIC PAGES
 ============================================================ */
-
-
 
 router.get("/monitoring-live", requireLogin, (req, res) => {
   res.render("pages/monitoring-live", {navbar: "Monitoring-Live"});
@@ -113,8 +103,6 @@ router.get("/studio-monitoring", requireLogin, (req, res) => {
   res.render("pages/studio/studio-index", {navbar: "Manitoring By Studio"});
 });
 
-
-
 /* ============================================================
    AKUN CONTROLLER (Account Management)
 ============================================================ */
@@ -122,8 +110,8 @@ router.get("/account-management", requireLogin, async (req, res) => {
   try {
     const userId = req.session.user.id;
     const akunList = await prisma.akun.findMany({
-            where: {
-         deletedAt: null,
+      where: {
+        deletedAt: null,
         userId: userId,
       },
     });
@@ -170,17 +158,20 @@ router.get("/account-management/edit/:id", requireLogin, async (req, res) => {
 });
 
 router.get("/account-management/add", requireLogin, renderAddAccount);
-router.post("/akun/import", upload.single("csvFile"), requireLogin, importAkunFromCSV);
+router.post(
+  "/akun/import",
+  upload.single("csvFile"),
+  requireLogin,
+  importAkunFromCSV
+);
 
 router.get("/dashboard", requireLogin, (req, res) => {
   console.log("Current User di session:", req.session.user);
-  res.render("pages/dashboard", {navbar: "Dashboard"});
+  res.redirect("/account-management");
 });
 
 router.get("/add", requireLogin, renderAddAccount);
 router.get("/edit/:id", requireLogin, renderEditAccount);
-
-
 
 /* ============================================================
    USER MANAGEMENT CONTROLLER - HANYA SUPERADMIN
@@ -213,7 +204,6 @@ router.get("/studio-management", requireLogin, renderStudioManagement);
 router.get("/studio-management/add", requireLogin, renderAddStudio);
 router.get("/studio-management/edit/:id", requireLogin, renderEditStudio);
 router.get("/studio-management/detail/:id", requireLogin, renderDetailStudio);
-
 
 /* ============================================================
    SUBCRIBTIONS MANAGEMENT CONTROLLER
@@ -271,11 +261,9 @@ router.get("/order-management", requireLogin, (req, res) => {
   res.render("pages/order-management", {navbar: "Order-Management"});
 });
 
-
 /* ============================================================
    HALAMAN END USER
 ============================================================ */
-
 
 router.get("/", (req, res) => {
   // Cek apakah ada user yang login di session
@@ -287,33 +275,32 @@ router.get("/", (req, res) => {
   });
 });
 
-
 router.get("/subscription/checkout/:id", renderCheckout);
 router.post("/subscription/buy/:id", requireLogin, createOrder);
-  router.get("/subscription/checkout/:id_add/:id", (req, res) => {
-    const { id_add, id } = req.params;
+router.get("/subscription/checkout/:id_add/:id", (req, res) => {
+  const {id_add, id} = req.params;
 
-    // simpan ke cookie dengan masa berlaku 7 hari
-    res.cookie("id_aff", id_add, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
-    res.cookie("id_sub", id, { maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false });
-
-    // redirect ke halaman checkout (frontend)
-    res.redirect(`/subscription/checkout/${id}`);
+  // simpan ke cookie dengan masa berlaku 7 hari
+  res.cookie("id_aff", id_add, {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    httpOnly: false,
   });
+  res.cookie("id_sub", id, {maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false});
 
+  // redirect ke halaman checkout (frontend)
+  res.redirect(`/subscription/checkout/${id}`);
+});
 
-router.get('/affiliate', requireLogin, renderAffiliatePage);
-router.get('/affiliate/edit/:id', requireLogin, renderEditAffiliatePage);
-router.get('/affiliate-management', requireLogin, renderAffiliateManagement);
+router.get("/affiliate", requireLogin, renderAffiliatePage);
+router.get("/affiliate/edit/:id", requireLogin, renderEditAffiliatePage);
+router.get("/affiliate-management", requireLogin, renderAffiliateManagement);
 
-
-router.get('/performance', requireLogin, renderPerformanceLiveStream);
-
+router.get("/performance", requireLogin, renderPerformanceLiveStream);
 
 router.get("/thank-you", requireLogin, async (req, res) => {
   try {
     // Ambil parameter dari query string
-    const { merchantOrderId, resultCode, reference } = req.query;
+    const {merchantOrderId, resultCode, reference} = req.query;
 
     console.log("Payment data received:", {
       merchantOrderId,
@@ -328,7 +315,7 @@ router.get("/thank-you", requireLogin, async (req, res) => {
 
     if (merchantOrderId) {
       orderData = await prisma.order.findUnique({
-        where: { transactionId: merchantOrderId },
+        where: {transactionId: merchantOrderId},
         include: {
           userSubscription: {
             include: {
@@ -354,8 +341,11 @@ router.get("/thank-you", requireLogin, async (req, res) => {
       if (orderData) {
         // Ambil status pembayaran dari database, bukan dari resultCode
         paymentStatus = orderData.status;
-        
-        if (orderData.userSubscription && orderData.userSubscription.subscription) {
+
+        if (
+          orderData.userSubscription &&
+          orderData.userSubscription.subscription
+        ) {
           priceData = {
             subscriptionName: orderData.userSubscription.subscription.name,
             price: orderData.userSubscription.subscription.price,
@@ -378,7 +368,8 @@ router.get("/thank-you", requireLogin, async (req, res) => {
         break;
       case "pending":
         isPaymentPending = true;
-        statusMessage = "Pembayaran sedang diproses. Silakan tunggu konfirmasi.";
+        statusMessage =
+          "Pembayaran sedang diproses. Silakan tunggu konfirmasi.";
         break;
       case "failed":
         statusMessage = "Pembayaran gagal. Silakan coba lagi.";
@@ -419,6 +410,5 @@ router.get("/thank-you", requireLogin, async (req, res) => {
     });
   }
 });
-
 
 export default router;

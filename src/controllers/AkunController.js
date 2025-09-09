@@ -433,7 +433,7 @@ export const updateAkun = async (req, res) => {
 
 
 export const deleteAkun = async (req, res) => {
-  const { id } = req.params;
+  const {id} = req.params;
   const userId = req.session.user.id;
 
   try {
@@ -449,27 +449,31 @@ export const deleteAkun = async (req, res) => {
     if (!existingAkun) {
       return res
         .status(404)
-        .json({ message: "Akun tidak ditemukan atau tidak memiliki akses" });
+        .json({message: "Akun tidak ditemukan atau tidak memiliki akses"});
     }
 
     // Buat id baru unik (misalnya pakai timestamp + random)
-    const newId = Date.now(); // atau faker.number.int(), UUID hash, dll.
+    const newId = Date.now();
 
-    // Update: ganti id dan set deletedAt
+    // Update akun: ganti id, set deletedAt, dan hapus relasi studioId
     await prisma.akun.update({
-      where: { id: existingAkun.id },
+      where: {id: existingAkun.id},
       data: {
         id: newId,
         deletedAt: new Date(),
+        studioId: null, // hilangkan relasi studio
       },
     });
 
-    res.json({ message: "Akun berhasil dihapus (soft delete)" });
+    res.json({
+      message: "Akun berhasil dihapus (soft delete & lepas dari studio)",
+    });
   } catch (err) {
     console.error("❌ Error deleteAkun:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({error: err.message});
   }
 };
+
 
 
 export const downloadCSVTemplate = (req, res) => {

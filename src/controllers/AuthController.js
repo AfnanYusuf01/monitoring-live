@@ -68,7 +68,6 @@ export default {
         });
       }
 
-
       // Cek apakah email sudah terdaftar
       const existingUser = await prisma.user.findUnique({
         where: {email},
@@ -96,6 +95,64 @@ export default {
           role: "user",
         },
       });
+
+      // Kirim email konfirmasi pendaftaran
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT),
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM,
+          to: newUser.email,
+          subject: "Selamat Datang di Streamo - Registrasi Berhasil",
+          html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #007bff; padding: 20px; text-align: center; color: white;">
+              <h1>Selamat Datang di Streamo!</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd;">
+              <p>Halo <strong>${newUser.name}</strong>,</p>
+              <p>Selamat! Akun Streamo Anda telah berhasil dibuat.</p>
+              
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                <p style="margin: 5px 0;"><strong>Detail akun Anda:</strong></p>
+                <p style="margin: 5px 0;">Nama: ${newUser.name}</p>
+                <p style="margin: 5px 0;">Email: ${newUser.email}</p>
+                <p style="margin: 5px 0;">Nomor WhatsApp: ${
+                  newUser.nomor_wa
+                }</p>
+              </div>
+              
+              <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
+              <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
+              
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="${
+                  process.env.APP_URL || "http://localhost:3000"
+                }/login" 
+                   style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                  Login ke Akun Saya
+                </a>
+              </div>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; color: #6c757d; font-size: 14px;">
+              <p>Terima kasih telah bergabung dengan Streamo</p>
+              <p>© ${new Date().getFullYear()} Streamo. All rights reserved.</p>
+            </div>
+          </div>
+        `,
+        });
+      } catch (mailErr) {
+        console.error("❌ Gagal kirim email konfirmasi:", mailErr.message);
+        // Tetap lanjutkan proses registrasi meskipun email gagal dikirim
+      }
 
       // Auto login setelah registrasi
       req.session.user = {
@@ -302,6 +359,43 @@ export default {
         },
       });
 
+      // Kirim email konfirmasi pendaftaran
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT),
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM,
+          to: newUser.email,
+          subject: "Selamat Datang di Streamo - Registrasi Berhasil",
+          html: `
+          <p>Halo ${newUser.name},</p>
+          <p>Selamat! Akun Streamo Anda telah berhasil dibuat.</p>
+          <p>Detail akun Anda:</p>
+          <ul>
+            <li>Nama: ${newUser.name}</li>
+            <li>Email: ${newUser.email}</li>
+            <li>Nomor WhatsApp: ${newUser.nomor_wa}</li>
+          </ul>
+          <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
+          <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
+          <br>
+          <p>Terima kasih telah bergabung,</p>
+          <p>Tim Streamo</p>
+        `,
+        });
+      } catch (mailErr) {
+        console.error("❌ Gagal kirim email konfirmasi:", mailErr.message);
+        // Tetap lanjutkan proses registrasi meskipun email gagal dikirim
+      }
+
       // Simpan session (opsional)
       req.session.user = {
         id: newUser.id,
@@ -314,7 +408,7 @@ export default {
       // Response sukses
       return res.status(201).json({
         success: true,
-        message: "Registrasi berhasil",
+        message: "Registrasi berhasil. Email konfirmasi telah dikirim.",
         data: {
           id: newUser.id,
           name: newUser.name,
@@ -355,18 +449,18 @@ export default {
     res.render("pages/forget-password", {
       navbar: "Forget Password",
       error: null,
-      success: null
+      success: null,
     });
   },
 
   // handle forget password request
   forgetPassword: async (req, res) => {
-    const { email } = req.body;
+    const {email} = req.body;
 
     try {
       // cari user by email
       const user = await prisma.user.findUnique({
-        where: { email },
+        where: {email},
       });
 
       if (!user) {
@@ -374,24 +468,26 @@ export default {
         return res.render("pages/forget-password", {
           navbar: "Forget Password",
           success: "Jika email terdaftar, link reset password akan dikirim",
-          error: null
+          error: null,
         });
       }
 
       // Generate reset token dengan JWT
       const resetToken = jwt.sign(
-        { 
-          userId: user.id, 
+        {
+          userId: user.id,
           email: user.email,
           // Tambahkan random string untuk memastikan token unik
-          random: crypto.randomBytes(20).toString('hex')
+          random: crypto.randomBytes(20).toString("hex"),
         },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '1h' } // Token berlaku 1 jam
+        process.env.JWT_SECRET || "your-secret-key",
+        {expiresIn: "1h"} // Token berlaku 1 jam
       );
 
       // Buat reset URL
-      const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+      const resetUrl = `${
+        process.env.APP_URL || "http://localhost:3000"
+      }/reset-password/${resetToken}`;
 
       // Kirim email
       try {
@@ -425,41 +521,40 @@ export default {
         return res.render("pages/forget-password", {
           navbar: "Forget Password",
           error: "Gagal mengirim email reset password",
-          success: null
+          success: null,
         });
       }
 
       return res.render("pages/forget-password", {
         navbar: "Forget Password",
         success: "Jika email terdaftar, link reset password akan dikirim",
-        error: null
+        error: null,
       });
-
     } catch (err) {
       console.error(err);
       return res.render("pages/forget-password", {
         navbar: "Forget Password",
         error: "Terjadi kesalahan server",
-        success: null
+        success: null,
       });
     }
   },
 
   // render reset password page
   resetPasswordPage: (req, res) => {
-    const { token } = req.params;
-    
+    const {token} = req.params;
+
     res.render("pages/reset-password", {
       navbar: "Reset Password",
       token,
       error: null,
-      success: null
+      success: null,
     });
   },
 
   // handle reset password form
   resetPassword: async (req, res) => {
-    const { token, password, confirmPassword } = req.body;
+    const {token, password, confirmPassword} = req.body;
 
     try {
       // Validasi password
@@ -468,26 +563,29 @@ export default {
           navbar: "Reset Password",
           token,
           error: "Password dan konfirmasi password tidak cocok",
-          success: null
+          success: null,
         });
       }
 
       // Verifikasi token
       let decoded;
       try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        decoded = jwt.verify(
+          token,
+          process.env.JWT_SECRET || "your-secret-key"
+        );
       } catch (jwtErr) {
         return res.render("pages/reset-password", {
           navbar: "Reset Password",
           token,
           error: "Token reset password tidak valid atau sudah kedaluwarsa",
-          success: null
+          success: null,
         });
       }
 
       // Cari user berdasarkan ID dari token
       const user = await prisma.user.findUnique({
-        where: { id: decoded.userId },
+        where: {id: decoded.userId},
       });
 
       if (!user) {
@@ -495,7 +593,7 @@ export default {
           navbar: "Reset Password",
           token,
           error: "User tidak ditemukan",
-          success: null
+          success: null,
         });
       }
 
@@ -504,25 +602,25 @@ export default {
 
       // Update password user
       await prisma.user.update({
-        where: { id: user.id },
-        data: { password: hashedPassword },
+        where: {id: user.id},
+        data: {password: hashedPassword},
       });
 
       return res.render("pages/reset-password", {
         navbar: "Reset Password",
         token: null,
         error: null,
-        success: "Password berhasil direset. Silakan login dengan password baru Anda."
+        success:
+          "Password berhasil direset. Silakan login dengan password baru Anda.",
       });
-
     } catch (err) {
       console.error(err);
       return res.render("pages/reset-password", {
         navbar: "Reset Password",
         token,
         error: "Terjadi kesalahan server",
-        success: null
+        success: null,
       });
     }
-  }
+  },
 };
