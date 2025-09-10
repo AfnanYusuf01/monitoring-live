@@ -670,9 +670,10 @@ export const importAkunFromCSV = async (req, res) => {
 
 export const checkUserSubscription = async (req, res) => {
   try {
-      const userId = req.session.user.id;
+    const userId = req.session.user.id;
     const now = new Date();
 
+    // Ambil semua user subscriptions
     const userSubs = await prisma.userSubscription.findMany({
       where: {userId},
       include: {subscription: true},
@@ -683,41 +684,98 @@ export const checkUserSubscription = async (req, res) => {
       return res.json({
         canAddAccount: false,
         message: "Tidak ada paket",
+        status: "no_subscription",
+        activeSubscriptions: [],
+        totalActiveSubscriptions: 0,
       });
     }
 
-    const activeSub = userSubs.find(
+    // Update status subscriptions yang sudah expired
+    const expiredSubs = userSubs.filter(
+      (sub) => sub.status === "active" && sub.endDate <= now
+    );
+
+    if (expiredSubs.length > 0) {
+      await prisma.userSubscription.updateMany({
+        where: {
+          id: {in: expiredSubs.map((sub) => sub.id)},
+        },
+        data: {status: "expired"},
+      });
+      console.log(
+        `✅ Updated ${expiredSubs.length} expired subscriptions to expired`
+      );
+    }
+
+    // Ambil subscriptions yang masih active setelah update
+    const activeSubs = userSubs.filter(
       (sub) => sub.status === "active" && sub.endDate > now
     );
 
-    if (!activeSub) {
+    // Hitung total limitAkun dari semua subscriptions aktif
+    const totalLimitAkun = activeSubs.reduce((total, sub) => {
+      return total + (sub.limitAkun || 0);
+    }, 0);
+
+    // Hitung jumlah akun user yang aktif
+    const userAccountsCount = await prisma.akun.count({
+      where: {userId, deletedAt: null},
+    });
+
+    const remainingSlots = totalLimitAkun - userAccountsCount;
+
+    // Format data semua subscriptions untuk response (aktif dan tidak aktif)
+    const allSubscriptions = userSubs.map((sub) => ({
+      id: sub.id,
+      subscriptionId: sub.subscription?.id,
+      name: sub.subscription?.name || "Unknown",
+      price: sub.subscription?.price || 0,
+      limitAkun: sub.limitAkun,
+      startDate: sub.startDate,
+      endDate: sub.endDate,
+      status: sub.status,
+      daysRemaining: Math.ceil((sub.endDate - now) / (1000 * 60 * 60 * 24)),
+      isActive: sub.status === "active" && sub.endDate > now,
+    }));
+
+    // Format hanya subscriptions aktif
+    const activeSubscriptions = allSubscriptions.filter((sub) => sub.isActive);
+
+    if (activeSubs.length === 0) {
       return res.json({
         canAddAccount: false,
         message: "Tidak ada paket aktif",
         status: "expired",
+        remainingSlots: 0,
+        totalLimitAkun: 0,
+        userAccountsCount,
+        allSubscriptions,
+        activeSubscriptions: [],
+        totalActiveSubscriptions: 0,
       });
     }
-
-    const userAccountsCount = await prisma.akun.count({
-      where: {userId, deletedAt: null}, // Hitung hanya yang tidak dihapus
-    });
-
-    const remainingSlots = activeSub.limitAkun - userAccountsCount;
 
     return res.json({
       canAddAccount: remainingSlots > 0,
       remainingSlots,
-      limitAkun: activeSub.limitAkun,
-      status: activeSub.status,
-      subscription: {
-        id: activeSub.subscription.id,
-        name: activeSub.subscription.name,
-        price: activeSub.subscription.price,
-        endDate: activeSub.endDate,
-      },
+      totalLimitAkun,
+      userAccountsCount,
+      status: "active",
+      allSubscriptions,
+      activeSubscriptions,
+      totalActiveSubscriptions: activeSubs.length,
+      subscription:
+        activeSubs.length > 0
+          ? {
+              id: activeSubs[0].subscription.id,
+              name: activeSubs[0].subscription.name,
+              price: activeSubs[0].subscription.price,
+              endDate: activeSubs[0].endDate,
+            }
+          : null,
     });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Error in checkUserSubscription:", err);
     res.status(500).json({message: "Terjadi kesalahan server"});
   }
 };

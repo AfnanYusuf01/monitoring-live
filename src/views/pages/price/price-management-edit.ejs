@@ -1,0 +1,108 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gray-50">
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 rounded-t-2xl">
+          <div class="flex flex-wrap justify-between items-center">
+            <h6>Edit Data Harga</h6>
+            <div>
+              <a href="/price-management" class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gray-600 rounded-lg tracking-tight-soft shadow-soft-md hover:scale-102 active:opacity-85">
+                Kembali
+              </a>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap px-6 mt-4">
+            <div class="w-full">
+              <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 rounded-lg">
+                <div class="px-6 py-4 mb-0 bg-white border-b border-gray-200 rounded-t-lg">
+                  <h6 class="text-lg font-semibold text-gray-800">Form Edit Harga</h6>
+                </div>
+
+                <div class="flex-auto px-6 py-4">
+                  <form id="edit-price-form">
+                    <input type="hidden" id="id" value="<%= price.id %>">
+                    
+                    <div class="mb-4">
+                      <label for="skema" class="block text-sm font-medium text-gray-700 mb-1">Skema</label>
+                      <input type="text" id="skema" name="skema" value="<%= price.skema %>" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label for="formAkun" class="block text-sm font-medium text-gray-700 mb-1">Dari Akun</label>
+                        <input type="number" id="formAkun" name="formAkun" value="<%= price.formAkun %>" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div>
+                        <label for="toAkun" class="block text-sm font-medium text-gray-700 mb-1">Sampai Akun</label>
+                        <input type="number" id="toAkun" name="toAkun" value="<%= price.toAkun %>" required min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label for="priceAkun" class="block text-sm font-medium text-gray-700 mb-1">Harga per Akun</label>
+                        <input type="number" id="priceAkun" name="priceAkun" value="<%= price.priceAkun %>" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                      <div>
+                        <label for="priceMount" class="block text-sm font-medium text-gray-700 mb-1">Harga per Bulan</label>
+                        <input type="number" id="priceMount" name="priceMount" value="<%= price.priceMount %>" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      </div>
+                    </div>
+
+                    <div class="flex justify-end mt-6">
+                      <button type="submit" class="px-6 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
+                        Update
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('edit-price-form');
+    const id = document.getElementById('id').value;
+    
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const data = {
+        skema: formData.get('skema'),
+        formAkun: formData.get('formAkun'),
+        toAkun: formData.get('toAkun'),
+        priceAkun: formData.get('priceAkun'),
+        priceMount: formData.get('priceMount')
+      };
+      
+      try {
+        const response = await fetch(`/api/prices/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (response.ok) {
+          window.location.href = '/price-management?success=Data harga berhasil diupdate';
+        } else {
+          const error = await response.json();
+          throw new Error(error.error || 'Gagal mengupdate data harga');
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    });
+  });
+</script>

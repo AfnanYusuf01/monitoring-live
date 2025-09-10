@@ -117,7 +117,7 @@ export const requireWebRole = (allowedRoles = []) => {
 export const checkActiveSubscription = async (req, res, next) => {
   try {
     const user = req.session.user;
-    const userId = user.id // pastikan user sudah login
+    const userId = user.session.id; // pastikan user sudah login
     const now = new Date();
 
     // Ambil subscription aktif terbaru

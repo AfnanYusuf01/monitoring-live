@@ -10,16 +10,16 @@ export const renderAffiliatePage = async (req, res) => {
   try {
     const userId = req.session.user.id;
     const successMessage = req.query.success || null;
-    
+
     // Cek apakah user sudah menjadi affiliate
     const affiliate = await prisma.affiliate.findFirst({
-      where: { userId: parseInt(userId) },
+      where: {userId: parseInt(userId)},
       include: {
         user: {
           select: {
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
         affiliateOrders: {
           include: {
@@ -27,75 +27,89 @@ export const renderAffiliatePage = async (req, res) => {
               include: {
                 userSubscription: {
                   include: {
-                    subscription: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    subscription: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     // Jika sudah menjadi affiliate, tampilkan dashboard
     if (affiliate) {
-      // Hitung total komisi berdasarkan rumus: priceSubscription * komisiSubscription
-      const totalKomisi = affiliate.affiliateOrders.reduce((total, affiliateOrder) => {
-        if (affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
-          const subscription = affiliateOrder.order.userSubscription.subscription;
-          return total + (subscription.price * subscription.komisi);
-        }
-        return total;
-      }, 0);
-      
-      // Hitung komisi yang sudah dibayar (hanya yang statusnya 'paid')
-      const totalDibayar = affiliate.affiliateOrders.reduce((total, affiliateOrder) => {
-        if (affiliateOrder.status === 'paid' && affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
-          const subscription = affiliateOrder.order.userSubscription.subscription;
-          return total + (subscription.price * subscription.komisi);
-        }
-        return total;
-      }, 0);
-      
-      // Dapatkan data subscriptions untuk ditampilkan
-      const subscriptions = await fetchSubscriptions();
-      
-        console.log("👉 affiliate:", affiliate);
-        console.log("👉 subscriptions:", subscriptions);
-        console.log("👉 totalKomisi:", totalKomisi);
-        console.log("👉 totalDibayar:", totalDibayar);
-        console.log("👉 availableKomisi:", totalKomisi - totalDibayar);
-        console.log("👉 successMessage:", successMessage);
-        console.log("👉 APP_BASE_URL:", process.env.APP_URL || "http://localhost:3000");
-        
-        return res.render("pages/affiliate/affiliate-dashboard", {
-          navbar: "Affiliate",
-          affiliate,
-          subscriptions,
-          totalKomisi,
-          totalDibayar,
-          availableKomisi: totalKomisi - totalDibayar,
-          successMessage,
-          APP_BASE_URL: process.env.APP_URL || "http://localhost:3000"
-        });
+      // Hitung total komisi berdasarkan rumus: amountOrder * komisiSubscription
+      const totalKomisi = affiliate.affiliateOrders.reduce(
+        (total, affiliateOrder) => {
+          if (
+            affiliateOrder.order &&
+            affiliateOrder.order.userSubscription &&
+            affiliateOrder.order.userSubscription.subscription
+          ) {
+            const orderAmount = affiliateOrder.order.amount || 0;
+            const subscriptionKomisi =
+              affiliateOrder.order.userSubscription.subscription.komisi || 0;
+            return total + orderAmount * subscriptionKomisi;
+          }
+          return total;
+        },
+        0
+      );
 
+      // Hitung komisi yang sudah dibayar (hanya yang statusnya 'paid')
+      const totalDibayar = affiliate.affiliateOrders.reduce(
+        (total, affiliateOrder) => {
+          if (
+            affiliateOrder.status === "paid" &&
+            affiliateOrder.order &&
+            affiliateOrder.order.userSubscription &&
+            affiliateOrder.order.userSubscription.subscription
+          ) {
+            const orderAmount = affiliateOrder.order.amount || 0;
+            const subscriptionKomisi =
+              affiliateOrder.order.userSubscription.subscription.komisi || 0;
+            return total + orderAmount * subscriptionKomisi;
+          }
+          return total;
+        },
+        0
+      );
+
+      // Dapatkan data subscriptions untuk ditampilkan, filter out invalid ones
+      const allSubscriptions = await prisma.subscription.findMany({
+        where: {
+          komisi: {not: null},
+        },
+      });
+
+      return res.render("pages/affiliate/affiliate-dashboard", {
+        navbar: "Affiliate",
+        affiliate,
+        subscriptions: allSubscriptions,
+        totalKomisi,
+        totalDibayar,
+        availableKomisi: totalKomisi - totalDibayar,
+        successMessage,
+        APP_BASE_URL: process.env.APP_URL || "http://localhost:3000",
+      });
     }
 
     // Jika belum menjadi affiliate, tampilkan form pendaftaran
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(userId) },
+      where: {id: parseInt(userId)},
       select: {
         id: true,
         name: true,
         email: true,
-        nomor_wa: true
-      }
+        nomor_wa: true,
+      },
     });
 
     res.render("pages/affiliate/affiliate-registration", {
       navbar: "Affiliate",
       user,
-      successMessage
+      successMessage,
     });
   } catch (error) {
     console.error("Error rendering affiliate page:", error);
@@ -105,7 +119,6 @@ export const renderAffiliatePage = async (req, res) => {
     });
   }
 };
-
 // Render halaman edit affiliate
 export const renderEditAffiliatePage = async (req, res) => {
   try {

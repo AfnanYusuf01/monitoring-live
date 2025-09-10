@@ -46,6 +46,7 @@ import {
 import {
   renderCheckout,
   createOrder,
+  renderCustomCheckout,
 } from "../controllers/ManagementOrderController.js";
 
 import {
@@ -53,6 +54,13 @@ import {
   renderEditAffiliatePage,
   renderAffiliateManagement,
 } from "../controllers/AffiliateControler.js";
+import {
+  renderPriceManagement,
+  renderAddPrice,
+  renderEditPrice,
+} from "../controllers/ManagementPriceController.js";
+
+
 
 import {renderPerformanceLiveStream} from "../controllers/PerformanceLiveStreamController.js";
 
@@ -109,23 +117,68 @@ router.get("/studio-monitoring", requireLogin, (req, res) => {
 router.get("/account-management", requireLogin, async (req, res) => {
   try {
     const userId = req.session.user.id;
+
+    // Ambil data akun user
     const akunList = await prisma.akun.findMany({
       where: {
         deletedAt: null,
         userId: userId,
       },
     });
+
+    // Ambil subscription aktif user
+    const activeSubscription = await prisma.userSubscription.findFirst({
+      where: {
+        userId: userId,
+        status: "active",
+        endDate: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        subscription: true,
+      },
+      orderBy: {
+        endDate: "asc",
+      },
+    });
+
+    // Hitung jumlah akun yang dimiliki user
+    const userAccountsCount = akunList.length;
+
+    // Siapkan data subscription untuk ditampilkan
+    let subscriptionData = {
+      status: "no_subscription",
+      totalLimitAkun: 0,
+      remainingSlots: 0,
+      endDate: null,
+    };
+
+    if (activeSubscription) {
+      subscriptionData = {
+        status: "active",
+        totalLimitAkun: activeSubscription.subscription?.limitAkun || 0,
+        remainingSlots: Math.max(
+          0,
+          (activeSubscription.subscription?.limitAkun || 0) - userAccountsCount
+        ),
+        endDate: activeSubscription.endDate,
+      };
+    }
+
     res.render("pages/account/account-management", {
       navbar: "Account-Management",
       akunList,
+      subscriptionData,
     });
   } catch (err) {
+    console.error("Error in account-management route:", err);
     res.status(500).render("pages/500", {
       navbar: "Account-Management",
       error: "Gagal memuat data akun",
     });
   }
-});
+}); 
 
 router.get("/account-management/add", requireLogin, (req, res) => {
   res.render("pages/account/account-management-add", {
@@ -275,21 +328,60 @@ router.get("/", (req, res) => {
   });
 });
 
-router.get("/subscription/checkout/:id", renderCheckout);
-router.post("/subscription/buy/:id", requireLogin, createOrder);
-router.get("/subscription/checkout/:id_add/:id", (req, res) => {
-  const {id_add, id} = req.params;
+router.get("/pilih-subcribtion", (req, res) => {
+  // Cek apakah ada user yang login di session
+  const user = req.session.user || null;
 
-  // simpan ke cookie dengan masa berlaku 7 hari
-  res.cookie("id_aff", id_add, {
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    httpOnly: false,
+  res.render("pilih-subcribtion", {
+    navbar: "Monitoring By Studi",
+    user: user, // kirimkan ke view
   });
-  res.cookie("id_sub", id, {maxAge: 7 * 24 * 60 * 60 * 1000, httpOnly: false});
-
-  // redirect ke halaman checkout (frontend)
-  res.redirect(`/subscription/checkout/${id}`);
 });
+
+router.get("/subscription/checkout/:id", renderCheckout);
+router.get("/subscription/custom-checkout", renderCustomCheckout);
+router.post("/subscription/buy/:id", requireLogin, createOrder);
+router.get("/subscription/checkout/:id_aff/:id", async (req, res) => {
+  try {
+    const {id_aff, id} = req.params;
+    const subscriptionId = parseInt(id, 10);
+
+    // simpan ke cookie (7 hari) selalu diset
+    res.cookie("id_aff", id_aff, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false,
+    });
+    res.cookie("id_sub", id, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false,
+    });
+
+    if (isNaN(subscriptionId)) {
+      return res.redirect("/pilih-subcribtion");
+    }
+
+    // cek subscription
+    const subscription = await prisma.subscription.findUnique({
+      where: {id: subscriptionId},
+      select: {id: true, price: true, limitAkun: true},
+    });
+
+    if (
+      !subscription ||
+      subscription.price == null ||
+      subscription.limitAkun == null
+    ) {
+      return res.redirect("/pilih-subcribtion");
+    }
+
+    // redirect ke halaman checkout jika valid
+    res.redirect(`/subscription/checkout/${id}`);
+  } catch (err) {
+    console.error("❌ Error cek subscription:", err);
+    res.redirect("/pilih-subcribtion");
+  }
+});
+
 
 router.get("/affiliate", requireLogin, renderAffiliatePage);
 router.get("/affiliate/edit/:id", requireLogin, renderEditAffiliatePage);
@@ -410,5 +502,11 @@ router.get("/thank-you", requireLogin, async (req, res) => {
     });
   }
 });
+
+
+// Web Routes
+router.get("/price-management", renderPriceManagement);
+router.get("/price-management/add", renderAddPrice);
+router.get("/price-management/edit/:id", renderEditPrice);
 
 export default router;

@@ -39,6 +39,7 @@
         }
     </script>
     <style>
+        /* CSS styles remain unchanged */
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -382,15 +383,6 @@
                         <input type="password" id="registerPassword" class="w-full px-4 py-3 border border-secondary-300 rounded-lg focus:ring-primary-500 focus:border-primary-500" placeholder="Buat password" required>
                     </div>
                     
-                    <!-- <div class="mb-6">
-                        <div class="flex items-center">
-                            <input type="checkbox" id="registerTerms" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-secondary-300 rounded" required>
-                            <label for 'registerTerms' class="ml-2 block text-sm text-secondary-700">
-                                Saya menyetujui <a href="#" class="text-primary-600 hover:underline">Syarat & Ketentuan</a>
-                            </label> -->
-                        <!-- </div>
-                    </div>
-                     -->
                     <button type="submit" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
                         <i class="fas fa-user-plus mr-2"></i> Daftar
                     </button>
@@ -399,20 +391,15 @@
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Subscription -->
+    <!-- Modal Konfirmasi Pembayaran Sederhana -->
     <div id="confirmationModal" class="confirmation-modal">
         <div class="confirmation-content">
             <span class="close" id="closeConfirmation">&times;</span>
             
             <div class="text-center mb-6">
-                <i class="fas fa-exclamation-circle text-yellow-500 text-4xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-secondary-800 mb-2" id="confirmationTitle"></h3>
-                <p class="text-secondary-600" id="confirmationMessage"></p>
-            </div>
-            
-            <div class="bg-secondary-50 p-4 rounded-lg mb-6 hidden" id="currentSubscriptionInfo">
-                <h4 class="font-medium text-secondary-800 mb-2">Subscription Aktif Anda:</h4>
-                <p class="text-sm text-secondary-600" id="currentSubscriptionDetails"></p>
+                <i class="fas fa-check-circle text-primary-500 text-4xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-secondary-800 mb-2">Konfirmasi Pembayaran</h3>
+                <p class="text-secondary-600">Apakah Anda yakin ingin melanjutkan pembayaran untuk paket <span class="font-medium"><%= subscription.name %></span> sebesar <span class="font-medium">Rp <%= subscription.price %></span>?</p>
             </div>
             
             <div class="flex justify-center space-x-4">
@@ -420,7 +407,7 @@
                     Batal
                 </button>
                 <button id="confirmPayment" class="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition duration-200">
-                    Lanjutkan
+                    Ya, Lanjutkan
                 </button>
             </div>
         </div>
@@ -568,50 +555,9 @@
             document.getElementById('payButton').disabled = false;
         }
 
-        // Fungsi untuk menampilkan modal konfirmasi
-        function showConfirmationModal(type, message, subscriptionData = null) {
+        // Fungsi untuk menampilkan modal konfirmasi sederhana
+        function showConfirmationModal() {
             const modal = document.getElementById('confirmationModal');
-            const title = document.getElementById('confirmationTitle');
-            const messageEl = document.getElementById('confirmationMessage');
-            const subscriptionInfo = document.getElementById('currentSubscriptionInfo');
-            const subscriptionDetails = document.getElementById('currentSubscriptionDetails');
-            
-            // Set konten modal berdasarkan tipe
-            if (type === 'same') {
-                title.textContent = 'Perpanjang Subscription';
-                messageEl.textContent = message;
-                
-                if (subscriptionData) {
-                    const endDate = new Date(subscriptionData.endDate).toLocaleDateString('id-ID');
-                    subscriptionDetails.textContent = `${subscriptionData.subscription.name} (${subscriptionData.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
-                    subscriptionInfo.classList.remove('hidden');
-                }
-            } else if (type === 'different') {
-                title.textContent = 'Ganti Subscription';
-                messageEl.textContent = message;
-                
-                if (subscriptionData) {
-                    const endDate = new Date(subscriptionData.endDate).toLocaleDateString('id-ID');
-                    subscriptionDetails.textContent = `${subscriptionData.subscription.name} (${subscriptionData.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
-                    subscriptionInfo.classList.remove('hidden');
-                }
-            } else if (type === 'add-limit') {
-                title.textContent = 'Tambahkan Limit Akun';
-                messageEl.textContent = message;
-                
-                if (subscriptionData && subscriptionData.length > 0) {
-                    const data = subscriptionData[0];
-                    const endDate = new Date(data.endDate).toLocaleDateString('id-ID');
-                    subscriptionDetails.textContent = `${data.subscription.name} (${data.limitAkun} akun digunakan dari ${data.subscription.limitAkun} akun) - Berlaku hingga ${endDate}`;
-                    subscriptionInfo.classList.remove('hidden');
-                }
-            } else {
-                // Tidak ada subscription aktif, langsung proses pembayaran
-                processPayment();
-                return;
-            }
-            
-            // Tampilkan modal
             modal.style.display = 'block';
             
             // Setup event listeners untuk tombol modal
@@ -641,8 +587,11 @@
             if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
 
             const paymentMethod = selectedMethod.dataset.method;
+            
+            // Membuat URL dengan parameter yang diperlukan
+            const url = `/subscription/buy/${subscription.subscriptionId}?method=${paymentMethod}&price=${subscription.price}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
 
-            fetch(`/subscription/buy/${subscription.id}?method=${paymentMethod}`, {
+            fetch(url, {
                 method: "POST"
             })
             .then(res => res.json())
@@ -671,26 +620,8 @@
             const selectedMethod = document.querySelector('.payment-method.border-primary-500');
             if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
 
-            // Cek status subscription user
-            fetch(`/api/check-subscription/${subscription.id}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    if (data.type === 'same' || data.type === 'different' || data.type === 'add-limit') {
-                        // Tampilkan modal konfirmasi
-                        showConfirmationModal(data.type, data.message, data.data);
-                    } else {
-                        // Tidak ada subscription aktif, langsung proses pembayaran
-                        processPayment();
-                    }
-                } else {
-                    showNotification(data.message || "Gagal memeriksa status subscription", 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showNotification("Gagal memeriksa status subscription", 'error');
-            });
+            // Tampilkan modal konfirmasi sederhana
+            showConfirmationModal();
         }
 
         // Fungsi untuk menampilkan notifikasi
@@ -815,7 +746,6 @@
                 const email = document.getElementById('registerEmail').value;
                 const password = document.getElementById('registerPassword').value;
                 const nomor_wa = document.getElementById('registerPhone').value;
-                // const terms = document.getElementById('registerTerms').checked;
                 
                 // Validasi nomor WhatsApp
                 if (!validateNomorWA(nomor_wa)) {
@@ -828,7 +758,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, email, password, nomor_wa,})
+                    body: JSON.stringify({ name, email, password, nomor_wa})
                 })
                 .then(response => response.json())
                 .then(data => {

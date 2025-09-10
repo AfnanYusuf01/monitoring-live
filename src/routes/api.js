@@ -83,6 +83,14 @@ import {
   destroyPerformance,
 } from "../controllers/PerformanceLiveStreamController.js";
 
+import {
+  indexPrice,
+  showPrice,
+  storePrice,
+  updatePrice,
+  destroyPrice,
+} from "../controllers/ManagementPriceController.js";
+
 const router = express.Router();
 
 // ============================================================
@@ -94,7 +102,7 @@ const router = express.Router();
    AKUN CONTROLLER (CRUD Akun + Import CSV)
 ============================================================ */
 router.get("/akun", getAllAkun);
-router.post("/akun", checkActiveSubscription, requireApiLogin, createAkun);
+router.post("/akun",  requireApiLogin, createAkun);
 router.get("/akun/:id",   requireApiLogin,   getAkunById);
 router.put("/akun/:id",   requireApiLogin,   updateAkun);
 router.delete("/akun/:id",   requireApiLogin,   deleteAkun);
@@ -243,5 +251,12 @@ router.get("/payment-methods", async (req, res) => {
     });
   }
 });
+
+// API Routes
+router.get("/prices", requireApiLogin, indexPrice);
+router.get("/prices/:id", requireApiLogin, showPrice);
+router.post("/prices", requireApiLogin, storePrice);
+router.put("/prices/:id", requireApiLogin, updatePrice);
+router.delete("/prices/:id", requireApiLogin, destroyPrice);
 
 export default router;

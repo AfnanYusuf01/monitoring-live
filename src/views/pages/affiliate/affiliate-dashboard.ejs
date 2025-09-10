@@ -92,52 +92,73 @@
         <h2 class="text-xl font-semibold text-gray-800 mb-6">Pilih Produk untuk Dipromosikan</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <% subscriptions.forEach((subscription) => { %>
-            <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <div class="p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= subscription.name %></h3>
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2"><%= subscription.description %></p>
-                
-                <div class="flex items-center justify-between mb-4">
-                  <span class="text-2xl font-bold text-blue-600">Rp <%= subscription.price.toLocaleString('id-ID') %></span>
-                  <span class="text-sm text-gray-500"><%= subscription.limitAkun %> akun</span>
-                </div>
-                
-                <!-- Komisi yang akan didapat -->
-                <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
-                  <p class="text-sm text-yellow-800 font-medium">
-                    <i class="fas fa-coins mr-1"></i>
-                    Komisi: Rp <%= (subscription.price * subscription.komisi).toLocaleString('id-ID') %>
-                    <span class="text-xs">(<%= (subscription.komisi * 100).toFixed(0) %>% dari harga)</span>
-                  </p>
-                </div>
-                
-                <!-- Affiliate Link -->
-                <div class="mb-4">
-                  <label class="block text-sm font-medium text-gray-700 mb-2">Link Affiliate:</label>
-                  <div class="flex">
-                    <input 
-                      type="text" 
-                      value="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id %>" 
-                      class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
-                      readonly
-                      id="link-<%= subscription.id %>"
-                    >
-                    <button 
-                      class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
-                      data-link="link-<%= subscription.id %>"
-                    >
-                      <i class="fas fa-copy"></i>
-                    </button>
+          <% if (subscriptions && subscriptions.length > 0) { %>
+            <% subscriptions.forEach((subscription) => { %>
+              <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                <div class="p-6">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-2"><%= subscription.name || 'N/A' %></h3>
+                  <p class="text-gray-600 text-sm mb-4 line-clamp-2"><%= subscription.description || 'Tidak ada deskripsi' %></p>
+                  
+                  <div class="flex items-center justify-between mb-4">
+                    <span class="text-2xl font-bold text-blue-600">
+                      <% if (subscription.price) { %>
+                        Rp <%= subscription.price.toLocaleString('id-ID') %>
+                      <% } else { %>
+                        Harga Custom
+                      <% } %>
+                    </span>
+                    <span class="text-sm text-gray-500"><%= subscription.limitAkun || '0' %> akun</span>
                   </div>
+                  
+                  <!-- Komisi yang akan didapat -->
+                  <div class="mb-4 p-3 bg-yellow-50 rounded-lg">
+                    <p class="text-sm text-yellow-800 font-medium">
+                      <i class="fas fa-coins mr-1"></i>
+                      Komisi: 
+                      <% if (subscription.komisi) { %>
+                        <%= (subscription.komisi * 100).toFixed(0) %>% dari penjualan
+                      <% } else { %>
+                        0% dari penjualan
+                      <% } %>
+                    </p>
+                  </div>
+                  
+                  <!-- Affiliate Link -->
+                  <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Link Affiliate:</label>
+                    <div class="flex">
+                      <input 
+                        type="text" 
+                        value="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id || '' %>" 
+                        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
+                        readonly
+                        id="link-<%= subscription.id %>"
+                      >
+                      <button 
+                        class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
+                        data-link="link-<%= subscription.id %>"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors share-btn" 
+                    data-link="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id || '' %>">
+                    <i class="fas fa-share-alt mr-2"></i> Bagikan
+                  </button>
                 </div>
-                
-                <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors share-btn" data-link="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id %>">
-                  <i class="fas fa-share-alt mr-2"></i> Bagikan
-                </button>
               </div>
+            <% }) %>
+          <% } else { %>
+            <div class="col-span-full text-center py-8">
+              <div class="inline-flex items-center justify-center rounded-full bg-gray-100 p-4 mb-4">
+                <i class="fas fa-box-open text-gray-400 text-2xl"></i>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mb-1">Tidak ada produk tersedia</h3>
+              <p class="text-gray-500">Belum ada subscription yang dapat dipromosikan.</p>
             </div>
-          <% }) %>
+          <% } %>
         </div>
       </div>
 
@@ -159,11 +180,13 @@
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
                 <% affiliate.affiliateOrders.forEach((affiliateOrder) => { 
-                  // Hitung komisi yang benar untuk setiap order
+                  // Hitung komisi yang benar untuk setiap order: amount * komisi
                   let calculatedKomisi = 0;
-                  if (affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
-                    const subscription = affiliateOrder.order.userSubscription.subscription;
-                    calculatedKomisi = subscription.price * subscription.komisi;
+                  if (affiliateOrder.order && affiliateOrder.order.userSubscription && 
+                      affiliateOrder.order.userSubscription.subscription) {
+                    const orderAmount = affiliateOrder.order.amount || 0;
+                    const subscriptionKomisi = affiliateOrder.order.userSubscription.subscription.komisi || 0;
+                    calculatedKomisi = orderAmount * subscriptionKomisi;
                   }
                 %>
                   <tr>
@@ -172,7 +195,7 @@
                       <%= new Date(affiliateOrder.createdAt).toLocaleDateString('id-ID') %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      Rp <%= affiliateOrder.order.amount.toLocaleString('id-ID') %>
+                      Rp <%= affiliateOrder.order.amount ? affiliateOrder.order.amount.toLocaleString('id-ID') : '0' %>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
                       Rp <%= calculatedKomisi.toLocaleString('id-ID') %>

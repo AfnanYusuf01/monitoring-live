@@ -129,7 +129,7 @@
             <div>
               <p class="text-sm text-purple-600 font-medium">Avg. Limit Akun</p>
               <%
-                const subscriptionsWithLimit = userSubscriptions.filter(sub => sub.limitAkun !== null);
+                const subscriptionsWithLimit = userSubscriptions.filter(sub => sub.limitAkun !== null && sub.limitAkun !== undefined);
                 const avgLimit = subscriptionsWithLimit.length > 0 
                   ? (subscriptionsWithLimit.reduce((sum, sub) => sum + sub.limitAkun, 0) / subscriptionsWithLimit.length).toFixed(1)
                   : 0;
@@ -160,25 +160,39 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div class="flex-shrink-0 h-10 w-10 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span class="text-sm font-medium text-white"><%= userSubscription.user.name ? userSubscription.user.name.charAt(0).toUpperCase() : 'U' %></span>
+                        <span class="text-sm font-medium text-white"><%= userSubscription.user && userSubscription.user.name ? userSubscription.user.name.charAt(0).toUpperCase() : 'U' %></span>
                       </div>
                       <div class="ml-4">
-                        <div class="text-sm font-medium text-gray-900"><%= userSubscription.user.name %></div>
-                        <div class="text-xs text-gray-500"><%= userSubscription.user.email %></div>
+                        <div class="text-sm font-medium text-gray-900"><%= userSubscription.user && userSubscription.user.name ? userSubscription.user.name : 'User tidak ditemukan' %></div>
+                        <div class="text-xs text-gray-500"><%= userSubscription.user && userSubscription.user.email ? userSubscription.user.email : 'Email tidak tersedia' %></div>
                       </div>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900"><%= userSubscription.subscription.name %></div>
-                    <div class="text-xs text-gray-500">Rp <%= userSubscription.subscription.price.toLocaleString('id-ID') %></div>
+                    <div class="text-sm font-medium text-gray-900"><%= userSubscription.subscription ? userSubscription.subscription.name : 'Subscription tidak ditemukan' %></div>
+                    <div class="text-xs text-gray-500">
+                      <% if (userSubscription.subscription && userSubscription.subscription.price) { %>
+                        Rp <%= userSubscription.subscription.price.toLocaleString('id-ID') %>
+                      <% } else { %>
+                        Harga tidak tersedia
+                      <% } %>
+                    </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900"><%= new Date(userSubscription.startDate).toLocaleDateString('id-ID') %></div>
-                    <div class="text-xs text-gray-500">Sampai <%= new Date(userSubscription.endDate).toLocaleDateString('id-ID') %></div>
+                    <% if (userSubscription.startDate) { %>
+                      <div class="text-sm text-gray-900"><%= new Date(userSubscription.startDate).toLocaleDateString('id-ID') %></div>
+                    <% } else { %>
+                      <div class="text-sm text-gray-900">-</div>
+                    <% } %>
+                    <% if (userSubscription.endDate) { %>
+                      <div class="text-xs text-gray-500">Sampai <%= new Date(userSubscription.endDate).toLocaleDateString('id-ID') %></div>
+                    <% } else { %>
+                      <div class="text-xs text-gray-500">Tanggal akhir tidak tersedia</div>
+                    <% } %>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
-                      <span class="text-sm font-medium text-gray-900"><%= userSubscription.limitAkun || 'Tidak terbatas' %></span>
+                      <span class="text-sm font-medium text-gray-900"><%= userSubscription.limitAkun || userSubscription.limitAkun === 0 ? userSubscription.limitAkun : 'Tidak terbatas' %></span>
                       <span class="ml-1 text-xs text-gray-500">akun</span>
                     </div>
                   </td>
@@ -191,9 +205,13 @@
                       <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full bg-red-100 text-red-800">
                         <i class="fas fa-times-circle mr-1"></i> Kedaluwarsa
                       </span>
-                    <% } else { %>
+                    <% } else if (userSubscription.status) { %>
                       <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full bg-gray-100 text-gray-800">
                         <%= userSubscription.status %>
+                      </span>
+                    <% } else { %>
+                      <span class="inline-flex px-2 py-1 text-xs font-semibold leading-5 rounded-full bg-gray-100 text-gray-800">
+                        Tidak diketahui
                       </span>
                     <% } %>
                   </td>

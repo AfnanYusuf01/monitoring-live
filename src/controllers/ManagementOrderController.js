@@ -247,7 +247,7 @@ export const renderCheckout = async (req, res) => {
     // Cek user yang sedang login
     const user = req.session.user || null; // jika pakai session
     // const user = req.user || null; // jika pakai middleware passport/next-auth
-
+    console.log("📦 Data Subscription:", subscription);
     // Kirim data subscription + user ke view
     res.render("checkout", {subscription, user});
   } catch (err) {
@@ -255,6 +255,76 @@ export const renderCheckout = async (req, res) => {
     res.status(500).send("Terjadi kesalahan server");
   }
 };
+
+export const renderCustomCheckout = async (req, res) => {
+  try {
+    const accounts = parseInt(req.query.accounts);
+    const durationMonth = parseInt(req.query.duration); // dalam bulan
+
+    if (isNaN(accounts) || isNaN(durationMonth)) {
+      return res
+        .status(400)
+        .send("Parameter accounts dan duration harus angka");
+    }
+
+    // Ambil subscription template yg is_custom = true
+    const baseSubscription = await prisma.subscription.findFirst({
+      where: {is_custom: true},
+      select: {id: true, name: true, description: true}, // cukup ambil ID
+    });
+
+    if (!baseSubscription) {
+      return res
+        .status(404)
+        .send("Template custom subscription tidak ditemukan");
+    }
+
+    // Cari skema harga untuk jumlah akun
+    const priceScheme = await prisma.price.findFirst({
+      where: {
+        formAkun: {lte: accounts}, // angka
+        toAkun: {gte: accounts}, // angka
+      },
+    });
+
+
+    if (!priceScheme) {
+      return res
+        .status(404)
+        .send("Skema harga tidak ditemukan untuk jumlah akun ini");
+    }
+
+    // Hitung harga
+    const price =
+      priceScheme.priceAkun * accounts +
+      priceScheme.priceMount * durationMonth/30;
+
+    // Convert bulan ke hari
+    const durationDays = durationMonth;
+
+    console.log("durasi", durationDays);
+    // Data subscription final
+    const subscription = {
+      subscriptionId: baseSubscription.id, // hanya id dari template
+      name: "Custom Plan",
+      description: `Paket custom ${durationMonth} bulan dengan ${accounts} akun`,
+      price,
+      duration: durationDays,
+      limitAkun: accounts,
+      komisi: baseSubscription.komisi,
+    };
+
+    const user = req.session.user || null;
+
+    console.log("📦 Data Custom Subscription:", subscription);
+
+    res.render("checkout", {subscription, user});
+  } catch (err) {
+    console.error("❌ Error saat buat custom subscription:", err);
+    res.status(500).send("Terjadi kesalahan server");
+  }
+};
+
 
 const sendWhatsApp = async (number, message) => {
   try {
@@ -285,35 +355,249 @@ const sendWhatsApp = async (number, message) => {
   }
 };
 
-
 export const createOrder = async (req, res) => {
   try {
-    const subscriptionId = parseInt(req.params.id);
     const method = req.query.method;
     const userId = req.session.user.id;
-    console.log("Cookies diterima:", req.cookies);
 
-    let affiliateId = req.cookies?.id_aff && !isNaN(req.cookies.id_aff) 
-        ? parseInt(req.cookies.id_aff) 
-        : null;
+    // Ambil subscription ID dari parameter route
+    const subscriptionId = parseInt(req.params.id);
 
-    let subscriptionIdFromCookie = req.cookies?.id_sub && !isNaN(req.cookies.id_sub) 
-        ? parseInt(req.cookies.id_sub) 
-        : null;
+    // Ambil data custom dari query (jika ada)
+    const customPrice = req.query.price ? parseInt(req.query.price) : null;
+    const customLimitAkun = req.query.limitAkun
+      ? parseInt(req.query.limitAkun)
+      : null;
+    const customDuration = req.query.duration
+      ? parseInt(req.query.duration)
+      : null;
 
-    console.log("Affiliate ID:", affiliateId);
-    console.log("Subscription ID dari Cookie:", subscriptionIdFromCookie);
+    console.log("👉 Subscription ID:", subscriptionId);
+    console.log("👉 Query Price:", customPrice);
+    console.log("👉 Query LimitAkun:", customLimitAkun);
+    console.log("👉 Query Duration:", customDuration);
 
+    // Ambil subscription dari database
 
-    // ambil paket
-    const subscription = await prisma.subscription.findUnique({
-      where: { id: subscriptionId },
+    let subscription = await prisma.subscription.findUnique({
+      where: {id: parseInt(subscriptionId)},
     });
+
+    // console.log("sampai sini")
     if (!subscription) return res.status(404).send("Paket tidak ditemukan");
+
+    // ✅ CEK: Jika subscription adalah custom (is_custom = true)
+    if (subscription.is_custom) {
+      console.log("✅ Subscription Custom ditemukan");
+
+      // Validasi bahwa semua parameter custom harus ada
+      if (!customPrice || !customLimitAkun || !customDuration) {
+        return res.status(400).json({
+          message:
+            "Untuk paket custom, harga, limit akun, dan durasi harus diisi",
+        });
+      }
+
+      // Override field dengan query param untuk custom subscription
+      subscription = {
+        ...subscription,
+        price: customPrice,
+        limitAkun: customLimitAkun,
+        duration: customDuration,
+      };
+
+      console.log("✅ Subscription Custom:", subscription);
+    } else {
+      console.log("✅ Subscription Normal:", subscription);
+    }
+
+    // ✅ Pastikan price tidak null, set ke 0 jika null
+    if (subscription.price === null || subscription.price === undefined) {
+      subscription.price = 0;
+    }
+
+    // ✅ CEK: Jika harga subscription = 0, cek apakah user sudah pernah membeli
+    if (subscription.price === 0) {
+      // Cek apakah user sudah pernah membeli subscription dengan harga 0
+      const existingFreeOrder = await prisma.order.findFirst({
+        where: {
+          userSubscription: {
+            userId: userId,
+          },
+          amount: 0,
+          status: {
+            in: ["paid"], // Cek yang sudah berhasil dibayar
+          },
+        },
+      });
+
+      if (existingFreeOrder) {
+        return res.status(400).json({
+          message:
+            "Anda sudah pernah membeli paket gratis. Tidak dapat membeli paket gratis lebih dari sekali.",
+        });
+      }
+
+      // Juga cek di UserSubscription untuk memastikan
+      const existingFreeSubscription = await prisma.userSubscription.findFirst({
+        where: {
+          userId: userId,
+          subscription: {
+            price: 0,
+          },
+          status: "active",
+        },
+      });
+
+      if (existingFreeSubscription) {
+        return res.status(400).json({
+          message:
+            "Anda sudah memiliki paket gratis aktif. Tidak dapat membeli paket gratis lebih dari sekali.",
+        });
+      }
+    }
+
+    // ✅ LOGIKA AFFILIATE - Mulai pengecekan cookie
+    let affiliateId = null;
+
+    // Cek apakah ada cookie affiliate dan subscription yang sesuai
+    const affiliateIdFromCookie =
+      req.cookies?.id_aff && !isNaN(req.cookies.id_aff)
+        ? parseInt(req.cookies.id_aff)
+        : null;
+
+    const subscriptionIdFromCookie =
+      req.cookies?.id_sub && !isNaN(req.cookies.id_sub)
+        ? parseInt(req.cookies.id_sub)
+        : null;
+
+    console.log("🍪 Cookie Affiliate ID:", affiliateIdFromCookie);
+    console.log("🍪 Cookie Subscription ID:", subscriptionIdFromCookie);
+
+    if (affiliateIdFromCookie && subscriptionIdFromCookie) {
+      // Cek apakah subscription yang dibeli sama dengan yang di cookie
+      if (subscription.id === subscriptionIdFromCookie) {
+        affiliateId = affiliateIdFromCookie;
+        console.log("✅ Menggunakan affiliate dari cookie:", affiliateId);
+      } else {
+        console.log(
+          "❌ Subscription tidak cocok dengan cookie, cari affiliate terbaru"
+        );
+
+        // Cari affiliate terbaru dari order dengan subscription yang sama
+        const recentOrder = await prisma.order.findFirst({
+          where: {
+            userSubscription: {
+              userId: userId,
+              subscriptionId: subscription.id,
+            },
+            affiliateId: {not: null},
+          },
+          orderBy: {createdAt: "desc"},
+          include: {
+            affiliate: true,
+          },
+        });
+
+        if (recentOrder && recentOrder.affiliateId) {
+          affiliateId = recentOrder.affiliateId;
+          console.log(
+            "✅ Menggunakan affiliate dari order terbaru:",
+            affiliateId
+          );
+        }
+      }
+    } else if (affiliateIdFromCookie) {
+      // Jika hanya ada affiliate cookie tanpa subscription cookie
+      affiliateId = affiliateIdFromCookie;
+      console.log(
+        "✅ Menggunakan affiliate dari cookie (tanpa sub check):",
+        affiliateId
+      );
+    } else {
+      // Cari affiliate terbaru jika tidak ada cookie
+      const recentOrder = await prisma.order.findFirst({
+        where: {
+          userSubscription: {
+            userId: userId,
+            subscriptionId: subscription.id,
+          },
+          affiliateId: {not: null},
+        },
+        orderBy: {createdAt: "desc"},
+        include: {
+          affiliate: true,
+        },
+      });
+
+      if (recentOrder && recentOrder.affiliateId) {
+        affiliateId = recentOrder.affiliateId;
+        console.log(
+          "✅ Menggunakan affiliate dari order terbaru:",
+          affiliateId
+        );
+      }
+    }
+
+    // ✅ CEK: Jika harga subscription = 0, langsung redirect ke thank you
+    if (subscription.price === 0) {
+      console.log("🎯 Harga 0 - Langsung buat subscription aktif");
+
+      // Buat UserSubscription langsung aktif
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + (subscription.duration || 0));
+
+      const userSub = await prisma.userSubscription.create({
+        data: {
+          userId,
+          subscriptionId: subscription.id,
+          startDate,
+          endDate,
+          status: "active", // Langsung aktif
+          limitAkun: subscription.limitAkun || 0,
+        },
+      });
+
+      // Buat Order dengan status paid - PASTIKAN amount TIDAK NULL
+      const orderId = "TRX-" + Date.now();
+      const order = await prisma.order.create({
+        data: {
+          userSubscriptionId: userSub.id,
+          amount: 0, // Pastikan 0, bukan null
+          status: "paid", // Langsung paid
+          paymentMethod: "free",
+          transactionId: orderId,
+          affiliateId: affiliateId, // Tetap gunakan affiliateId jika ada
+        },
+      });
+
+      // Jika ada affiliate, buat juga affiliate order (walaupun harga 0)
+      if (affiliateId) {
+        const komisiAmount = 0; // Pastikan 0 karena harga 0
+
+        await prisma.affiliateOrder.create({
+          data: {
+            affiliateId: affiliateId,
+            orderId: order.id,
+            komisi: komisiAmount, // Akan menjadi 0 karena harga 0
+            status: "approved", // Langsung approved untuk free order
+          },
+        });
+
+        console.log("💰 Affiliate order dibuat dengan komisi:", komisiAmount);
+      }
+
+      console.log("✅ Free subscription berhasil dibuat");
+
+      // Redirect langsung ke thank you page
+      return res.redirect(
+        `/thank-you?merchantOrderId=${orderId}&resultCode=00&reference=FREE_SUBSCRIPTION`
+      );
+    }
 
     // ✅ CEK: Jika subscription duration = 0 (paket tambahan akun)
     if (subscription.duration === 0) {
-      // Cek apakah user sudah punya UserSubscription active
       const activeSubscription = await prisma.userSubscription.findFirst({
         where: {
           userId: userId,
@@ -329,69 +613,54 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // buat UserSubscription (status canceled dulu, akan diupdate setelah pembayaran berhasil)
+    // Buat UserSubscription (pakai subscription yang sudah di-set di atas)
     const startDate = new Date();
     const endDate = new Date();
-    endDate.setDate(startDate.getDate() + subscription.duration);
+    endDate.setDate(startDate.getDate() + (subscription.duration || 0));
 
     const userSub = await prisma.userSubscription.create({
       data: {
         userId,
-        subscriptionId,
+        subscriptionId: subscription.id,
         startDate,
         endDate,
         status: "canceled",
+        limitAkun: subscription.limitAkun || 0,
       },
     });
 
-    // Cek affiliate dan buat order dengan affiliateId jika valid
-    let affiliateData = null;
-    
-    // Validasi affiliate hanya jika cookie affiliate dan subscription cocok
-    if (affiliateId && subscriptionIdFromCookie === subscriptionId) {
-      affiliateData = await prisma.affiliate.findUnique({
-        where: { id: affiliateId },
-        include: { user: true }
-      });
-      
-      // Jika affiliate tidak ditemukan atau tidak valid, set ke null
-      if (!affiliateData) {
-        affiliateId = null;
-      }
-    } else {
-      affiliateId = null;
-    }
-
-    // buat Order
+    // Buat Order dengan affiliateId jika ada - PASTIKAN amount TIDAK NULL
     const orderId = "TRX-" + Date.now();
     const order = await prisma.order.create({
       data: {
         userSubscriptionId: userSub.id,
-        amount: subscription.price,
+        amount: subscription.price || 0, // Pastikan tidak null
         status: "pending",
         paymentMethod: method,
         transactionId: orderId,
-        affiliateId: affiliateId, // Simpan affiliateId di order
+        affiliateId: affiliateId,
       },
     });
 
-    // Jika affiliate valid, buat AffiliateOrder dengan status pending
-    if (affiliateId && affiliateData) {
-      const komisiAmount = subscription.price * (subscription.komisi / 100);
-      
+    // Jika ada affiliate, buat juga affiliate order
+    if (affiliateId) {
+      const komisiAmount =
+        ((subscription.price || 0) * (subscription.komisi || 0)) / 100;
+
       await prisma.affiliateOrder.create({
         data: {
           affiliateId: affiliateId,
           orderId: order.id,
           komisi: komisiAmount,
-          status: "pending"
-        }
+          status: "pending",
+        },
       });
-      
-      console.log(`✅ Affiliate order created for affiliate ID: ${affiliateId}`);
+
+      console.log("💰 Affiliate order dibuat dengan komisi:", komisiAmount);
     }
 
-    const paymentAmount = subscription.price.toString();
+    // Signature dan payload Duitku (sama seperti sebelumnya)
+    const paymentAmount = (subscription.price || 0).toString();
     const signatureString =
       config.merchantCode + orderId + paymentAmount + config.apiKey;
 
@@ -400,9 +669,6 @@ export const createOrder = async (req, res) => {
       .update(signatureString)
       .digest("hex");
 
-    console.log("🔑 Local Signature:", signature);
-
-    // payload ke duitku
     const payload = {
       merchantCode: config.merchantCode,
       paymentAmount: paymentAmount,
@@ -419,28 +685,20 @@ export const createOrder = async (req, res) => {
 
     console.log("📤 Payload ke Duitku:", payload);
 
-    // pilih endpoint sesuai env
     const duitkuUrl = config.passport
       ? "https://passport.duitku.com/webapi/api/merchant/v2/inquiry"
       : "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry";
 
-    // request ke duitku
     const response = await axios.post(duitkuUrl, payload, {
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
     });
 
     if (response.data && response.data.paymentUrl) {
-      // Hapus cookie affiliate setelah berhasil membuat order
-      if (affiliateId) {
-        res.clearCookie("id_aff");
-        res.clearCookie("id_sub");
-      }
-      
-      return res.json({ paymentUrl: response.data.paymentUrl });
+      return res.json({paymentUrl: response.data.paymentUrl});
     } else {
       return res
         .status(400)
-        .json({ message: "Gagal membuat transaksi", response: response.data });
+        .json({message: "Gagal membuat transaksi", response: response.data});
     }
   } catch (error) {
     console.error(
@@ -451,8 +709,6 @@ export const createOrder = async (req, res) => {
   }
 };
 
-
-
 export const duitkuCallback = async (req, res) => {
   try {
     console.log("📥 Callback diterima:", req.body);
@@ -460,16 +716,10 @@ export const duitkuCallback = async (req, res) => {
     const merchantCode = req.body.merchantCode;
     const merchantOrderId = req.body.merchantOrderId;
     const amount = req.body.amount;
-    const reference = req.body.reference;
-    const statusCode = req.body.statusCode;
     const signature = req.body.signature;
-    const paymentAmount = req.body.paymentAmount;
 
     const signatureString =
-      merchantCode +
-      amount +
-      merchantOrderId +
-      config.apiKey;
+      merchantCode + amount + merchantOrderId + config.apiKey;
     const validSignature = crypto
       .createHash("md5")
       .update(signatureString)
@@ -484,7 +734,7 @@ export const duitkuCallback = async (req, res) => {
 
     // Cari order dengan include data yang diperlukan
     const order = await prisma.order.findUnique({
-      where: { transactionId: merchantOrderId },
+      where: {transactionId: merchantOrderId},
       include: {
         userSubscription: {
           include: {
@@ -492,8 +742,7 @@ export const duitkuCallback = async (req, res) => {
             subscription: true,
           },
         },
-        affiliate: true,
-        affiliateOrders: true, // Include affiliate orders
+        affiliateOrders: true,
       },
     });
 
@@ -504,7 +753,7 @@ export const duitkuCallback = async (req, res) => {
       return res.status(404).send("Order tidak ditemukan");
     }
 
-    // Tentukan status
+    // Tentukan status berdasarkan resultCode
     let newStatus = "pending";
     if (req.body.resultCode === "00") newStatus = "paid";
     else if (req.body.resultCode === "01") newStatus = "failed";
@@ -514,121 +763,36 @@ export const duitkuCallback = async (req, res) => {
 
     // Update status order
     await prisma.order.update({
-      where: { id: order.id },
-      data: { status: newStatus },
+      where: {id: order.id},
+      data: {status: newStatus},
     });
 
-    // Jika pembayaran berhasil, update status affiliate order menjadi approved
-    if (newStatus === "paid" && order.affiliateOrders.length > 0) {
-      await prisma.affiliateOrder.updateMany({
-        where: { orderId: order.id },
-        data: { status: "approved" }
-      });
-      console.log("✅ Affiliate order status updated to approved");
-    }
-
-    // Logika untuk mengelola UserSubscription ketika pembayaran berhasil
+    // Jika pembayaran berhasil, update status UserSubscription menjadi active
     if (newStatus === "paid") {
+      console.log(
+        `✅ Update UserSubscription ${order.userSubscription.id} menjadi active`
+      );
+
+      await prisma.userSubscription.update({
+        where: {id: order.userSubscription.id},
+        data: {status: "active"},
+      });
+
+      // Update status affiliate order menjadi approved
+      if (order.affiliateOrders.length > 0) {
+        await prisma.affiliateOrder.updateMany({
+          where: {orderId: order.id},
+          data: {status: "approved"},
+        });
+        console.log("✅ Affiliate order status updated to approved");
+      }
+
       const user = order.userSubscription.user;
       const purchasedSubscription = order.userSubscription.subscription;
 
-      // 1. CEK: Apakah user punya UserSubscription dengan status = "active" ?
-      const activeUserSubscription = await prisma.userSubscription.findFirst({
-        where: {
-          userId: user.id,
-          status: "active",
-        },
-        include: {
-          subscription: true,
-        },
-      });
-
-      if (!activeUserSubscription) {
-        // ──> JIKA TIDAK ADA: Buat/Update UserSubscription baru
-        const newEndDate =
-          purchasedSubscription.duration > 0
-            ? new Date(
-                new Date().setDate(
-                  new Date().getDate() + purchasedSubscription.duration
-                )
-              )
-            : new Date(new Date().setFullYear(new Date().getFullYear() + 10));
-
-        await prisma.userSubscription.update({
-          where: { id: order.userSubscription.id },
-          data: {
-            status: "active",
-            limitAkun: purchasedSubscription.limitAkun,
-            startDate: new Date(),
-            endDate: newEndDate,
-          },
-        });
-        console.log("✅ UserSubscription baru diaktifkan");
-      } else {
-        // ──> JIKA ADA: User sudah punya subscription aktif
-        if (purchasedSubscription.duration === 0) {
-          // 2. JIKA YA (paket tambahan akun): Update limitAkun
-          const newLimitAkun =
-            (activeUserSubscription.limitAkun || 0) +
-            purchasedSubscription.limitAkun;
-
-          await prisma.userSubscription.update({
-            where: { id: activeUserSubscription.id },
-            data: {
-              limitAkun: newLimitAkun,
-            },
-          });
-          console.log(`➕ Limit akun ditambah menjadi: ${newLimitAkun}`);
-        } else {
-          // ──> JIKA TIDAK (subscription utama)
-          if (activeUserSubscription.subscriptionId === purchasedSubscription.id) {
-            // 3. JIKA SAMA (paket yang sama): Perpanjang endDate
-            const currentDuration =
-              activeUserSubscription.subscription?.duration || 0;
-            const newEndDate = new Date(activeUserSubscription.endDate);
-            newEndDate.setDate(
-              newEndDate.getDate() + purchasedSubscription.duration
-            );
-
-            await prisma.userSubscription.update({
-              where: { id: activeUserSubscription.id },
-              data: {
-                endDate: newEndDate,
-              },
-            });
-            console.log("⏰ Durasi subscription diperpanjang");
-          } else {
-            // ──> JIKA BERBEDA (paket berbeda): Update ke subscription baru
-            const newEndDate =
-              purchasedSubscription.duration > 0
-                ? new Date(
-                    new Date().setDate(
-                      new Date().getDate() + purchasedSubscription.duration
-                    )
-                  )
-                : new Date(
-                    new Date().setFullYear(new Date().getFullYear() + 10)
-                  );
-
-            await prisma.userSubscription.update({
-              where: { id: activeUserSubscription.id },
-              data: {
-                subscription: { connect: { id: purchasedSubscription.id } },
-                limitAkun: purchasedSubscription.limitAkun,
-                startDate: new Date(),
-                endDate: newEndDate,
-              },
-            });
-            console.log("🔄 Subscription diganti dengan yang baru");
-          }
-        }
-      }
+      console.log("💰 Pembayaran berhasil, kirim notifikasi");
 
       // Kirim notifikasi email
-      console.log(
-        `📧 Kirim email ke ${user.email} untuk paket ${purchasedSubscription.name}`
-      );
-
       try {
         const transporter = nodemailer.createTransport({
           host: process.env.SMTP_HOST,
@@ -640,16 +804,18 @@ export const duitkuCallback = async (req, res) => {
           },
         });
 
-        const appUrl = process.env.APP_URL || 'https://monitor.kol-kit.my.id/';
-        
+        const appUrl = process.env.APP_URL || "https://monitor.kol-kit.my.id/";
+
         await transporter.sendMail({
           from: process.env.SMTP_FROM,
           to: user.email,
           subject: "Pembayaran Berhasil - Akses Akun Anda",
           html: `
             <p>Halo ${user.name || "Customer"},</p>
-            <p>Pembayaran paket <strong>${purchasedSubscription.name}</strong> sebesar Rp${order.amount} telah berhasil.</p>
-            <p>Anda sekarang dapat mengakses akun Anda dengan fitur premium yang telah Anda beli.</p>
+            <p>Pembayaran paket <strong>${
+              purchasedSubscription.name
+            }</strong> sebesar Rp${order.amount} telah berhasil.</p>
+            <p>Subscription Anda sekarang aktif dan dapat digunakan.</p>
             
             <p><strong>Link Akses Aplikasi:</strong></p>
             <p><a href="${appUrl}/login" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login ke Aplikasi</a></p>
@@ -676,28 +842,30 @@ export const duitkuCallback = async (req, res) => {
             minimumFractionDigits: 0,
           }).format(order.amount);
 
-          const appUrl = process.env.APP_URL || 'https://monitor.kol-kit.my.id/';
+          const appUrl =
+            process.env.APP_URL || "https://monitor.kol-kit.my.id/";
 
           const whatsappMessage = `🌟 *PEMBAYARAN BERHASIL* 🌟
 
-        Halo ${user.name || "Pelanggan Setia"}! 
-        
-        Pembayaran Anda telah berhasil diproses.
-        
-        📋 *Detail Transaksi:*
-        ➤ Order ID: ${merchantOrderId}
-        ➤ Paket: ${purchasedSubscription.name}
-        ➤ Jumlah: ${formattedAmount}
-        ➤ Status: ✅ BERHASIL
-        
-        🔗 *Akses Aplikasi:*
-        ${appUrl}
-        
-        Silakan login untuk mulai menggunakan layanan premium kami.
-        
-        Terima kasih telah mempercayai layanan kami! 🚀
-        
-        *Tim Support*`;
+Halo ${user.name || "Pelanggan Setia"}! 
+
+Pembayaran Anda telah berhasil diproses.
+
+📋 *Detail Transaksi:*
+➤ Order ID: ${merchantOrderId}
+➤ Paket: ${purchasedSubscription.name}
+➤ Jumlah: ${formattedAmount}
+➤ Status: ✅ BERHASIL
+➤ Subscription: ✅ AKTIF
+
+🔗 *Akses Aplikasi:*
+${appUrl}
+
+Subscription Anda sekarang aktif dan dapat digunakan.
+
+Terima kasih telah mempercayai layanan kami! 🚀
+
+*Tim Support*`;
 
           await sendWhatsApp(user.nomor_wa, whatsappMessage);
           console.log("✅ WhatsApp terkirim ke:", user.nomor_wa);
@@ -714,7 +882,6 @@ export const duitkuCallback = async (req, res) => {
     res.status(200).send("OK");
   }
 };
-
 
 export const checkSubscription = async (req, res) => {
   const user = req.session.user;

@@ -148,7 +148,11 @@
       </button>
     </div>
     <div class="px-6 py-4">
-      <p id="subscription-message" class="text-gray-700"></p>
+      <div id="subscription-message" class="text-gray-700"></div>
+      <div id="subscription-details" class="mt-4 p-3 bg-gray-50 rounded-lg hidden">
+        <h4 class="font-semibold text-sm mb-2">Detail Paket Aktif:</h4>
+        <div id="active-subscriptions-list" class="text-sm"></div>
+      </div>
     </div>
     <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
       <button type="button" id="close-subscription-modal-btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
@@ -163,7 +167,7 @@
   let allAccounts = [];
   let currentPage = 1;
   let rowsPerPage = 10;
-  let subscriptionData = null;
+  let subscriptionData = <%- JSON.stringify(subscriptionData) %>; // Data dari server
   
   document.addEventListener('DOMContentLoaded', function() {
     // Load account data from API
@@ -187,8 +191,8 @@
       if (e.target.id === 'subscription-modal') hideSubscriptionModal();
     });
     
-    // Load subscription info on page load
-    loadSubscriptionInfo();
+    // Update subscription info on page load
+    updateSubscriptionInfo(subscriptionData);
   });
 
   // Function untuk memuat data akun dari API
@@ -337,78 +341,48 @@
     }
   }
 
-  // Function untuk memuat informasi subscription
-  async function loadSubscriptionInfo() {
-    try {
-      const response = await fetch('/api/check-subscription');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      subscriptionData = data;
-      
-      // Update UI dengan informasi subscription
-      updateSubscriptionInfo(data);
-    } catch (error) {
-      console.error('Error loading subscription info:', error);
-      document.getElementById('subscription-info').innerHTML = `
-        <div class="flex items-center text-red-500">
-          <span class="inline-block w-2 h-2 mr-1 bg-red-500 rounded-full"></span>
-          <span>Gagal memuat informasi paket</span>
-        </div>
-      `;
-    }
-  }
-
   // Function untuk memperbarui tampilan informasi subscription
   function updateSubscriptionInfo(data) {
     const subscriptionInfo = document.getElementById('subscription-info');
     
     // Check if subscription data is available
-    if (!data || !data.subscription) {
+    if (!data || data.status === 'no_subscription') {
       subscriptionInfo.innerHTML = `
         <div class="flex items-center text-yellow-600">
           <span class="inline-block w-2 h-2 mr-1 bg-yellow-500 rounded-full"></span>
-          <span>Paket tidak aktif - <a href="/subscription" class="underline">Aktifkan sekarang</a></span>
+          <span>Tidak ada paket aktif - <a href="/subscription" class="underline">Berlangganan sekarang</a></span>
         </div>
       `;
       return;
     }
     
-    const currentDate = new Date();
-    const endDate = new Date(data.subscription.endDate);
-    const isDateValid = endDate > currentDate;
-    const daysRemaining = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24));
-    
-    let statusColor = 'bg-red-500';
-    let statusText = 'Tidak Aktif';
-    
-    if (data.status === 'active' && isDateValid) {
-      statusColor = 'bg-green-500';
-      statusText = 'Aktif';
-    } else if (data.status === 'active' && !isDateValid) {
-      statusColor = 'bg-yellow-500';
-      statusText = 'Kadaluarsa';
+    if (data.status === 'active') {
+      const currentDate = new Date();
+      const endDate = new Date(data.endDate);
+      const daysRemaining = Math.ceil((endDate - currentDate) / (1000 * 60 * 60 * 24));
+      
+      subscriptionInfo.innerHTML = `
+        <div class="flex flex-wrap items-center gap-4">
+          <div class="flex items-center">
+            <span class="inline-block w-2 h-2 mr-1 bg-green-500 rounded-full animate-pulse"></span>
+            <span class="text-xs font-medium">Paket Aktif</span>
+          </div>
+          <div class="text-xs">
+            <span class="font-medium">${data.remainingSlots}</span> dari <span class="font-medium">${data.totalLimitAkun}</span> slot tersedia
+          </div>
+          <div class="text-xs">
+            <span class="font-medium">${daysRemaining}</span> hari tersisa (hingga ${formatDate(endDate)})
+          </div>
+        </div>
+      `;
     }
-    
-    subscriptionInfo.innerHTML = `
-      <div class="flex flex-wrap items-center gap-4 mt-1">
-        <div class="flex items-center">
-          <span class="inline-block w-2 h-2 mr-1 ${statusColor} rounded-full ${statusColor === 'bg-green-500' ? 'animate-pulse' : ''}"></span>
-          <span class="text-xs font-medium">Paket ${data.subscription.name} - ${statusText}</span>
-        </div>
-        <div class="text-xs">
-          <span class="font-medium">${data.remainingSlots}</span> dari <span class="font-medium">${data.limitAkun}</span> slot tersedia
-        </div>
-        <div class="text-xs">
-          <span class="font-medium">${daysRemaining}</span> hari tersisa (hingga ${formatDate(endDate)})
-        </div>
-      </div>
-    `;
   }
 
   // Function untuk memformat tanggal
   function formatDate(date) {
+    if (!(date instanceof Date)) {
+      date = new Date(date);
+    }
     return new Intl.DateTimeFormat('id-ID', {
       day: '2-digit',
       month: '2-digit',
@@ -417,15 +391,10 @@
   }
 
   // Function untuk mengecek subscription sebelum menambah akun
-  async function checkSubscriptionBeforeAdd() {
-    // Jika data subscription belum dimuat, muat terlebih dahulu
-    if (!subscriptionData) {
-      await loadSubscriptionInfo();
-    }
-    
+  function checkSubscriptionBeforeAdd() {
     // Cek tiga aspek: status aktif, slot tersedia, dan tanggal masih valid
     const currentDate = new Date();
-    const endDate = subscriptionData?.subscription ? new Date(subscriptionData.subscription.endDate) : new Date();
+    const endDate = subscriptionData?.endDate ? new Date(subscriptionData.endDate) : new Date();
     const isDateValid = endDate > currentDate;
     
     if (subscriptionData?.status === 'active' && subscriptionData.remainingSlots > 0 && isDateValid) {
@@ -434,21 +403,80 @@
     } else {
       // Jika ada kondisi yang tidak terpenuhi, tampilkan modal dengan pesan error
       let errorMessage = 'Anda tidak dapat menambahkan akun baru karena:';
+      const reasons = [];
       
       if (!subscriptionData || subscriptionData.status !== 'active') {
-        errorMessage += '<br>- Status subscription tidak aktif';
+        reasons.push('Status subscription tidak aktif');
       }
       
       if (!subscriptionData || subscriptionData.remainingSlots <= 0) {
-        errorMessage += `<br>- Slot akun telah penuh (${subscriptionData?.limitAkun || 0}/${subscriptionData?.limitAkun || 0})`;
+        reasons.push(`Slot akun telah penuh (${allAccounts.length}/${subscriptionData?.totalLimitAkun || 0})`);
       }
       
       if (!isDateValid) {
-        errorMessage += `<br>- Masa berlaku subscription telah habis (${formatDate(endDate)})`;
+        reasons.push(`Masa berlaku subscription telah habis (${formatDate(endDate)})`);
       }
+      
+      errorMessage += '<ul class="list-disc list-inside mt-2">';
+      reasons.forEach(reason => {
+        errorMessage += `<li class="text-sm">${reason}</li>`;
+      });
+      errorMessage += '</ul>';
       
       showSubscriptionModal(errorMessage);
     }
+  }
+
+  // Tampilkan modal subscription dengan detail
+  function showSubscriptionModal(message) {
+    document.getElementById('subscription-message').innerHTML = message;
+    
+    // Tampilkan detail subscription jika tersedia
+    const subscriptionDetails = document.getElementById('subscription-details');
+    const activeSubscriptionsList = document.getElementById('active-subscriptions-list');
+    
+    if (subscriptionData && subscriptionData.status === 'active') {
+      subscriptionDetails.classList.remove('hidden');
+      
+      const daysRemaining = Math.ceil((new Date(subscriptionData.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+      const detailsHTML = `
+        <div class="mb-2 p-2 border-b border-gray-200">
+          <div class="font-medium">Paket Aktif</div>
+          <div class="text-xs text-gray-600">
+            ${subscriptionData.totalLimitAkun} akun, ${daysRemaining} hari tersisa (hingga ${formatDate(subscriptionData.endDate)})
+          </div>
+          <div class="text-xs text-gray-600 mt-1">
+            Akun terpakai: ${allAccounts.length}/${subscriptionData.totalLimitAkun}
+          </div>
+        </div>
+      `;
+      
+      activeSubscriptionsList.innerHTML = detailsHTML;
+    } else {
+      subscriptionDetails.classList.add('hidden');
+    }
+    
+    const modal = document.getElementById('subscription-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('scale-95', 'opacity-0');
+      modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+  }
+
+  // Sembunyikan modal subscription
+  function hideSubscriptionModal() {
+    const modal = document.getElementById('subscription-modal');
+    const modalContent = modal.querySelector('div');
+    
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+      modal.classList.add('hidden');
+    }, 300);
   }
 
   // Initialize pagination
@@ -605,33 +633,6 @@
     }, 300);
   }
 
-  // Tampilkan modal subscription
-  function showSubscriptionModal(message) {
-    document.getElementById('subscription-message').innerHTML = message;
-    
-    const modal = document.getElementById('subscription-modal');
-    const modalContent = modal.querySelector('div');
-    
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-      modalContent.classList.remove('scale-95', 'opacity-0');
-      modalContent.classList.add('scale-100', 'opacity-100');
-    }, 10);
-  }
-
-  // Sembunyikan modal subscription
-  function hideSubscriptionModal() {
-    const modal = document.getElementById('subscription-modal');
-    const modalContent = modal.querySelector('div');
-    
-    modalContent.classList.remove('scale-100', 'opacity-100');
-    modalContent.classList.add('scale-95', 'opacity-0');
-    
-    setTimeout(() => {
-      modal.classList.add('hidden');
-    }, 300);
-  }
-
   // Konfirmasi hapus
   async function confirmDelete() {
     const id = document.getElementById('delete-id').value;
@@ -649,6 +650,11 @@
       // Reload data after a short delay
       setTimeout(() => {
         loadAccountData();
+        // Update subscription info karena jumlah akun berubah
+        if (subscriptionData && subscriptionData.status === 'active') {
+          subscriptionData.remainingSlots += 1;
+          updateSubscriptionInfo(subscriptionData);
+        }
       }, 1500);
     } catch (error) {
       console.error('Error:', error);

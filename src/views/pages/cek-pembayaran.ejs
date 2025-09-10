@@ -38,6 +38,23 @@
                         </div>
                     </form>
                     
+                    <!-- Success Notification -->
+                    <div id="success-notification" class="hidden mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-green-800">Berhasil memuat data</h3>
+                                <div id="success-message" class="mt-2 text-sm text-green-700">
+                                    Data pembayaran berhasil dimuat.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Error Display Section -->
                     <div id="error-container" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                         <div class="flex items-start">
@@ -50,6 +67,23 @@
                                 <h3 class="text-sm font-medium text-red-800">Error pada beberapa akun</h3>
                                 <div id="error-list" class="mt-2 text-sm text-red-700">
                                     <!-- Error messages will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Logout Notification -->
+                    <div id="logout-notification" class="hidden mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="w-5 h-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-yellow-800">Akun Logout</h3>
+                                <div id="logout-list" class="mt-2 text-sm text-yellow-700">
+                                    <!-- Logout messages will be inserted here -->
                                 </div>
                             </div>
                         </div>
@@ -213,8 +247,10 @@ async function checkPayments() {
             </tr>
         `;
 
-        // Hide error container initially
+        // Hide all notification containers initially
         document.getElementById('error-container').classList.add('hidden');
+        document.getElementById('logout-notification').classList.add('hidden');
+        document.getElementById('success-notification').classList.add('hidden');
 
         // Call API
         const response = await fetch('/api/cek-pembayaran', {
@@ -231,13 +267,37 @@ async function checkPayments() {
         
         const result = await response.json();
         
-        // Check if the response contains errors
-        if (result.errors && result.errors.length > 0) {
-            // Display errors
-            showErrors(result.errors);
+        // Handle API response based on success flag
+        if (result.success === false) {
+            // Show error notification
+            document.getElementById('success-notification').classList.add('hidden');
+            
+            // Check if there are errors in the response
+            if (result.errors && result.errors.length > 0) {
+                // Separate cookie incorrect errors from other errors
+                const cookieErrors = result.errors.filter(error => 
+                    error.error && error.error.code === 30002 && error.error.msg === "cookie incorrect"
+                );
+                
+                const otherErrors = result.errors.filter(error => 
+                    !error.error || error.error.code !== 30002 || error.error.msg !== "cookie incorrect"
+                );
+                
+                // Show cookie incorrect errors in logout notification
+                if (cookieErrors.length > 0) {
+                    showLogoutNotifications(cookieErrors);
+                }
+                
+                // Show other errors in error container
+                if (otherErrors.length > 0) {
+                    showErrors(otherErrors);
+                }
+            }
         } else {
-            // Hide error container if no errors
+            // Show success notification
+            document.getElementById('success-notification').classList.remove('hidden');
             document.getElementById('error-container').classList.add('hidden');
+            document.getElementById('logout-notification').classList.add('hidden');
         }
         
         // Set data regardless of errors
@@ -254,6 +314,11 @@ async function checkPayments() {
             </tr>
         `;
         hidePagination();
+        
+        // Hide notifications
+        document.getElementById('success-notification').classList.add('hidden');
+        document.getElementById('error-container').classList.add('hidden');
+        document.getElementById('logout-notification').classList.add('hidden');
     }
 }
 
@@ -291,6 +356,26 @@ function showErrors(errors) {
     
     // Show the error container
     errorContainer.classList.remove('hidden');
+}
+
+// Show logout notifications for cookie incorrect errors
+function showLogoutNotifications(logoutErrors) {
+    const logoutContainer = document.getElementById('logout-notification');
+    const logoutList = document.getElementById('logout-list');
+    
+    // Clear previous logout notifications
+    logoutList.innerHTML = '';
+    
+    // Add each logout notification to the list
+    logoutErrors.forEach(error => {
+        const logoutItem = document.createElement('div');
+        logoutItem.className = 'mb-1';
+        logoutItem.innerHTML = `<strong>${error.nama_akun}</strong> - Akun logout, perlu login ulang`;
+        logoutList.appendChild(logoutItem);
+    });
+    
+    // Show the logout notification container
+    logoutContainer.classList.remove('hidden');
 }
 
 // Filter payments based on search input
@@ -546,7 +631,9 @@ function resetFilters() {
     filteredPayments = [];
     hidePagination();
     
-    // Hide error container
+    // Hide all notifications
     document.getElementById('error-container').classList.add('hidden');
+    document.getElementById('logout-notification').classList.add('hidden');
+    document.getElementById('success-notification').classList.add('hidden');
 }
 </script>
