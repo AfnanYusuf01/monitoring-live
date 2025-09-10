@@ -74,25 +74,25 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#f0f5ff',
-                            100: '#e5edff',
-                            500: '#4e73df',
-                            600: '#3a56c4',
-                            700: '#2e4a9e',
+                            50: '#fff5f5',
+                            100: '#fed7d7',
+                            500: '#f56565',
+                            600: '#e53e3e',
+                            700: '#c53030',
                         },
                         secondary: {
-                            50: '#f8f5ff',
-                            100: '#eee9fe',
-                            500: '#6f42c1',
-                            600: '#5d36a6',
-                            700: '#4c2b89',
+                            50: '#fffaf0',
+                            100: '#feebc8',
+                            500: '#ed8936',
+                            600: '#dd6b20',
+                            700: '#c05621',
                         },
-                        success: '#1cc88a',
-                        info: '#36b9cc',
-                        warning: '#f6c23e',
-                        danger: '#e74a3b',
+                        success: '#38a169',
+                        info: '#4299e1',
+                        warning: '#ecc94b',
+                        danger: '#e53e3e',
                         light: '#f8f9fc',
-                        dark: '#5a5c69',
+                        dark: '#2d3748',
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
@@ -100,6 +100,7 @@
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'float': 'float 6s ease-in-out infinite',
+                        'bounce-slow': 'bounce 2s infinite',
                     },
                     keyframes: {
                         float: {
@@ -118,10 +119,10 @@
     </script>
     <style>
         .gradient-bg {
-            background: linear-gradient(135deg, #4e73df 0%, #6f42c1 100%);
+            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
         }
         .gradient-text {
-            background: linear-gradient(135deg, #4e73df 0%, #6f42c1 100%);
+            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -166,152 +167,203 @@
             height: 2px;
             bottom: -4px;
             left: 0;
-            background-color: #4e73df;
+            background-color: #e53e3e;
             transition: width 0.3s ease;
         }
         .nav-link:hover::after {
             width: 100%;
         }
         .logo-company {
-        height: 20px;
-        vertical-align: middle;
-        display: inline-block;
-        margin-left: 4px;
-      }
+            height: 20px;
+            vertical-align: middle;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .screenshot-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .screenshot-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(229, 62, 62, 0.1), rgba(237, 137, 54, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .screenshot-container:hover .screenshot-overlay {
+            opacity: 1;
+        }
+        .platform-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .cta-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+        }
         [x-cloak] { display: none !important; }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-700">
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-            
-            <!-- Logo & Brand -->
-            <div class="flex items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <img src="/assets/img/logos/logo-streamo.jpg" 
-                         alt="streamo Logo - Platform Monitor Live Shopee" 
-                         class="h-16 w-auto">
-                    <span class="ml-3 text-xl font-bold text-gray-900"></span>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                
+                <!-- Logo & Brand -->
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <img src="assets/img/logos/favicon.png" 
+                             alt="Streamo Logo - Platform Monitor Live Shopee" 
+                             class="h-10 w-auto">
+                        <span class="ml-3 text-xl font-bold text-gray-900">Streamo</span>
+                    </div>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden lg:flex lg:space-x-6">
+                    <a href="#features" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Fitur</a>
+                    <a href="#screenshots" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Demo</a>
+                    <a href="#pricing" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Paket</a>
+                    <a href="#testimonials" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Testimoni</a>
+                    <a href="#faq" class="nav-link text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">FAQ</a>
+                </div>
+
+                <!-- User Actions -->
+                <div class="flex items-center space-x-3">
+                    <% if (!user) { %>
+                        <!-- User NOT logged in -->
+                        <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition">
+                            Login
+                        </a>
+                        <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition shadow-sm cta-pulse">
+                            Daftar Gratis
+                        </a>
+                    <% } else { %>
+                        <!-- User IS logged in -->
+                        <div class="relative" id="dropdownWrapper">
+                            <button id="dropdownButton" 
+                                    class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">
+                                <span>Halo, <%= user.name %></span>
+                                <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200"></i>
+                            </button>
+
+                            <!-- Dropdown -->
+                            <div id="dropdownMenu" 
+                                 class="hidden absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1 transition transform origin-top-right">
+                                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
+                                </a>
+                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
+                                </a>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                    <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    <% } %>
+
+                    <!-- Mobile menu button -->
+                    <button id="mobileMenuButton" 
+                            class="lg:hidden p-2 rounded-md text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
                 </div>
             </div>
-            
-            <!-- Desktop Navigation -->
-            <div class="hidden lg:flex lg:space-x-6">
-                <a href="#features" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Fitur</a>
-                <a href="#pricing" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Paket</a>
-                <a href="#testimonials" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">Testimoni</a>
-                <a href="#faq" class="text-gray-600 hover:text-primary-600 px-3 py-2 text-sm font-medium transition">FAQ</a>
-            </div>
+        </div>
 
-            <!-- User Actions -->
-            <div class="flex items-center space-x-3">
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-3 space-y-2">
+                <a href="#features" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Fitur</a>
+                <a href="#screenshots" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Demo</a>
+                <a href="#pricing" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Paket</a>
+                <a href="#testimonials" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Testimoni</a>
+                <a href="#faq" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">FAQ</a>
                 <% if (!user) { %>
-                    <!-- User NOT logged in -->
-                    <a href="/sign-in" class="px-4 py-2 rounded-lg text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 transition">
-                        Login
-                    </a>
-                    <a href="/sign-up" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition shadow-sm">
-                        Daftar
-                    </a>
+                    <a href="/sign-in" class="block text-primary-600 hover:text-primary-700 text-sm font-medium">Login</a>
+                    <a href="/sign-up" class="block text-white bg-primary-600 hover:bg-primary-700 px-3 py-2 rounded-md text-sm font-medium">Daftar</a>
                 <% } else { %>
-                    <!-- User IS logged in -->
-                    <div class="relative" id="dropdownWrapper">
-                        <button id="dropdownButton" 
-                                class="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50">
-                            <span>Halo, <%= user.name %></span>
-                            <i class="fas fa-chevron-down ml-2 text-xs transition-transform duration-200"></i>
-                        </button>
-
-                        <!-- Dropdown -->
-                        <div id="dropdownMenu" 
-                             class="hidden absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 py-1 transition transform origin-top-right">
-                            <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-tachometer-alt mr-2 w-4 text-center"></i>Dashboard
-                            </a>
-                            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                <i class="fas fa-user mr-2 w-4 text-center"></i>Profile
-                            </a>
-                            <div class="border-t border-gray-100 my-1"></div>
-                            <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
-                                <i class="fas fa-sign-out-alt mr-2 w-4 text-center"></i>Logout
-                            </a>
-                        </div>
-                    </div>
+                    <a href="/dashboard" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Dashboard</a>
+                    <a href="/profile" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Profile</a>
+                    <a href="/logout" class="block text-red-600 hover:text-red-700 text-sm font-medium">Logout</a>
                 <% } %>
-
-                <!-- Mobile menu button -->
-                <button id="mobileMenuButton" 
-                        class="lg:hidden p-2 rounded-md text-gray-600 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 transition">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Mobile Menu -->
-    <div id="mobileMenu" class="hidden lg:hidden bg-white border-t border-gray-200">
-        <div class="px-4 py-3 space-y-2">
-            <a href="#features" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Fitur</a>
-            <a href="#pricing" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Paket</a>
-            <a href="#testimonials" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Testimoni</a>
-            <a href="#faq" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">FAQ</a>
-            <% if (!user) { %>
-                <a href="/sign-in" class="block text-primary-600 hover:text-primary-700 text-sm font-medium">Login</a>
-                <a href="/sign-up" class="block text-white bg-primary-600 hover:bg-primary-700 px-3 py-2 rounded-md text-sm font-medium">Daftar</a>
-            <% } else { %>
-                <a href="/dashboard" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Dashboard</a>
-                <a href="/profile" class="block text-gray-600 hover:text-primary-600 text-sm font-medium">Profile</a>
-                <a href="/logout" class="block text-red-600 hover:text-red-700 text-sm font-medium">Logout</a>
-            <% } %>
-        </div>
-    </div>
-</nav>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropdownButton = document.getElementById("dropdownButton");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+        const chevron = dropdownButton ? dropdownButton.querySelector("i") : null;
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const dropdownButton = document.getElementById("dropdownButton");
-    const dropdownMenu = document.getElementById("dropdownMenu");
-    const chevron = dropdownButton ? dropdownButton.querySelector("i") : null;
+        if (dropdownButton) {
+            dropdownButton.addEventListener("click", function () {
+                dropdownMenu.classList.toggle("hidden");
+                chevron.classList.toggle("rotate-180");
+            });
 
-    if (dropdownButton) {
-        dropdownButton.addEventListener("click", function () {
-            dropdownMenu.classList.toggle("hidden");
-            chevron.classList.toggle("rotate-180");
+            // Tutup dropdown jika klik di luar
+            document.addEventListener("click", function (event) {
+                if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.classList.add("hidden");
+                    chevron.classList.remove("rotate-180");
+                }
+            });
+        }
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById("mobileMenuButton");
+        const mobileMenu = document.getElementById("mobileMenu");
+
+        mobileMenuButton.addEventListener("click", function () {
+            mobileMenu.classList.toggle("hidden");
         });
-
-        // Tutup dropdown jika klik di luar
-        document.addEventListener("click", function (event) {
-            if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
-                dropdownMenu.classList.add("hidden");
-                chevron.classList.remove("rotate-180");
-            }
-        });
-    }
-
-    // Mobile menu toggle
-    const mobileMenuButton = document.getElementById("mobileMenuButton");
-    const mobileMenu = document.getElementById("mobileMenu");
-
-    mobileMenuButton.addEventListener("click", function () {
-        mobileMenu.classList.toggle("hidden");
     });
-});
-</script>
-
+    </script>
 
     <!-- Hero Section -->
     <section class="pt-32 pb-20 gradient-bg text-white overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="md:flex md:items-center md:justify-between">
                 <div class="md:w-1/2">
-                    <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">Tingkatkan Penjualan dengan <span class="text-yellow-300">Monitoring Live Shopee</span></h1>
-                    <p class="mt-6 text-xl text-blue-100 max-w-lg">Platform <strong>monitor live Shopee</strong> terintegrasi dengan fitur lengkap untuk menganalisis dan meningkatkan performa penjualan Anda. Termasuk <strong>tools affiliate</strong> terbaik untuk mengoptimalkan strategi pemasaran.</p>
+                    <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">Tingkatkan Produktivitas Live Streaming Shopee Anda</h1>
+                    <p class="mt-6 text-xl text-orange-100 max-w-lg">Platform <strong>monitor live Shopee</strong> pertama di Indonesia dengan teknologi canggih untuk mengoptimalkan performa live streaming dan <strong>tools affiliate</strong> terintegrasi.</p>
                     <div class="mt-10 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
-                        <a href="#" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
-                            Mulai Sekarang <i class="fas fa-arrow-right ml-2"></i>
+                        <a href="/sign-up" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300 cta-pulse">
+                            Coba Gratis 7 Hari <i class="fas fa-arrow-right ml-2"></i>
                         </a>
+                        <a href="#screenshots" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
+                            <i class="fas fa-play-circle mr-2"></i> Lihat Demo
+                        </a>
+                    </div>
+                    <div class="mt-8 flex items-center text-sm text-orange-100">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        <span>Platform terpercaya dengan 1000+ seller Indonesia</span>
                     </div>
                 </div>
                 <div class="mt-10 md:mt-0 md:w-1/2 relative">
@@ -349,6 +401,45 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
     </section>
 
+    <!-- Benefits Section -->
+    <section class="py-16 bg-orange-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Mengapa Memilih <span class="gradient-text">Streamo</span>?</h2>
+                <p class="mt-4 text-xl text-gray-600">Platform monitoring live Shopee pertama dengan teknologi AI untuk analisis mendalam</p>
+            </div>
+
+            <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-3">
+                <div class="bg-white rounded-xl p-6 shadow-soft text-center">
+                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                    <h3 class="mt-6 text-xl font-bold text-gray-900">Tingkatkan Konversi Penjualan</h3>
+                    <p class="mt-3 text-gray-600">Rata-rata pengguna Streamo mengalami peningkatan konversi penjualan hingga 45% dalam 30 hari pertama</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-soft text-center">
+                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-orange-100 text-orange-600">
+                        <i class="fas fa-clock text-2xl"></i>
+                    </div>
+                    <h3 class="mt-6 text-xl font-bold text-gray-900">Hemat Waktu & Tenaga</h3>
+                    <p class="mt-3 text-gray-600">Monitor semua live streaming dari berbagai akun dalam satu dashboard yang terintegrasi</p>
+                </div>
+
+                <div class="bg-white rounded-xl p-6 shadow-soft text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 text-blue-600">
+                    <i class="fas fa-bolt text-2xl"></i>
+                </div>
+                <h3 class="mt-6 text-xl font-bold text-gray-900">Data Realtime</h3>
+                <p class="mt-3 text-gray-600">
+                    Pantau performa akun dan produk secara langsung dengan update data yang selalu realtime.
+                </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section id="features" class="py-20 bg-gradient-to-b from-white to-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -360,7 +451,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
                 <!-- Feature 1 -->
                 <div class="bg-white rounded-xl shadow-soft p-6 card-hover">
-                    <div class="feature-icon bg-primary-100 text-primary-500">
+                    <div class="feature-icon bg-red-100 text-red-600">
                         <i class="fas fa-tachometer-alt text-2xl"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900">Dashboard Interaktif</h3>
@@ -433,25 +524,125 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
     </section>
 
+    <!-- Screenshots Section -->
+    <section id="screenshots" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">Lihat <span class="gradient-text">Streamo</span> dalam Aksi</h2>
+                <p class="mt-4 text-xl text-gray-600">Platform monitoring live Shopee dengan antarmuka intuitif dan fitur lengkap untuk kebutuhan bisnis Anda</p>
+            </div>
+
+            <div class="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
+                <div class="screenshot-container">
+                    <span class="platform-badge">Studio Monitoring</span>
+                    <img src="assets/img/studio-mont.jpeg" alt="Tampilan Studio Monitoring Streamo" class="w-full h-auto">
+                    <div class="screenshot-overlay">
+                        <a href="#" class="bg-white rounded-full p-4 shadow-lg">
+                            <i class="fas fa-expand text-primary-600 text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Kelola Semua Studio dari Satu Dashboard</h3>
+                    <p class="mt-4 text-gray-600">Pantau dan kelola semua aktivitas live streaming dari berbagai studio dalam satu tampilan yang terintegrasi. Dapatkan notifikasi real-time untuk setiap aktivitas penting.</p>
+                    <ul class="mt-6 space-y-3">
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Pantau multiple studio sekaligus</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Notifikasi real-time aktivitas live</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Analisis performa per studio</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
+                <div class="order-2 md:order-1">
+                    <h3 class="text-2xl font-bold text-gray-900">Analisis Mendalam Performa Produk</h3>
+                    <p class="mt-4 text-gray-600">Identifikasi produk bestseller dan peluang peningkatan dengan analisis mendalam performa produk selama live streaming. Optimalkan strategi pricing dan promosi.</p>
+                    <ul class="mt-6 space-y-3">
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Tracking performa produk real-time</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Analisis konversi dan revenue per produk</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Rekomendasi produk untuk promosi</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="screenshot-container order-1 md:order-2">
+                    <span class="platform-badge">Product Performance</span>
+                    <img src="assets/img/product-performnece.jpeg" alt="Tampilan Product Performance Streamo" class="w-full h-auto">
+                    <div class="screenshot-overlay">
+                        <a href="#" class="bg-white rounded-full p-4 shadow-lg">
+                            <i class="fas fa-expand text-primary-600 text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
+                <div class="screenshot-container">
+                    <span class="platform-badge">Payment Monitoring</span>
+                    <img src="assets/img/cek-pembyaran.jpeg" alt="Tampilan Cek Pembayaran Komisi Streamo" class="w-full h-auto">
+                    <div class="screenshot-overlay">
+                        <a href="#" class="bg-white rounded-full p-4 shadow-lg">
+                            <i class="fas fa-expand text-primary-600 text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Pantau Komisi dan Pembayaran dengan Mudah</h3>
+                    <p class="mt-4 text-gray-600">Kelola dan pantau semua pembayaran komisi affiliate dari berbagai sumber dalam satu dashboard. Ekspor laporan keuangan untuk kebutuhan accounting.</p>
+                    <ul class="mt-6 space-y-3">
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Tracking komisi real-time</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Histori pembayaran lengkap</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <span>Ekspor laporan keuangan</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Stats Section -->
     <section class="py-16 gradient-bg text-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
                 <div class="text-center">
-                    <div class="text-4xl font-bold">500+</div>
-                    <div class="mt-2 text-blue-100">Pengguna Aktif</div>
+                    <div class="text-4xl font-bold">1000+</div>
+                    <div class="mt-2 text-orange-100">Pengguna Aktif</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold">98%</div>
-                    <div class="mt-2 text-blue-100">Kepuasan Pengguna</div>
+                    <div class="mt-2 text-orange-100">Kepuasan Pengguna</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold">10K+</div>
-                    <div class="mt-2 text-blue-100">Live Terpantau</div>
+                    <div class="text-4xl font-bold">50K+</div>
+                    <div class="mt-2 text-orange-100">Live Terpantau</div>
                 </div>
                 <div class="text-center">
                     <div class="text-4xl font-bold">24/7</div>
-                    <div class="mt-2 text-blue-100">Dukungan Teknis</div>
+                    <div class="mt-2 text-orange-100">Dukungan Teknis</div>
                 </div>
             </div>
         </div>
@@ -655,103 +846,107 @@ document.addEventListener("DOMContentLoaded", function () {
     <section class="py-20 gradient-bg text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 class="text-3xl font-extrabold sm:text-4xl">Siap Meningkatkan Penjualan Live Streaming Anda?</h2>
-            <p class="mt-4 text-xl text-blue-100">Bergabung dengan ratusan seller yang telah meningkatkan penjualan hingga 45% menggunakan platform <strong>monitor live Shopee</strong> dan <strong>tools affiliate</strong> kami.</p>
+            <p class="mt-4 text-xl text-orange-100">Bergabung dengan <strong>1000+ seller</strong> yang telah meningkatkan penjualan hingga 45% menggunakan platform <strong>monitor live Shopee</strong> dan <strong>tools affiliate</strong> kami.</p>
             <div class="mt-10 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="/sign-up" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-lg shadow-sm text-primary-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300 cta-pulse">
+                    Coba Gratis 7 Hari <i class="fas fa-arrow-right ml-2"></i>
+                </a>
                 <a href="https://wa.me/6285727174825?text=Halo,%20saya%20ingin%20konsultasi%20tentang%20streamo%20monitor%20live%20Shopee" class="inline-flex items-center justify-center px-6 py-4 border border-white text-base font-medium rounded-lg text-white bg-transparent hover:bg-white hover:bg-opacity-10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition duration-300">
                     <i class="fas fa-comment-dots mr-2"></i> Hubungi via WhatsApp
                 </a>
             </div>
+            <p class="mt-6 text-sm text-orange-200">Tidak perlu kartu kredit. Dapatkan akses penuh selama 7 hari.</p>
         </div>
     </section>
     
     <footer class="bg-gray-800 text-white pt-16 pb-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
-            <!-- Logo & Deskripsi -->
-            <div class="lg:pr-4">
-                <div class="flex items-center mb-6">
-                    <img src="/assets/img/logos/favicon.png" 
-                         alt="Streamo Logo - Platform Monitor Live Shopee" 
-                         class="h-12 w-auto">
-                    <span class="text-lg font-bold ml-2">Streamo</span>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+                <!-- Logo & Deskripsi -->
+                <div class="lg:pr-4">
+                    <div class="flex items-center mb-6">
+                        <img src="assets/img/logos/favicon.png" 
+                             alt="Streamo Logo - Platform Monitor Live Shopee" 
+                             class="h-12 w-auto">
+                        <span class="text-lg font-bold ml-2">Streamo</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        Platform <strong>monitoring live Shopee</strong> terdepan dengan fitur lengkap 
+                        untuk meningkatkan penjualan Anda. Dilengkapi dengan <strong>tools affiliate</strong>
+                        terbaik untuk optimasi performa.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <i class="fab fa-facebook-f text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <i class="fab fa-twitter text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <i class="fab fa-instagram text-lg"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
+                            <i class="fab fa-linkedin-in text-lg"></i>
+                        </a>
+                    </div>
                 </div>
-                <p class="text-gray-400 mb-6 leading-relaxed">
-                    Platform <strong>monitoring live Shopee</strong> terdepan dengan fitur lengkap 
-                    untuk meningkatkan penjualan Anda. Dilengkapi dengan <strong>tools affiliate</strong>
-                    terbaik untuk optimasi performa.
-                </p>
-                <div class="flex space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
-                        <i class="fab fa-facebook-f text-lg"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
-                        <i class="fab fa-twitter text-lg"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
-                        <i class="fab fa-instagram text-lg"></i>
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-white transition duration-300 transform hover:scale-110">
-                        <i class="fab fa-linkedin-in text-lg"></i>
-                    </a>
+
+                <!-- Fitur -->
+                <div>
+                    <h3 class="text-lg font-bold mb-6">Fitur</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Dashboard</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Management Akun</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Monitoring Live</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Histori Pembayaran</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Analytics</a></li>
+                    </ul>
+                </div>
+
+                <!-- Dukungan Pelanggan -->
+                <div class="lg:col-span-1">
+                    <h3 class="text-lg font-bold mb-6">Dukungan Pelanggan</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                            <span class="text-gray-400">indosofhouse@gmail.com</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                            <span class="text-gray-400">+62 857-2717-4825</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
+                            <span class="text-gray-400">
+                                Jl. Raya Petunjungan No.4000, Petunjungan, 
+                                Kec. Bulakamba, Kabupaten Brebes, 
+                                Jawa Tengah 52253
+                            </span>
+                        </li>
+                    </ul>
                 </div>
             </div>
 
-            <!-- Fitur -->
-            <div>
-                <h3 class="text-lg font-bold mb-6">Fitur</h3>
-                <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Dashboard</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Management Akun</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Monitoring Live</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Histori Pembayaran</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-white transition duration-300 block py-1">Analytics</a></li>
-                </ul>
-            </div>
-
-            <!-- Dukungan Pelanggan -->
-            <div class="lg:col-span-1">
-                <h3 class="text-lg font-bold mb-6">Dukungan Pelanggan</h3>
-                <ul class="space-y-4">
-                    <li class="flex items-start">
-                        <i class="fas fa-envelope text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
-                        <span class="text-gray-400">indosofhouse@gmail.com</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-phone-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
-                        <span class="text-gray-400">+62 857-2717-4825</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-map-marker-alt text-primary-500 mr-3 mt-1 flex-shrink-0"></i>
-                        <span class="text-gray-400">
-                            Jl. Raya Petunjungan No.4000, Petunjungan, 
-                            Kec. Bulakamba, Kabupaten Brebes, 
-                            Jawa Tengah 52253
-                        </span>
-                    </li>
-                </ul>
+            <!-- Copyright -->
+            <div class="border-t border-gray-700 mt-12 pt-8">
+                <div class="flex flex-col md:flex-row justify-center items-center">
+                    <p class="text-slate-400 text-sm mb-4 md:mb-0 text-center md:text-left">
+                        Copyright © <script>document.write(new Date().getFullYear());</script>
+                        <a href="https://streamo.id" class="font-semibold text-streamo-gradient hover:underline ml-1">Streamo</a>.
+                        A product of 
+                        <a href="https://indosofthouse.com" target="_blank" class="font-semibold text-slate-400 hover:text-white ml-1">
+                            IndoSoftHouse
+                        </a>
+                    </p>
+                    <a href="https://indosofthouse.com" target="_blank">
+                        <img src="assets/img/logos/logo-indosofthouse.png" 
+                             alt="IndoSoftHouse - Developer Platform Monitor Live Shopee" 
+                             class="h-6 w-auto ml-2">
+                    </a>
+                </div>
             </div>
         </div>
-
-        <!-- Copyright -->
-        <div class="border-t border-gray-700 mt-12 pt-8">
-            <div class="flex flex-col md:flex-row justify-center items-center">
-                <p class="text-slate-400 text-sm mb-4 md:mb-0 text-center md:text-left">
-                    Copyright © <script>document.write(new Date().getFullYear());</script>
-                    <a href="https://streamo.id" class="font-semibold text-streamo-gradient hover:underline ml-1">Streamo</a>.
-                    A product of 
-                    <a href="https://indosofthouse.com" target="_blank" class="font-semibold text-slate-400 hover:text-white ml-1">
-                        IndoSoftHouse
-                    </a>
-                </p>
-                <a href="https://indosofthouse.com" target="_blank">
-                    <img src="/assets/img/logos/logo-indosofthouse.png" 
-                         alt="IndoSoftHouse - Developer Platform Monitor Live Shopee" 
-                         class="h-6 w-auto">
-                </a>
-            </div>
-        </div>
-    </div>
-</footer>
+    </footer>
 
     <script>
         // Fetch subscription plans from API
