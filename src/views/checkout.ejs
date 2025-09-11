@@ -581,32 +581,47 @@
             };
         }
 
-        // Fungsi untuk memproses pembayaran
-        function processPayment() {
-            const selectedMethod = document.querySelector('.payment-method.border-primary-500');
-            if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
+function processPayment() {
+    const selectedMethod = document.querySelector('.payment-method.border-primary-500');
+    if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
 
-            const paymentMethod = selectedMethod.dataset.method;
-            
-            // Membuat URL dengan parameter yang diperlukan
-            const url = `/subscription/buy/${subscription.subscriptionId}?method=${paymentMethod}&price=${subscription.price}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
+    const paymentMethod = selectedMethod.dataset.method;
+    
+    // Debug: cek data subscription
+    console.log('Subscription object:', subscription);
+    console.log('Subscription ID:', subscription.id);
+    
+    // Gunakan ID yang benar
+    const subscriptionId = subscription.id || subscription.subscriptionId || subscription._id;
+    
+    if (!subscriptionId) {
+        showNotification('ID subscription tidak ditemukan', 'error');
+        return;
+    }
+    
+    // Membuat URL dengan parameter yang diperlukan
+    const url = `/subscription/buy/${subscriptionId}?method=${paymentMethod}&price=${subscription.price}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
 
-            fetch(url, {
-                method: "POST"
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.paymentUrl) {
-                    window.location.href = data.paymentUrl; // redirect manual ke Duitku
-                } else {
-                    showNotification(data.message || "Gagal membuat transaksi", 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showNotification("Gagal membuat transaksi", 'error');
-            });
+    fetch(url, {
+        method: "POST"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.paymentUrl) {
+            // Redirect ke payment gateway untuk pembayaran berbayar
+            window.location.href = data.paymentUrl;
+        } else if (data.redirect) {
+            // Redirect ke halaman thank-you-free untuk pembayaran gratis
+            window.location.href = data.redirect;
+        } else {
+            showNotification(data.message || "Gagal membuat transaksi", 'error');
         }
+    })
+    .catch(err => {
+        console.error(err);
+        showNotification("Gagal membuat transaksi", 'error');
+    });
+}
 
         // Fungsi untuk menangani pembayaran
         function handlePayment() {

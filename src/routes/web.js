@@ -328,6 +328,15 @@ router.get("/", (req, res) => {
   });
 });
 
+router.get("/thank-you-free", (req, res) => {
+  // Cek apakah ada user yang login di session
+  const user = req.session.user || null;
+
+  res.render("thank-you-free", {
+    user: user, // kirimkan ke view
+  });
+});
+
 router.get("/pilih-subcribtion", (req, res) => {
   // Cek apakah ada user yang login di session
   const user = req.session.user || null;

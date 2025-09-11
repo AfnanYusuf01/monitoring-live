@@ -557,44 +557,90 @@ export const createOrder = async (req, res) => {
           status: "active", // Langsung aktif
           limitAkun: subscription.limitAkun || 0,
         },
+        include: {
+          user: true,
+          subscription: true,
+        },
       });
 
-      // Buat Order dengan status paid - PASTIKAN amount TIDAK NULL
+      // Buat Order dengan status paid
       const orderId = "TRX-" + Date.now();
       const order = await prisma.order.create({
         data: {
           userSubscriptionId: userSub.id,
-          amount: 0, // Pastikan 0, bukan null
+          amount: 0, // Pastikan 0
           status: "paid", // Langsung paid
           paymentMethod: "free",
           transactionId: orderId,
-          affiliateId: affiliateId, // Tetap gunakan affiliateId jika ada
+          affiliateId: affiliateId || null,
         },
       });
 
-      // Jika ada affiliate, buat juga affiliate order (walaupun harga 0)
+      // Jika ada affiliate, buat affiliate order
       if (affiliateId) {
-        const komisiAmount = 0; // Pastikan 0 karena harga 0
-
         await prisma.affiliateOrder.create({
           data: {
             affiliateId: affiliateId,
             orderId: order.id,
-            komisi: komisiAmount, // Akan menjadi 0 karena harga 0
-            status: "approved", // Langsung approved untuk free order
+            komisi: 0,
+            status: "approved",
           },
         });
-
-        console.log("💰 Affiliate order dibuat dengan komisi:", komisiAmount);
+        console.log("💰 Affiliate order dibuat (free, komisi 0)");
       }
 
       console.log("✅ Free subscription berhasil dibuat");
 
-      // Redirect langsung ke thank you page
-      return res.redirect(
-        `/thank-you?merchantOrderId=${orderId}&resultCode=00&reference=FREE_SUBSCRIPTION`
-      );
+      // === Kirim email konfirmasi free subscription ===
+      try {
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT),
+          secure: process.env.SMTP_SECURE === "true",
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        });
+
+        const appUrl = process.env.APP_URL || "https://monitor.kol-kit.my.id/";
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM,
+          to: userSub.user.email,
+          subject: "Berhasil Mendapatkan Free Subscription",
+          html: `
+            <p>Halo ${userSub.user.name || "Customer"},</p>
+            <p>Anda telah berhasil mendapatkan paket gratis <strong>${
+              userSub.subscription.name
+            }</strong>.</p>
+            <p>Subscription Anda sekarang aktif dan dapat digunakan.</p>
+            
+            <p><strong>Link Akses Aplikasi:</strong></p>
+            <p><a href="${appUrl}/login" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Login ke Aplikasi</a></p>
+            
+            <p>Atau salin link berikut di browser Anda:</p>
+            <p>${appUrl}/login</p>
+            
+            <p>Terima kasih telah bergabung!</p>
+            <br>
+            <p>Hormat kami,<br>Tim Support</p>
+          `,
+        });
+        console.log("📧 Email sukses terkirim (free subscription)");
+      } catch (mailErr) {
+        console.error("❌ Gagal kirim email free subscription:", mailErr.message);
+      }
+
+      // === Render halaman thank-you-free (bukan redirect) ===
+      return res.json({
+        success: true,
+        redirect: "/thank-you-free",
+        orderId,
+        subscription: userSub.subscription,
+      });
     }
+
 
     // ✅ CEK: Jika subscription duration = 0 (paket tambahan akun)
     if (subscription.duration === 0) {

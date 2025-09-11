@@ -531,24 +531,59 @@ export const importAkunFromCSV = async (req, res) => {
       return res.status(400).json({error: "Tidak ada cookie yang ditemukan dalam file CSV"});
     }
 
-    // Cek subscription aktif
+    // Cek dan update subscription status sebelum pengecekan
     const now = new Date();
-    const activeSub = await prisma.userSubscription.findFirst({
-      where: {userId, status: "active", endDate: {gt: now}},
+    
+    // Ambil semua user subscriptions
+    const userSubs = await prisma.userSubscription.findMany({
+      where: {userId},
+      include: {subscription: true},
       orderBy: {endDate: "desc"},
     });
 
-    if (!activeSub) {
+    // Update status subscriptions yang sudah expired
+    if (userSubs && userSubs.length > 0) {
+      const expiredSubs = userSubs.filter(
+        (sub) => sub.status === "active" && sub.endDate <= now
+      );
+
+      if (expiredSubs.length > 0) {
+        await prisma.userSubscription.updateMany({
+          where: {
+            id: {in: expiredSubs.map((sub) => sub.id)},
+          },
+          data: {status: "expired"},
+        });
+        console.log(`Updated ${expiredSubs.length} expired subscriptions`);
+      }
+    }
+
+    // Ambil subscriptions yang masih active setelah update
+    const activeSubs = await prisma.userSubscription.findMany({
+      where: {
+        userId,
+        status: "active",
+        endDate: {gt: now}
+      },
+      orderBy: {endDate: "desc"},
+    });
+
+    if (!activeSubs || activeSubs.length === 0) {
       return res.status(403).json({
         message: "Tidak ada paket aktif. Tidak bisa menambahkan akun.",
       });
     }
 
-    const limitAkun = activeSub.limitAkun;
+    // Hitung total limitAkun dari semua subscriptions aktif
+    const totalLimitAkun = activeSubs.reduce((total, sub) => {
+      return total + (sub.limitAkun || 0);
+    }, 0);
+
     const currentAccountsCount = await prisma.akun.count({
       where: {userId, deletedAt: null},
     });
-    const remainingSlots = limitAkun - currentAccountsCount;
+    
+    const remainingSlots = totalLimitAkun - currentAccountsCount;
 
     if (remainingSlots <= 0) {
       return res.status(403).json({
@@ -608,16 +643,30 @@ export const importAkunFromCSV = async (req, res) => {
           email = profileData.email || null;
           phone = profileData.phone || null;
           
-          // ✅ Gunakan user_id dari Shopee jika tersedia, jika tidak gunakan timestamp yang unik
+          // Gunakan user_id dari Shopee jika tersedia, jika tidak gunakan timestamp yang unik
           akunId = profileData.user_id ? BigInt(profileData.user_id) : BigInt(Date.now() + index);
+        }
+
+        // Cek apakah akun dengan ID yang sama sudah ada
+        const existingAccount = await prisma.akun.findUnique({
+          where: { id: akunId },
+        });
+
+        if (existingAccount) {
+          failedCount++;
+          failedRows.push({
+            row: index + 2,
+            reason: "Akun dengan ID ini sudah ada"
+          });
+          continue;
         }
 
         await prisma.akun.create({
           data: {
-            id: akunId, // ✅ Gunakan ID yang sudah ditentukan (BigInt)
+            id: akunId,
             nama_akun,
-            email,
-            phone,
+            email, // Boleh null dan boleh duplicate
+            phone, // Boleh null dan boleh duplicate
             cookie,
             userId: userId,
           },
@@ -634,12 +683,9 @@ export const importAkunFromCSV = async (req, res) => {
         let reason = "Error tidak diketahui";
 
         if (err.code === "P2002") {
+          // Hanya handle duplicate primary key (id)
           const target = err.meta?.target;
-          if (target?.includes("email")) {
-            reason = "Email sudah digunakan";
-          } else if (target?.includes("phone")) {
-            reason = "Nomor telepon sudah digunakan";
-          } else if (target?.includes("PRIMARY")) {
+          if (target?.includes("PRIMARY")) {
             reason = "Akun dengan ID ini sudah ada";
           } else {
             reason = "Data duplikat";
@@ -657,7 +703,7 @@ export const importAkunFromCSV = async (req, res) => {
       totalImported: createdCount,
       totalFailed: failedCount,
       failedRows: failedRows,
-      remainingSlots: limitAkun - currentAccountsCount - createdCount,
+      remainingSlots: totalLimitAkun - currentAccountsCount - createdCount,
     });
   } catch (err) {
     console.error("Gagal mengimpor CSV:", err);

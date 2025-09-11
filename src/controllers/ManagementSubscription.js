@@ -140,14 +140,14 @@ export async function showSubscription(req, res) {
 // Create new subscription
 export async function storeSubscription(req, res) {
   try {
-    const {name, description, price, duration, limitAkun, komisi} = req.body;
+    const {name, description, price, duration, limitAkun, komisi, is_custom} = req.body;
 
-    if (!name || !price || !duration) {
-      return res.status(400).json({
-        status: "error",
-        message: "Name, price and duration are required",
-      });
-    }
+    // if (!name || !price || !duration) {
+    //   return res.status(400).json({
+    //     status: "error",
+    //     message: "Name, price and duration are required",
+    //   });
+    // }
 
     const subscription = await prisma.subscription.create({
       data: {
@@ -156,7 +156,8 @@ export async function storeSubscription(req, res) {
         price: parseFloat(price),
         duration: parseInt(duration),
         limitAkun: limitAkun ? parseInt(limitAkun) : 1,
-        komisi: komisi !== undefined ? parseFloat(komisi) : 0, // Ditambahkan
+        komisi: komisi !== undefined ? parseFloat(komisi) : 0,
+        is_custom: is_custom !== undefined ? Boolean(is_custom) : false,
       },
     });
 
@@ -179,7 +180,7 @@ export async function storeSubscription(req, res) {
 export async function updateSubscription(req, res) {
   try {
     const {id} = req.params;
-    const {name, description, price, duration, limitAkun, komisi} = req.body;
+    const {name, description, price, duration, limitAkun, komisi, is_custom} = req.body;
 
     const subscription = await prisma.subscription.update({
       where: {id: parseInt(id)},
@@ -189,7 +190,8 @@ export async function updateSubscription(req, res) {
         price: price !== undefined ? parseFloat(price) : undefined,
         duration: duration !== undefined ? parseInt(duration) : undefined,
         limitAkun: limitAkun !== undefined ? parseInt(limitAkun) : undefined,
-        komisi: komisi !== undefined ? parseFloat(komisi) : undefined, // Ditambahkan
+        komisi: komisi !== undefined ? parseFloat(komisi) : undefined,
+        is_custom: is_custom !== undefined ? Boolean(is_custom) : undefined,
       },
     });
 

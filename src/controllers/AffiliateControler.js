@@ -233,23 +233,24 @@ export const renderAffiliateManagement = async (req, res) => {
       orderBy: { createdAt: "desc" }
     });
 
-    // Hitung komisi yang benar untuk setiap affiliate order
+    // Hitung komisi untuk setiap affiliate order
     const affiliateOrdersWithCalculatedKomisi = affiliateOrders.map(order => {
       let calculatedKomisi = 0;
-      
-      // Hitung komisi berdasarkan rumus: priceSubscription * komisiSubscription
+
+      // Rumus: order.amount * subscription.komisi
       if (order.order && order.order.userSubscription && order.order.userSubscription.subscription) {
-        const subscription = order.order.userSubscription.subscription;
-        calculatedKomisi = subscription.price * subscription.komisi;
+        const orderAmount = order.order.amount || 0;
+        const subscriptionKomisi = order.order.userSubscription.subscription.komisi || 0;
+        calculatedKomisi = orderAmount * subscriptionKomisi;
       }
-      
+
       return {
         ...order,
-        calculatedKomisi // Tambahkan field komisi yang sudah dihitung dengan benar
+        calculatedKomisi
       };
     });
 
-    // Ambil juga data affiliates untuk bagian lain dari halaman
+    // Ambil data affiliates
     const affiliates = await prisma.affiliate.findMany({
       include: {
         user: {
@@ -279,27 +280,33 @@ export const renderAffiliateManagement = async (req, res) => {
 
     // Hitung total komisi untuk setiap affiliate
     const affiliatesWithCalculatedKomisi = affiliates.map(affiliate => {
-      // Hitung total komisi (semua affiliate orders)
+      // Total komisi (semua orders)
       const totalKomisi = affiliate.affiliateOrders.reduce((total, affiliateOrder) => {
         if (affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
-          const subscription = affiliateOrder.order.userSubscription.subscription;
-          return total + (subscription.price * subscription.komisi);
+          const orderAmount = affiliateOrder.order.amount || 0;
+          const subscriptionKomisi = affiliateOrder.order.userSubscription.subscription.komisi || 0;
+          return total + orderAmount * subscriptionKomisi;
         }
         return total;
       }, 0);
-      
-      // Hitung total yang sudah dibayar (hanya affiliate orders dengan status 'paid')
+
+      // Total dibayar (status = 'paid')
       const totalDibayar = affiliate.affiliateOrders.reduce((total, affiliateOrder) => {
-        if (affiliateOrder.status === 'paid' && affiliateOrder.order && affiliateOrder.order.userSubscription && affiliateOrder.order.userSubscription.subscription) {
-          const subscription = affiliateOrder.order.userSubscription.subscription;
-          return total + (subscription.price * subscription.komisi);
+        if (
+          affiliateOrder.status === 'paid' &&
+          affiliateOrder.order &&
+          affiliateOrder.order.userSubscription &&
+          affiliateOrder.order.userSubscription.subscription
+        ) {
+          const orderAmount = affiliateOrder.order.amount || 0;
+          const subscriptionKomisi = affiliateOrder.order.userSubscription.subscription.komisi || 0;
+          return total + orderAmount * subscriptionKomisi;
         }
         return total;
       }, 0);
-      
-      // Hitung komisi yang belum dibayar
+
       const komisiBelumDibayar = totalKomisi - totalDibayar;
-      
+
       return {
         ...affiliate,
         totalKomisi,

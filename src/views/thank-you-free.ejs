@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terima Kasih | Free Trial Aktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        :root {
+            --color-primary: #0ea5e9;
+            --color-primary-dark: #0369a1;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .logo-text {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Header with logo -->
+    <div class="absolute top-6 left-6">
+        <div class="flex items-center">
+            <div class="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center shadow-md">
+                <i class="fas fa-credit-card text-white text-lg"></i>
+            </div>
+            <span class="ml-3 text-xl font-bold logo-text">PaySystem</span>
+        </div>
+    </div>
+    
+    <div class="max-w-md w-full space-y-6 animate-fade-in">
+        <div class="bg-white card p-8">
+            <div class="text-center">
+                <!-- Status Icon for Free Trial -->
+                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-primary-100 mb-6">
+                    <svg class="h-12 w-12 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">
+                    Terima Kasih Telah Bergabung!
+                </h1>
+                
+                <p class="text-gray-600 mb-6">
+                    Free trial Anda telah aktif. Nikmati semua fitur premium kami.
+                </p>
+                
+                <!-- Status Message -->
+                <div class="mt-4 p-4 rounded-lg border-l-4 bg-primary-50 border-primary-500 mb-6">
+                    <p class="text-primary-700 font-medium text-sm">
+                        Selamat! Akun Anda sudah aktif dan siap digunakan.
+                    </p>
+                </div>
+                
+                <!-- Package Features -->
+                <div class="bg-gray-50 p-5 rounded-lg mb-6">
+                    <h3 class="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wide">Fitur yang Anda Dapatkan</h3>
+                    <ul class="text-sm text-gray-700 space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                            Akses monitoring live stream
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                            Laporan performa lengkap
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                            Analitik real-time
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check-circle text-primary-600 mr-2"></i>
+                            Dukungan prioritas
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Action Button -->
+                <div class="mt-8">
+                    <a href="/dashboard" class="btn-primary w-full inline-flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                        <i class="fa-solid fa-arrow-right mr-2"></i> Mulai Jelajahi Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center">
+            <p class="text-xs text-gray-500">Butuh bantuan? <a href="https://wa.me/6285727174825?text=Halo,%20saya%20pengguna%20free%20trial%20dan%20membutuhkan%20bantuan" class="text-primary-600 hover:text-primary-700 font-medium">Hubungi dukungan pelanggan</a></p>
+            <p class="text-xs text-gray-400 mt-1">© 2025 Streamo. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
