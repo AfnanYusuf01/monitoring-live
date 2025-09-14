@@ -5,9 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pilih Paket Subscription - Streamo</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="assets/img/logos/favicon.ico" type="image/x-icon" sizes="96x96">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-blue: rgb(40, 157, 237);
+            --primary-orange: rgb(251, 174, 46);
+            --primary-teal: rgb(66, 209, 207);
+            --blue-light: rgba(40, 157, 237, 0.1);
+            --orange-light: rgba(251, 174, 46, 0.1);
+            --teal-light: rgba(66, 209, 207, 0.1);
+        }
+        
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fc;
@@ -15,10 +25,18 @@
         }
         
         .gradient-text {
-            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
+        }
+        
+        .gradient-bg-orange {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-teal) 100%);
         }
         
         .pricing-card {
@@ -29,11 +47,11 @@
         
         .pricing-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(40, 157, 237, 0.15);
         }
         
         .popular-plan {
-            border: 2px solid #e53e3e;
+            border: 2px solid var(--primary-blue);
             position: relative;
         }
         
@@ -41,7 +59,7 @@
             position: absolute;
             top: -12px;
             right: 20px;
-            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
@@ -57,6 +75,21 @@
             height: 40px;
             border-radius: 10px;
             margin-bottom: 1rem;
+        }
+        
+        .feature-icon.blue {
+            background-color: var(--blue-light);
+            color: var(--primary-blue);
+        }
+        
+        .feature-icon.orange {
+            background-color: var(--orange-light);
+            color: var(--primary-orange);
+        }
+        
+        .feature-icon.teal {
+            background-color: var(--teal-light);
+            color: var(--primary-teal);
         }
         
         .radio-card {
@@ -84,8 +117,8 @@
         }
         
         .radio-card input[type="radio"]:checked ~ .checkmark {
-            border-color: #e53e3e;
-            background-color: #e53e3e;
+            border-color: var(--primary-blue);
+            background-color: var(--primary-blue);
         }
         
         .radio-card input[type="radio"]:checked ~ .checkmark:after {
@@ -101,23 +134,36 @@
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-teal) 100%);
             transition: all 0.3s;
         }
         
         .btn-primary:hover {
             opacity: 0.9;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 157, 237, 0.2);
+        }
+        
+        .btn-orange {
+            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-teal) 100%);
+            transition: all 0.3s;
+        }
+        
+        .btn-orange:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 174, 46, 0.2);
         }
         
         .btn-free {
-            background: #10b981;
+            background: var(--primary-teal);
             transition: all 0.3s;
         }
         
         .btn-free:hover {
             opacity: 0.9;
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 209, 207, 0.2);
         }
         
         .tab-content {
@@ -139,7 +185,35 @@
         }
         
         .input-stepper button:hover {
-            background-color: #cbd5e0;
+            background-color: var(--blue-light);
+        }
+        
+        .border-custom {
+            border-color: var(--primary-blue);
+        }
+        
+        .text-primary-blue {
+            color: var(--primary-blue);
+        }
+        
+        .text-primary-orange {
+            color: var(--primary-orange);
+        }
+        
+        .text-primary-teal {
+            color: var(--primary-teal);
+        }
+        
+        .bg-blue-light {
+            background-color: var(--blue-light);
+        }
+        
+        .bg-orange-light {
+            background-color: var(--orange-light);
+        }
+        
+        .bg-teal-light {
+            background-color: var(--teal-light);
         }
     </style>
 </head>
@@ -151,7 +225,7 @@
                 <img src="assets/img/logos/favicon.png" 
                     alt="Streamo Logo" 
                     class="h-10 w-auto">
-                <span class="ml-3 text-xl font-bold text-gray-900">Streamo</span>
+                <span class="ml-3 text-xl font-bold text-primary-blue"></span>
             </div>
             
             <div class="text-center max-w-3xl mx-auto">
@@ -231,17 +305,17 @@
                         </div>
                         
                         <div>
-                            <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                            <div class="bg-blue-light p-5 rounded-lg border border-custom">
                                 <h4 class="text-lg font-medium text-gray-900 mb-4">Ringkasan Paket Custom</h4>
                                 
                                 <div class="flex justify-between mb-2">
                                     <span class="text-gray-600">Jumlah Akun:</span>
-                                    <span id="summary-account" class="font-medium">1</span>
+                                    <span id="summary-account" class="font-medium text-primary-blue">1</span>
                                 </div>
                                 
                                 <div class="flex justify-between mb-2">
                                     <span class="text-gray-600">Durasi:</span>
-                                    <span id="summary-duration" class="font-medium">1 bulan</span>
+                                    <span id="summary-duration" class="font-medium text-primary-blue">1 bulan</span>
                                 </div>
                                 
                                 <div class="border-t border-gray-300 my-4 pt-4">
@@ -267,7 +341,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <div class="flex justify-center items-center mb-5">
-                    <img src="assets/img/logos/favicon.png" 
+                    <img src="assets/img/logos/STREAMO_LOGO_WHITE.png" 
                         alt="Streamo Logo" 
                         class="h-10 w-auto">
                     <span class="text-lg font-bold ml-2">Streamo</span>
@@ -291,7 +365,7 @@
             <div class="border-t border-gray-700 mt-10 pt-6 text-center">
                 <p class="text-slate-400 text-sm">
                     Copyright © <script>document.write(new Date().getFullYear());</script>
-                    <a href="/" class="font-semibold text-red-500 hover:underline ml-1">Streamo</a>.
+                    <a href="/" class="font-semibold text-primary-teal hover:underline ml-1">Streamo</a>.
                     A product of 
                     <a href="https://indosofthouse.com" target="_blank" class="font-semibold text-slate-400 hover:text-white ml-1">
                         IndoSoftHouse
@@ -357,19 +431,19 @@
                                     </div>
                                     <ul class="mt-5 space-y-3">
                                         <li class="flex items-center">
-                                            <div class="feature-icon bg-green-100 text-green-600">
+                                            <div class="feature-icon blue">
                                                 <i class="fas fa-user-circle"></i>
                                             </div>
                                             <span class="ml-3 text-gray-600">Limit Akun: ${plan.limitAkun === 999 ? 'Unlimited' : plan.limitAkun}</span>
                                         </li>
                                         <li class="flex items-center">
-                                            <div class="feature-icon bg-blue-100 text-blue-600">
+                                            <div class="feature-icon teal">
                                                 <i class="fas fa-sync-alt"></i>
                                             </div>
                                             <span class="ml-3 text-gray-600">Update Berkala</span>
                                         </li>
                                         <li class="flex items-center">
-                                            <div class="feature-icon bg-purple-100 text-purple-600">
+                                            <div class="feature-icon orange">
                                                 <i class="fas fa-headset"></i>
                                             </div>
                                             <span class="ml-3 text-gray-600">Support 24/7</span>
@@ -401,19 +475,19 @@
                                 </div>
                                 <ul class="mt-5 space-y-3">
                                     <li class="flex items-center">
-                                        <div class="feature-icon bg-green-100 text-green-600">
+                                        <div class="feature-icon blue">
                                             <i class="fas fa-user-circle"></i>
                                         </div>
                                         <span class="ml-3 text-gray-600">Limit Akun: 1</span>
                                     </li>
                                     <li class="flex items-center">
-                                        <div class="feature-icon bg-blue-100 text-blue-600">
+                                        <div class="feature-icon teal">
                                             <i class="fas fa-sync-alt"></i>
                                         </div>
                                         <span class="ml-3 text-gray-600">Update Berkala</span>
                                     </li>
                                     <li class="flex items-center">
-                                        <div class="feature-icon bg-purple-100 text-purple-600">
+                                        <div class="feature-icon orange">
                                             <i class="fas fa-headset"></i>
                                         </div>
                                         <span class="ml-3 text-gray-600">Support 24/7</span>

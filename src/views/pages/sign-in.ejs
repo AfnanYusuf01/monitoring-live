@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="icon" href="assets/img/logos/favicon.ico" type="image/png" sizes="96x96">
+    <link rel="icon" href="assets/img/logos/favicon.ico" type="image/x-icon" sizes="96x96">
     <title>Streamo - Login</title>
     <!-- Fonts and icons -->
     <link
@@ -67,6 +67,16 @@
                     </h3>
                     <p class="mb-0 text-center">Enter your email and password to sign in</p>
                   </div>
+                  
+                  <!-- Tombol Kembali ke Dashboard -->
+                  <div class="text-center mb-4 mt-2">
+                    <a href="/dashboard" 
+                       class="inline-block px-5 py-2 text-xs font-bold text-center text-streamo-gradient uppercase align-middle transition-all border border-solid rounded-lg cursor-pointer hover:scale-102 hover:shadow-soft-xs active:opacity-85"
+                       style="border-color: #667eea;">
+                      <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                  </div>
+                  
                   <div class="flex-auto p-6">
                     <form role="form" action="/login" method="POST">
                       <label class="mb-2 ml-1 font-bold text-xs text-slate-700">Email</label>
