@@ -134,8 +134,22 @@
         </a>
       </li>
 
-      <!-- Performance -->
+      <!-- Tutorial -->
       <li class="mt-1 w-full">
+        <a class="py-3 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors rounded-lg <%= navbar === 'Tutorial' ? 'bg-gradient-to-r from-blue-600 to-purple-600 font-semibold text-white shadow-md' : 'text-slate-600 hover:bg-slate-100' %>" href="/tutorial">
+          <div class="shadow-soft-2xl mr-3 flex h-7 w-7 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center <%= navbar === 'Tutorial' ? 'bg-gradient-to-tl from-white to-slate-50 text-blue-600' : 'text-slate-600' %>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <title>Tutorial</title>
+              <path d="M12 4.5C9.5 3 6.5 2 3 2v20c3.5 0 6.5 1 9 2 2.5-1 5.5-2 9-2V2c-3.5 0-6.5 1-9 2.5zM11 20c-2-.7-4-1.1-6-1.2V5.1c2 .2 4 .7 6 1.6v13.3zm8-1.2c-2 .1-4 .5-6 1.2V6.7c2-.9 4-1.4 6-1.6v14.7z"/>
+            </svg>
+          </div>
+          <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Tutorial</span>
+        </a>
+      </li>
+
+
+      <!-- Performance -->
+      <!-- <li class="mt-1 w-full">
         <a class="py-3 text-sm ease-nav-brand my-0 mx-4 flex items-center whitespace-nowrap px-4 transition-colors rounded-lg <%= navbar === 'Performance' ? 'bg-gradient-to-r from-blue-600 to-purple-600 font-semibold text-white shadow-md' : 'text-slate-600 hover:bg-slate-100' %>" href="/performance">
           <div class="shadow-soft-2xl mr-3 flex h-7 w-7 items-center justify-center rounded-lg bg-white bg-center stroke-0 text-center <%= navbar === 'Performance' ? 'bg-gradient-to-tl from-white to-slate-50 text-blue-600' : 'text-slate-600' %>">
             <svg width="14px" height="14px" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -145,7 +159,7 @@
           </div>
           <span class="ml-1 duration-300 opacity-100 pointer-events-none ease-soft">Performance</span>
         </a>
-      </li>
+      </li> -->
 
       <% if (currentUser.role === 'superadmin') { %>
       <!-- Account pages section -->

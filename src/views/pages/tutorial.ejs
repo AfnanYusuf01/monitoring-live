@@ -1,0 +1,75 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Panduan Penggunaan Platform</h1>
+      <p class="text-lg text-gray-600">Pelajari cara menggunakan fitur-fitur utama dengan video tutorial berikut</p>
+    </div>
+
+    <!-- Video Container -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+      <div class="aspect-w-16 aspect-h-9">
+        <iframe 
+          src="https://www.youtube.com/embed/g0c7FeMn5lE" 
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen
+          class="w-full h-full">
+        </iframe>
+      </div>
+    </div>
+
+    <!-- Video Info -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Cara Menggunakan Dashboard Monitoring</h2>
+      <p class="text-gray-600 mb-4">
+        Video ini akan memandu Anda melalui fitur-fitur utama dashboard monitoring studio, termasuk cara memantau aktivitas live, menganalisis data performa, dan mengoptimalkan penggunaan platform.
+      </p>
+      
+      <div class="flex items-center text-sm text-gray-500">
+        <span class="mr-4">Durasi: 15:32</span>
+        <span>Ditambahkan pada: 20 November 2023</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-8 flex justify-center space-x-4">
+      <a href="/dashboard" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Kembali ke Dashboard
+      </a>
+      
+      <button class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        Unduh Panduan PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .aspect-w-16 {
+    position: relative;
+  }
+  
+  .aspect-w-16::before {
+    content: "";
+    display: block;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .aspect-w-16 iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>
