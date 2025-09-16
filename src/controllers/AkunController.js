@@ -892,7 +892,7 @@ export const checkCookieStatusEndpoint = async (req, res) => {
 
 export const createAkunViaAPI = async (req, res) => {
   const { cookie } = req.body;
-  const accessToken = req.headers['access-token'] || req.headers['authorization'];
+  const accessToken = req.headers['access_token'] || req.headers['authorization'];
 
   if (!accessToken) {
     return res.status(401).json({ error: "Access token required" });
