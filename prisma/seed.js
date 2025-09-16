@@ -5,7 +5,7 @@ import { faker } from "@faker-js/faker";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🚀 Starting extensive seed...");
+  console.log("🚀 Starting simplified seed...");
 
   // Hapus data existing
   console.log("🧹 Cleaning existing data...");
@@ -24,73 +24,90 @@ async function main() {
   const password = await bcrypt.hash("password123", 10);
   const adminPassword = await bcrypt.hash("admin123", 10);
 
-  // 1️⃣ Buat users
+  // 1️⃣ Buat users (hanya 3 user)
   console.log("👥 Creating users...");
   const users = [];
-  for (let i = 1; i <= 10; i++) {
-    const user = await prisma.user.create({
-      data: {
-        email: i === 1 ? "admin@example.com" : `user${i}@example.com`,
-        password: i === 1 ? adminPassword : password,
-        name: i === 1 ? "Administrator" : faker.person.fullName(),
-        nomor_wa: faker.phone.number(),
-        role: i === 1 ? "superadmin" : "user",
-        isAffiliate: i % 3 === 0,
-      },
-    });
-    users.push(user);
-  }
+  
+  // Admin user
+  const admin = await prisma.user.create({
+    data: {
+      email: "admin@example.com",
+      password: adminPassword,
+      name: "Administrator",
+      nomor_wa: faker.phone.number(),
+      role: "superadmin",
+      isAffiliate: false,
+    },
+  });
+  users.push(admin);
+  
+  // Regular user
+  const user = await prisma.user.create({
+    data: {
+      email: "user@example.com",
+      password: password,
+      name: "Regular User",
+      nomor_wa: faker.phone.number(),
+      role: "user",
+      isAffiliate: false,
+    },
+  });
+  users.push(user);
+  
+  // Affiliate user
+  const affiliateUser = await prisma.user.create({
+    data: {
+      email: "affiliate@example.com",
+      password: password,
+      name: "Affiliate User",
+      nomor_wa: faker.phone.number(),
+      role: "user",
+      isAffiliate: true,
+    },
+  });
+  users.push(affiliateUser);
 
-  // 2️⃣ Buat affiliates
-  console.log("💰 Creating affiliates...");
-  const affiliates = [];
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].isAffiliate) {
-      const affiliate = await prisma.affiliate.create({
-        data: {
-          userId: users[i].id,
-          komisi: faker.number.float({ min: 0, max: 1000000, precision: 0.01 }),
-          totalDibayar: faker.number.float({ min: 0, max: 500000, precision: 0.01 }),
-          metodeBayar: faker.helpers.arrayElement(["Bank Transfer", "E-Wallet", "Cash"]),
-          provider: faker.helpers.arrayElement(["BCA", "BRI", "BNI", "Mandiri", "Gopay", "OVO"]),
-          nomorTujuan: faker.finance.accountNumber(),
-          namaPemilik: users[i].name,
-        },
-      });
-      affiliates.push(affiliate);
-    }
-  }
+  // 2️⃣ Buat affiliate hanya untuk affiliate user
+  console.log("💰 Creating affiliate...");
+  const affiliate = await prisma.affiliate.create({
+    data: {
+      userId: affiliateUser.id,
+      komisi: 500000,
+      totalDibayar: 250000,
+      metodeBayar: "Bank Transfer",
+      provider: "BCA",
+      nomorTujuan: faker.finance.accountNumber(),
+      namaPemilik: affiliateUser.name,
+    },
+  });
 
-  // 3️⃣ Buat studios
+  // 3️⃣ Buat studio untuk setiap user
   console.log("🎬 Creating studios...");
   const studios = [];
   for (const user of users) {
-    const studioCount = faker.number.int({ min: 1, max: 2 });
-    for (let i = 0; i < studioCount; i++) {
-      const studio = await prisma.studio.create({
-        data: {
-          nama_studio: `${faker.company.name()} Studio`,
-          catatan: faker.lorem.sentence(),
-          userId: user.id,
-        },
-      });
-      studios.push(studio);
-    }
+    const studio = await prisma.studio.create({
+      data: {
+        nama_studio: `${user.name}'s Studio`,
+        catatan: faker.lorem.sentence(),
+        userId: user.id,
+      },
+    });
+    studios.push(studio);
   }
 
-  // 4️⃣ Buat akun (dengan id manual)
+  // 4️⃣ Buat akun (masing-masing studio punya 1-2 akun)
   console.log("📱 Creating akuns...");
   const akuns = [];
   for (const studio of studios) {
-    const akunCount = faker.number.int({ min: 2, max: 3 });
+    const akunCount = studio.userId === affiliateUser.id ? 2 : 1;
     for (let i = 0; i < akunCount; i++) {
       const akun = await prisma.akun.create({
         data: {
-          id: faker.number.int({ min: 1000, max: 999999 }), // 🔑 generate id manual
-          nama_akun: `${faker.person.firstName()}_${faker.number.int(1000)}`,
+          id: faker.number.int({ min: 1000, max: 9999 }),
+          nama_akun: `${faker.person.firstName()}_${faker.number.int(100)}`,
           email: faker.internet.email(),
           phone: faker.phone.number(),
-          cookie: faker.string.alphanumeric(100),
+          cookie: faker.string.alphanumeric(50),
           studioId: studio.id,
           userId: studio.userId,
         },
@@ -122,130 +139,83 @@ async function main() {
         komisi: 40000,
       },
     }),
-    prisma.subscription.create({
-      data: {
-        name: "Pro Plan",
-        description: "Paket pro untuk 90 hari dengan unlimited akun",
-        price: 300000,
-        duration: 90,
-        limitAkun: 999,
-        komisi: 60000,
-      },
-    }),
   ]);
 
-  // 6️⃣ User subscriptions
+  // 6️⃣ User subscriptions (hanya untuk regular user)
   console.log("🎫 Creating user subscriptions...");
-  const userSubscriptions = [];
-  for (const user of users.slice(1)) {
-    const subscription = faker.helpers.arrayElement(subscriptions);
-    const startDate = faker.date.recent({ days: 60 });
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + (subscription.duration || 30));
+  const userSubscription = await prisma.userSubscription.create({
+    data: {
+      userId: user.id,
+      subscriptionId: subscriptions[0].id,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 hari dari sekarang
+      status: "active",
+      limitAkun: subscriptions[0].limitAkun,
+    },
+  });
 
-    const userSub = await prisma.userSubscription.create({
+  // 7️⃣ Order untuk user subscription
+  console.log("🛒 Creating order...");
+  const order = await prisma.order.create({
+    data: {
+      userSubscriptionId: userSubscription.id,
+      amount: subscriptions[0].price,
+      status: "paid",
+      paymentMethod: "midtrans",
+      transactionId: `trx_${faker.string.alphanumeric(10)}`,
+      affiliateId: affiliate.id,
+    },
+  });
+
+  // 8️⃣ Affiliate order
+  console.log("💸 Creating affiliate order...");
+  const affiliateOrder = await prisma.affiliateOrder.create({
+    data: {
+      affiliateId: affiliate.id,
+      orderId: order.id,
+      komisi: subscriptions[0].komisi,
+      status: "pending",
+    },
+  });
+
+  // 9️⃣ Performance live stream (hanya 1-2 data per akun)
+  console.log("📊 Creating performance live stream data...");
+  for (const akun of akuns) {
+    const performance = await prisma.performanceLiveStream.create({
       data: {
-        userId: user.id,
-        subscriptionId: subscription.id,
-        startDate,
-        endDate,
-        status: faker.helpers.arrayElement(["active", "expired", "canceled"]),
-        limitAkun: subscription.limitAkun,
+        title: faker.commerce.productName() + " Live Stream",
+        startTime: faker.date.recent({ days: 7 }),
+        durationMs: faker.number.int({ min: 300000, max: 3600000 }),
+        statusCode: faker.number.int({ min: 1, max: 3 }),
+        conversionRate: faker.number.float({ min: 0, max: 0.05, precision: 0.0001 }),
+        totalViews: faker.number.int({ min: 10, max: 200 }),
+        totalLikes: faker.number.int({ min: 0, max: 50 }),
+        followersGrowth: faker.number.int({ min: -5, max: 20 }),
+        productClicks: faker.number.int({ min: 0, max: 10 }),
+        uniqueViewers: faker.number.int({ min: 5, max: 50 }),
+        peakViewers: faker.number.int({ min: 1, max: 10 }),
+        avgViewDuration: faker.number.float({ min: 10000, max: 180000, precision: 0.1 }),
+        totalComments: faker.number.int({ min: 0, max: 10 }),
+        addToCart: faker.number.int({ min: 0, max: 5 }),
+        placedOrders: faker.number.int({ min: 0, max: 3 }),
+        placedSalesAmount: faker.number.float({ min: 0, max: 50000, precision: 0.01 }),
+        confirmedOrders: faker.number.int({ min: 0, max: 2 }),
+        confirmedSalesAmount: faker.number.float({ min: 0, max: 30000, precision: 0.01 }),
+        akunId: akun.id,
       },
     });
-    userSubscriptions.push(userSub);
   }
 
-  // 7️⃣ Orders
-  console.log("🛒 Creating orders...");
-  const orders = [];
-  for (const userSub of userSubscriptions) {
-    const orderCount = faker.number.int({ min: 1, max: 2 });
-    for (let i = 0; i < orderCount; i++) {
-      const hasAffiliate = affiliates.length > 0 && faker.datatype.boolean({ probability: 0.3 });
-      const affiliate = hasAffiliate ? faker.helpers.arrayElement(affiliates) : null;
-
-      const order = await prisma.order.create({
-        data: {
-          userSubscriptionId: userSub.id,
-          amount: subscriptions.find(s => s.id === userSub.subscriptionId)?.price || 100000,
-          status: faker.helpers.arrayElement(["pending", "paid", "failed"]),
-          paymentMethod: faker.helpers.arrayElement(["midtrans", "bank_transfer", "gopay", "ovo"]),
-          transactionId: `trx_${faker.string.alphanumeric(10)}`,
-          affiliateId: affiliate?.id || null,
-        },
-      });
-      orders.push(order);
-    }
-  }
-
-  // 8️⃣ Affiliate orders
-  console.log("💸 Creating affiliate orders...");
-  const affiliateOrders = [];
-  for (const order of orders) {
-    if (order.affiliateId) {
-      const subscription = subscriptions.find(s => 
-        userSubscriptions.find(us => us.id === order.userSubscriptionId)?.subscriptionId === s.id
-      );
-      if (subscription) {
-        const affiliateOrder = await prisma.affiliateOrder.create({
-          data: {
-            affiliateId: order.affiliateId,
-            orderId: order.id,
-            komisi: subscription.komisi,
-            status: faker.helpers.arrayElement(["pending", "approved", "paid", "canceled"]),
-          },
-        });
-        affiliateOrders.push(affiliateOrder);
-      }
-    }
-  }
-
-  // 9️⃣ Performance live stream
-  console.log("📊 Creating performance live stream data...");
-  const performances = [];
-  for (const akun of akuns) {
-    const performanceCount = faker.number.int({ min: 3, max: 5 });
-    for (let i = 0; i < performanceCount; i++) {
-      const startTime = faker.date.recent({ days: 30 });
-      const performance = await prisma.performanceLiveStream.create({
-        data: {
-          title: faker.commerce.productName() + " Live Stream",
-          startTime,
-          durationMs: faker.number.int({ min: 300000, max: 7200000 }),
-          statusCode: faker.number.int({ min: 1, max: 3 }),
-          conversionRate: faker.number.float({ min: 0, max: 0.1, precision: 0.0001 }),
-          totalViews: faker.number.int({ min: 10, max: 1000 }),
-          totalLikes: faker.number.int({ min: 0, max: 500 }),
-          followersGrowth: faker.number.int({ min: -50, max: 200 }),
-          productClicks: faker.number.int({ min: 0, max: 100 }),
-          uniqueViewers: faker.number.int({ min: 5, max: 500 }),
-          peakViewers: faker.number.int({ min: 1, max: 100 }),
-          avgViewDuration: faker.number.float({ min: 10000, max: 360000, precision: 0.1 }),
-          totalComments: faker.number.int({ min: 0, max: 100 }),
-          addToCart: faker.number.int({ min: 0, max: 50 }),
-          placedOrders: faker.number.int({ min: 0, max: 20 }),
-          placedSalesAmount: faker.number.float({ min: 0, max: 1000000, precision: 0.01 }),
-          confirmedOrders: faker.number.int({ min: 0, max: 15 }),
-          confirmedSalesAmount: faker.number.float({ min: 0, max: 800000, precision: 0.01 }),
-          akunId: akun.id,
-        },
-      });
-      performances.push(performance);
-    }
-  }
-
-  console.log("✅ Extensive seeding completed!");
+  console.log("✅ Simplified seeding completed!");
   console.log("📊 Statistics:");
   console.log(`   Users: ${users.length}`);
-  console.log(`   Affiliates: ${affiliates.length}`);
+  console.log(`   Affiliates: 1`);
   console.log(`   Studios: ${studios.length}`);
   console.log(`   Akuns: ${akuns.length}`);
   console.log(`   Subscriptions: ${subscriptions.length}`);
-  console.log(`   User Subscriptions: ${userSubscriptions.length}`);
-  console.log(`   Orders: ${orders.length}`);
-  console.log(`   Affiliate Orders: ${affiliateOrders.length}`);
-  console.log(`   Performance Records: ${performances.length}`);
+  console.log(`   User Subscriptions: 1`);
+  console.log(`   Orders: 1`);
+  console.log(`   Affiliate Orders: 1`);
 }
 
 main()
