@@ -22,6 +22,7 @@ model User {
   studio           Studio[]
   userSubscriptions UserSubscription[]
   affiliates       Affiliate[]
+  affiliateStats   AffiliateStat[]   // RELASI BARU KE AffiliateStat
 }
 
 model Affiliate {
@@ -57,9 +58,8 @@ model Akun {
   userId     Int
   user       User     @relation(fields: [userId], references: [id])
 
-  performanceLiveStreams PerformanceLiveStream[]
   histories  History[]
-  pembayarans Pembayaran[] // RELASI BARU KE PEMBAYARAN
+  pembayarans Pembayaran[]
 }
 
 model Studio {
@@ -136,11 +136,8 @@ model Order {
   userSubscription   UserSubscription @relation(fields: [userSubscriptionId], references: [id])
   affiliate          Affiliate? @relation(fields: [affiliateId], references: [id])
   affiliateOrders    AffiliateOrder[]
-
-  // Tambahin ini 👇
   confirmPayments    ConfirmPayment[]
 }
-
 
 model AffiliateOrder {
   id           Int      @id @default(autoincrement())
@@ -160,42 +157,6 @@ enum KomisiStatus {
   approved
   paid
   canceled
-}
-
-model PerformanceLiveStream {
-  id                   Int      @id @default(autoincrement())
-  title                String
-  startTime            DateTime
-  durationMs           Int
-  statusCode           Int
-  conversionRate       Float    @default(0.0000)
-  totalViews           Int      @default(0)
-  totalLikes           Int      @default(0)
-  followersGrowth      Int      @default(0)
-  productClicks        Int      @default(0)
-  uniqueViewers        Int      @default(0)
-  peakViewers          Int      @default(0)
-  avgViewDuration      Float    @default(0.0)
-  totalComments        Int      @default(0)
-  addToCart            Int      @default(0)
-  placedOrders         Int      @default(0)
-  placedSalesAmount    Float    @default(0.0)
-  confirmedOrders      Int      @default(0)
-  confirmedSalesAmount Float    @default(0.0)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-
-  akunId               BigInt
-  akun                 Akun     @relation(fields: [akunId], references: [id])
-
-  @@index([akunId])
-  @@index([startTime])
-}
-
-model Payment {
-  id             Int     @id @default(autoincrement())
-  nameService    String 
-  status         Boolean @default(false)
 }
 
 model History {
@@ -221,7 +182,6 @@ model History {
 
   pelanggaran  Pelanggaran[]
 
-  // Tambahkan composite unique key
   @@unique([akunId, session], name: "akunId_session")
 }
 
@@ -238,7 +198,6 @@ enum StatusHistory {
   Tidak_Live
 }
 
-// MODEL BARU UNTUK DATA PEMBAYARAN
 model Pembayaran {
   id                            BigInt    @id @default(autoincrement())
   nama_akun                     String
@@ -252,11 +211,9 @@ model Pembayaran {
   createdAt                     DateTime  @default(now())
   updatedAt                     DateTime  @updatedAt
 
-  // Relasi ke akun
   akunId                        BigInt
   akun                          Akun      @relation(fields: [akunId], references: [id])
 
-  // Index untuk performa query
   @@index([akunId])
   @@index([validation_id])
   @@index([payment_status])
@@ -276,8 +233,8 @@ model ConfirmPayment {
   amount         Float
   notes          String?   @db.Text
   buktiTf        String
-  token          String?   @unique // Token one-time
-  isUsed         Boolean   @default(false) // Status penggunaan token
+  token          String?   @unique
+  isUsed         Boolean   @default(false)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -285,4 +242,32 @@ model ConfirmPayment {
 
   @@index([orderId])
   @@index([token])
+}
+
+model AffiliateStat {
+  id              Int      @id @default(autoincrement())
+  accountId       String?  
+  ymd             DateTime
+  clicks          Int
+  cvByOrder       Int
+  orderCvr        Int
+  orderAmount     BigInt
+  totalCommission BigInt
+  totalIncome     BigInt
+  newBuyer        Int
+  programType     Int
+  itemSold        Int
+  estCommission   BigInt
+  estIncome       BigInt
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id             Int     @id @default(autoincrement())
+  nameService    String 
+  status         Boolean @default(false)
 }

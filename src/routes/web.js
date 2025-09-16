@@ -71,8 +71,6 @@ import {
 
 
 
-import {renderPerformanceLiveStream} from "../controllers/PerformanceLiveStreamController.js";
-
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -395,8 +393,6 @@ router.post("/invoice", requireLogin, showInvoice);
 router.get("/affiliate", requireLogin, renderAffiliatePage);
 router.get("/affiliate/edit/:id", requireLogin, renderEditAffiliatePage);
 router.get("/affiliate-management", requireLogin, renderAffiliateManagement);
-
-router.get("/performance", requireLogin, renderPerformanceLiveStream);
 
 
 

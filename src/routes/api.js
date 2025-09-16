@@ -82,12 +82,8 @@ import {
 } from "../controllers/AffiliateControler.js";
 
 import {
-  indexPerformance,
-  showPerformance,
-  storePerformance,
-  updatePerformance,
-  destroyPerformance,
-} from "../controllers/PerformanceLiveStreamController.js";
+createAffiliateStat,
+} from "../controllers/PerformanceController.js";
 
 import {
   indexPrice,
@@ -210,12 +206,8 @@ router.get("/check-subscription/:subscriptionId", requireApiLogin, checkSubscrip
 /* ============================================================
    PERFORMANCE LIVE STREAM ROUTES
 ============================================================ */
-router.get("/performance-live-streams", requireApiLogin, indexPerformance);
-router.get("/performance-live-streams/:id", requireApiLogin, showPerformance);
-router.post("/performance-live-streams", requireApiLogin, storePerformance);
-router.put("/performance-live-streams/:id", requireApiLogin, updatePerformance);
-router.delete("/performance-live-streams/:id", requireApiLogin, destroyPerformance);
 
+router.post("/affiliate-stats", createAffiliateStat);
 
 
 
