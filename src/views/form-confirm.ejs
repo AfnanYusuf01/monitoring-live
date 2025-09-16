@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konfirmasi Pembayaran</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      ring: 2px;
+      ring-color: #10B981;
+    }
+    .file-preview {
+      display: none;
+      max-width: 100%;
+      max-height: 200px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px dashed #d1d5db;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+  <div class="bg-white shadow-lg rounded-xl p-6 md:p-8 w-full max-w-lg">
+    <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Konfirmasi Pembayaran</h2>
+    <p class="text-sm text-gray-600 mb-6 text-justify">
+      Silahkan masukkan NOMOR INVOICE Anda terlebih dahulu. Jika nomor invoice yang Anda masukkan benar, Anda bisa melakukan proses konfirmasi selanjutnya.
+    </p>
+
+    <form id="paymentForm" action="/confirm-payment" method="POST" enctype="multipart/form-data" class="space-y-5">
+      <input type="hidden" name="transactionId" value="<%= transactionId %>">
+      
+      <!-- Nomor Invoice -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Nomor Invoice *</label>
+        <input type="text" name="invoiceNumber" value="<%= transactionId %>" readonly 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700">
+      </div>
+
+      <!-- Produk -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Produk yang anda beli *</label>
+        <input type="text" name="product" value="<%= order.userSubscription.subscription.name %>" readonly 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700">
+      </div>
+
+      <!-- Jumlah Tagihan -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Jumlah Tagihan *</label>
+        <input type="text" name="amount" value="<%= order.amount %>" readonly 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700">
+      </div>
+
+      <!-- Nama Pengirim -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Nama Pengirim *</label>
+        <input type="text" name="senderName" value="<%= user.name %>" required
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-300 focus:border-transparent">
+      </div>
+
+      <!-- Email Pengirim -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Email Pengirim *</label>
+        <input type="email" name="senderEmail" value="<%= user.email %>" required
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-300 focus:border-transparent">
+      </div>
+
+      <!-- Nomor Rekening -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">No Rekening Anda *</label>
+        <input type="text" name="accountNumber" placeholder="Masukan nomor rekening anda" required 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-300 focus:border-transparent">
+      </div>
+
+      <!-- Bank Asal -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Bank Asal Transfer *</label>
+        <input type="text" name="bankOrigin" placeholder="Contoh: BCA, BRI, BNI, dll." required 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-300 focus:border-transparent">
+      </div>
+
+      <!-- Bank Tujuan -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Bank Tujuan Transfer *</label>
+        <input type="text" name="bankTarget" value="BCA" readonly 
+               class="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-gray-100 text-gray-700">
+      </div>
+
+      <!-- Keterangan -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Keterangan</label>
+        <textarea name="notes" rows="3" placeholder="Disini jika ada keterangan yang ingin disampaikan" 
+                  class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-300 focus:border-transparent"></textarea>
+      </div>
+
+      <!-- Bukti Transfer -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Bukti Transfer *</label>
+        <div class="flex items-center justify-center w-full">
+          <label class="flex flex-col w-full border-2 border-dashed rounded-lg hover:border-gray-400 hover:bg-gray-50 cursor-pointer">
+            <div class="flex flex-col items-center justify-center py-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p class="text-sm text-gray-500 mt-2">Klik untuk upload bukti transfer</p>
+              <p class="text-xs text-gray-500">Format file: JPG, PNG, atau PDF (maks. 5MB)</p>
+            </div>
+            <input type="file" name="proof" accept="image/*,.pdf" required class="opacity-0 absolute" id="proofInput">
+          </label>
+        </div>
+        <img id="imagePreview" class="file-preview" alt="Preview bukti transfer">
+        <p id="file-name" class="text-xs text-gray-500 mt-2 text-center"></p>
+      </div>
+
+      <!-- Button -->
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg w-full transition duration-200 shadow-md hover:shadow-lg">
+        KONFIRMASI PEMBAYARAN
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // Script untuk menampilkan nama file yang dipilih
+    document.getElementById('proofInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const fileName = file.name;
+      document.getElementById('file-name').textContent = `File terpilih: ${fileName}`;
+      
+      // Preview gambar jika file adalah gambar
+      const preview = document.getElementById('imagePreview');
+      if (file.type.match('image.*')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    // Validasi form sebelum submit
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+      // Validasi sederhana di sisi klien
+      const requiredFields = this.querySelectorAll('[required]');
+      let valid = true;
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          valid = false;
+          field.classList.add('border-red-500');
+        } else {
+          field.classList.remove('border-red-500');
+        }
+      });
+      
+      if (!valid) {
+        e.preventDefault();
+        alert('Harap isi semua field yang wajib diisi.');
+      }
+    });
+  </script>
+
+</body>
+</html>

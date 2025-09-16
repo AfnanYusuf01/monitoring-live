@@ -7,6 +7,29 @@
                 <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                     <h6 class="mb-4">Cek Pembayaran Komisi</h6>
                     
+                    <!-- Summary Section -->
+                    <div id="summary-section" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-3">Ringkasan Pembayaran</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="text-center p-3 bg-white rounded-lg shadow-sm">
+                                <div class="text-2xl font-bold text-green-600" id="total-komisi">Rp 0</div>
+                                <div class="text-sm text-gray-600">Total Komisi</div>
+                            </div>
+                            <div class="text-center p-3 bg-white rounded-lg shadow-sm">
+                                <div class="text-2xl font-bold text-blue-600" id="count-sudah-dibayar">0</div>
+                                <div class="text-sm text-gray-600">Sudah Dibayar</div>
+                            </div>
+                            <div class="text-center p-3 bg-white rounded-lg shadow-sm">
+                                <div class="text-2xl font-bold text-yellow-600" id="count-menunggu">0</div>
+                                <div class="text-sm text-gray-600">Menunggu Pembayaran</div>
+                            </div>
+                            <div class="text-center p-3 bg-white rounded-lg shadow-sm">
+                                <div class="text-2xl font-bold text-gray-600" id="count-validasi">0</div>
+                                <div class="text-sm text-gray-600">Sedang Divalidasi</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Filter Controls -->
                     <form id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                         <div>
@@ -30,6 +53,10 @@
                             <button type="submit" 
                                 class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
                                 Cek Pembayaran
+                            </button>
+                            <button type="button" id="update-payments" 
+                                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-purple-600 to-pink-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                                Update Data Pembayaran
                             </button>
                             <button type="button" onclick="resetFilters()" 
                                 class="px-4 py-2 text-xs font-bold text-gray-800 uppercase transition-all bg-gray-200 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85 hover:bg-gray-300">
@@ -166,6 +193,9 @@
                                     </nav>
                                 </div>
                             </div>
+                            <div class="mt-2 text-sm text-gray-500">
+                                Studio ID: <span id="current-studio-id" class="font-medium">Loading...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -181,8 +211,27 @@ let filteredPayments = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 
-// Set default dates (today and 7 days ago)
+// Function to get studio ID from URL
+function getStudioIdFromUrl() {
+    const pathParts = window.location.pathname.split('/');
+    const studioIndex = pathParts.indexOf('studio') + 1;
+    if (studioIndex > 0 && studioIndex < pathParts.length) {
+        return pathParts[studioIndex];
+    }
+    return null;
+}
+
+// Set global studio ID when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    window.currentStudioId = getStudioIdFromUrl();
+    console.log('Current Studio ID:', window.currentStudioId);
+    
+    // Display studio ID in the UI
+    if (window.currentStudioId) {
+        document.getElementById('current-studio-id').textContent = window.currentStudioId;
+    }
+    
+    // Set default dates (today and 7 days ago)
     const today = new Date().toISOString().split('T')[0];
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -220,7 +269,115 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup export CSV functionality
     document.getElementById('export-csv').addEventListener('click', exportToCSV);
+    
+    // Setup update payments functionality
+    document.getElementById('update-payments').addEventListener('click', function() {
+        updatePayments();
+    });
 });
+
+// Function to update payments data
+async function updatePayments() {
+    const formData = new FormData(document.getElementById('filterForm'));
+    const params = {
+        tglMulai: formData.get('tglMulai'),
+        tglSelesai: formData.get('tglSelesai'),
+        status: formData.get('status') || undefined
+    };
+
+    try {
+        // Show loading state
+        showNotification('loading', 'Memperbarui data pembayaran...');
+        
+        // Hide all notification containers initially
+        document.getElementById('error-container').classList.add('hidden');
+        document.getElementById('logout-notification').classList.add('hidden');
+        document.getElementById('success-notification').classList.add('hidden');
+        document.getElementById('summary-section').classList.add('hidden');
+
+        // Call API for update with studio ID
+        const response = await fetch(`/api/cek-pembayaran/${window.currentStudioId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+            throw new Error(await response.text());
+        }
+        
+        const result = await response.json();
+        
+        // Handle API response
+        if (result.success) {
+            showNotification('success', 'Data pembayaran berhasil diperbarui.');
+            
+            // If update was successful, refresh the data
+            setTimeout(() => {
+                checkPayments();
+            }, 1500);
+        } else {
+            showNotification('error', 'Gagal memperbarui data pembayaran.');
+            
+            // Check if there are errors in the response
+            if (result.errors && result.errors.length > 0) {
+                // Separate cookie incorrect errors from other errors
+                const cookieErrors = result.errors.filter(error => 
+                    error.error && error.error.code === 30002 && error.error.msg === "cookie incorrect"
+                );
+                
+                const otherErrors = result.errors.filter(error => 
+                    !error.error || error.error.code !== 30002 || error.error.msg !== "cookie incorrect"
+                );
+                
+                // Show cookie incorrect errors in logout notification
+                if (cookieErrors.length > 0) {
+                    showLogoutNotifications(cookieErrors);
+                }
+                
+                // Show other errors in error container
+                if (otherErrors.length > 0) {
+                    showErrors(otherErrors);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('error', `Gagal memperbarui data: ${error.message || 'Terjadi kesalahan'}`);
+    }
+}
+
+// Helper function to show notifications
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+        type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' :
+        'bg-blue-50 border border-blue-200 text-blue-800'
+    }`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2 ${type === 'success' ? 'text-green-500' : type === 'error' ? 'text-red-500' : 'text-blue-500'}" 
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="${type === 'success' ? 'M5 13l4 4L19 7' : 
+                         type === 'error' ? 'M6 18L18 6M6 6l12 12' :
+                         'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'}"></path>
+            </svg>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
 
 // Check payments with filters
 async function checkPayments() {
@@ -251,9 +408,10 @@ async function checkPayments() {
         document.getElementById('error-container').classList.add('hidden');
         document.getElementById('logout-notification').classList.add('hidden');
         document.getElementById('success-notification').classList.add('hidden');
+        document.getElementById('summary-section').classList.add('hidden');
 
-        // Call API
-        const response = await fetch('/api/cek-pembayaran', {
+        // Call API with studio ID
+        const response = await fetch(`/api/cek-pembayaran/${window.currentStudioId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -298,6 +456,11 @@ async function checkPayments() {
             document.getElementById('success-notification').classList.remove('hidden');
             document.getElementById('error-container').classList.add('hidden');
             document.getElementById('logout-notification').classList.add('hidden');
+            
+            // Show summary if available
+            if (result.summary) {
+                showSummary(result.summary);
+            }
         }
         
         // Set data regardless of errors
@@ -319,7 +482,28 @@ async function checkPayments() {
         document.getElementById('success-notification').classList.add('hidden');
         document.getElementById('error-container').classList.add('hidden');
         document.getElementById('logout-notification').classList.add('hidden');
+        document.getElementById('summary-section').classList.add('hidden');
     }
+}
+
+// Function to show summary
+function showSummary(summary) {
+    const summarySection = document.getElementById('summary-section');
+    document.getElementById('total-komisi').textContent = formatRupiah(summary.totalKomisi);
+    document.getElementById('count-sudah-dibayar').textContent = summary.statusCount['Sudah Dibayar'];
+    document.getElementById('count-menunggu').textContent = summary.statusCount['Menunggu Pembayaran'];
+    document.getElementById('count-validasi').textContent = summary.statusCount['Sedang Divalidasi'];
+    summarySection.classList.remove('hidden');
+}
+
+// Helper function to format currency
+function formatRupiah(amount) {
+    if (!amount) return 'Rp 0';
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(amount);
 }
 
 // Show errors from API response
@@ -635,5 +819,6 @@ function resetFilters() {
     document.getElementById('error-container').classList.add('hidden');
     document.getElementById('logout-notification').classList.add('hidden');
     document.getElementById('success-notification').classList.add('hidden');
+    document.getElementById('summary-section').classList.add('hidden');
 }
 </script>

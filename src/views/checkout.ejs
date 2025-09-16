@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Subscription</title>
     <script src="https://cdn.tailwindcss.com"></script>
-        <!-- Favicon -->
-        <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/logos/favicon.png" />
-        <link rel="icon" href="/assets/img/logos/favicon.ico" type="image/x-icon" />
-
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="76x76" href="/assets/img/logos/favicon.png" />
+    <link rel="icon" href="/assets/img/logos/favicon.ico" type="image/x-icon" />
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -232,7 +231,11 @@
                         <div class="border-t border-secondary-100 pt-5">
                             <div class="flex justify-between mb-3 py-2">
                                 <span class="text-secondary-600"><i class="fas fa-tag text-primary-500 mr-2"></i>Harga Paket</span>
-                                <span class="text-secondary-800 font-medium" id="packagePrice">Rp <%= subscription.price %></span>
+                                <span class="text-secondary-800 font-medium" id="packagePrice"><%= subscription.price %></span>
+                            </div>
+                            <div class="flex justify-between mb-3 py-2">
+                                <span class="text-secondary-600"><i class="fas fa-tag text-primary-500 mr-2"></i>Kode Unik</span>
+                                <span class="text-secondary-800 font-medium" id="uniquenumber"><%= uniquenumber %></span>
                             </div>
                             <div class="flex justify-between mb-3 py-2">
                                 <span class="text-secondary-600"><i class="fas fa-calendar-alt text-primary-500 mr-2"></i>Durasi</span>
@@ -240,7 +243,7 @@
                             </div>
                             <div class="flex justify-between font-semibold text-lg mt-5 pt-5 border-t border-secondary-200">
                                 <span class="text-secondary-800">Total Pembayaran</span>
-                                <span class="text-primary-600" id="totalPrice">Rp <%= subscription.price %></span>
+                                <span class="text-primary-600" id="totalPrice"><%= subscription.price + uniquenumber %></span>
                             </div>
                         </div>
                     </div>
@@ -282,9 +285,20 @@
                         
                         <div class="mb-6">
                             <label class="block text-secondary-700 text-sm font-medium mb-3">Pilih Metode Pembayaran</label>
-                            <div id="paymentMethodsLoading" class="text-center py-4">
-                                <div class="loading-spinner mx-auto mb-2"></div>
-                                <p class="text-secondary-600 text-sm">Memuat metode pembayaran...</p>
+                            <div id="paymentMethodsLoading" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+                                <div class="payment-method relative border border-secondary-200 rounded-lg p-3 cursor-pointer hover:border-primary-500 bg-white" 
+                                    data-method="bca" 
+                                    data-name="Transfer Bank BCA" 
+                                    data-image="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/2560px-Bank_Central_Asia.svg.png">
+                                    <div class="flex flex-col items-center">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/2560px-Bank_Central_Asia.svg.png" 
+                                            alt="Transfer Bank BCA" class="h-6 mb-2 object-contain">
+                                        <span class="text-xs text-secondary-700 text-center font-medium">Transfer Bank BCA</span>
+                                    </div>
+                                    <div class="absolute top-2 right-2 hidden check-icon">
+                                        <i class="fas fa-check-circle text-primary-600"></i>
+                                    </div>
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-3 hidden" id="paymentMethodsContainer">
                                 <!-- Payment methods will be populated by JavaScript -->
@@ -418,16 +432,102 @@
         </div>
     </div>
 
-    <!-- Tambahkan script ini untuk meneruskan data subscription dari server ke client -->
-<script>
-    // Data subscription dari server
-    const subscription = <%- JSON.stringify(subscription) %>;
-
-    // Data user dari server (jika ada)
-    const user = <%- JSON.stringify(user || null) %>;
-</script>
-
     <script>
+        function formatRupiah(number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0, // hilangkan ,00
+  }).format(number);
+}
+document.getElementById("packagePrice").textContent = formatRupiah(parseInt(document.getElementById("packagePrice").textContent, 10));
+// document.getElementById("uniquenumber").textContent = formatRupiah(parseInt(document.getElementById("uniquenumber").textContent, 10));
+var total= <%= subscription.price + (uniquenumber % 1000) %>;
+document.getElementById("totalPrice").textContent = formatRupiah(parseInt(total, 10));
+        // Data subscription dari server
+        const subscription = <%- JSON.stringify(subscription) %>;
+
+        // Data user dari server (jika ada)
+        const user = <%- JSON.stringify(user || null) %>;
+
+        // Variabel untuk menyimpan payment service
+        let paymentService = "";
+
+        // Fungsi untuk mengambil payment service dari API
+        async function getPaymentService() {
+            try {
+                const response = await fetch("${API_BASE_URL}/api/payments", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include"
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // ambil hanya yang status true
+                paymentService = data
+                    .filter(item => item.status === true)      // filter aktif
+                    .map(item => item.nameService)             // ambil nameService
+                    .join(", ");                               // gabung jadi string
+
+                console.log("paymentService string:", paymentService);
+
+                // Setelah mendapatkan payment service, setup payment methods
+                setupPaymentMethods();
+
+            } catch (error) {
+                console.error("Error fetch data:", error);
+                // Default ke manual jika error
+                paymentService = "manual";
+                setupPaymentMethods();
+            }
+        }
+
+        // Fungsi untuk setup payment methods berdasarkan payment service
+        function setupPaymentMethods() {
+            if (paymentService.includes("duitku")) {
+                // Jika payment service adalah duitku, ambil metode pembayaran dari API
+                fetchPaymentMethods();
+            } else if (paymentService.includes("manual")) {
+                // Jika payment service adalah manual, hanya tampilkan BCA
+                const loadingEl = document.getElementById('paymentMethodsLoading');
+                const containerEl = document.getElementById('paymentMethodsContainer');
+                const errorEl = document.getElementById('paymentMethodsError');
+                
+                // Sembunyikan loading dan error, tampilkan container
+                loadingEl.classList.add('hidden');
+                containerEl.classList.remove('hidden');
+                errorEl.classList.add('hidden');
+                
+                // Render metode pembayaran manual (hanya BCA)
+                containerEl.innerHTML = `
+                    <div class="payment-method relative border border-secondary-200 rounded-lg p-3 cursor-pointer hover:border-primary-500 bg-white" 
+                         data-method="bca" 
+                         data-name="Transfer Bank BCA" 
+                         data-image="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/2560px-Bank_Central_Asia.svg.png">
+                        <div class="flex flex-col items-center">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Bank_Central_Asia.svg/2560px-Bank_Central_Asia.svg.png" 
+                                 alt="Transfer Bank BCA" class="h-6 mb-2 object-contain">
+                            <span class="text-xs text-secondary-700 text-center font-medium">Transfer Bank BCA</span>
+                        </div>
+                        <div class="absolute top-2 right-2 hidden check-icon">
+                            <i class="fas fa-check-circle text-primary-600"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // Setup event listener untuk metode BCA
+                const bcaMethod = containerEl.querySelector('.payment-method');
+                bcaMethod.addEventListener('click', () => selectPaymentMethod(bcaMethod));
+            }
+        }
+
         // Fungsi untuk memformat nomor WhatsApp
         function formatNomorWA(input) {
             // Hapus semua karakter non-digit
@@ -474,7 +574,7 @@
             }).format(angka);
         }
 
-        // Fungsi untuk mengambil metode pembayaran dari API
+        // Fungsi untuk mengambil metode pembayaran dari API (hanya untuk duitku)
         async function fetchPaymentMethods() {
             const loadingEl = document.getElementById('paymentMethodsLoading');
             const containerEl = document.getElementById('paymentMethodsContainer');
@@ -540,12 +640,14 @@
             // Hapus seleksi sebelumnya
             document.querySelectorAll('.payment-method').forEach(el => {
                 el.classList.remove('border-primary-500', 'bg-primary-50');
-                el.querySelector('.check-icon').classList.add('hidden');
+                const checkIcon = el.querySelector('.check-icon');
+                if (checkIcon) checkIcon.classList.add('hidden');
             });
             
             // Tambahkan seleksi pada elemen yang diklik
             element.classList.add('border-primary-500', 'bg-primary-50');
-            element.querySelector('.check-icon').classList.remove('hidden');
+            const checkIcon = element.querySelector('.check-icon');
+            if (checkIcon) checkIcon.classList.remove('hidden');
             
             // Tampilkan info metode yang dipilih
             const selectedMethodInfo = document.getElementById('selectedMethodInfo');
@@ -586,47 +688,59 @@
             };
         }
 
-function processPayment() {
-    const selectedMethod = document.querySelector('.payment-method.border-primary-500');
-    if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
+        // Fungsi untuk memproses pembayaran berdasarkan payment service
+        function processPayment() {
+            const selectedMethod = document.querySelector('.payment-method.border-primary-500');
+            if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
 
-    const paymentMethod = selectedMethod.dataset.method;
-    
-    // Debug: cek data subscription
-    console.log('Subscription object:', subscription);
-    console.log('Subscription ID:', subscription.id);
-    
-    // Gunakan ID yang benar
-    const subscriptionId = subscription.id || subscription.subscriptionId || subscription._id;
-    
-    if (!subscriptionId) {
-        showNotification('ID subscription tidak ditemukan', 'error');
-        return;
-    }
-    
-    // Membuat URL dengan parameter yang diperlukan
-    const url = `/subscription/buy/${subscriptionId}?method=${paymentMethod}&price=${subscription.price}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
-
-    fetch(url, {
-        method: "POST"
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.paymentUrl) {
-            // Redirect ke payment gateway untuk pembayaran berbayar
-            window.location.href = data.paymentUrl;
-        } else if (data.redirect) {
-            // Redirect ke halaman thank-you-free untuk pembayaran gratis
-            window.location.href = data.redirect;
-        } else {
-            showNotification(data.message || "Gagal membuat transaksi", 'error');
+            const paymentMethod = selectedMethod.dataset.method;
+            
+            // Debug: cek data subscription
+            console.log('Subscription object:', subscription);
+            console.log('Subscription ID:', subscription.id);
+            
+            // Gunakan ID yang benar
+            const subscriptionId = subscription.id || subscription.subscriptionId || subscription._id;
+            
+            if (!subscriptionId) {
+                showNotification('ID subscription tidak ditemukan', 'error');
+                return;
+            }
+            
+            let url;
+            
+            // Tentukan URL berdasarkan payment service
+            if (paymentService.includes("duitku")) {
+                // Untuk duitku, gunakan endpoint dengan parameter method
+                url = `/subscription/buy/${subscriptionId}?method=${paymentMethod}&price=${total}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
+            } else if (paymentService.includes("manual")) {
+                // Untuk manual, gunakan endpoint khusus tanpa parameter method
+                url = `/subscription/buy-manual/${subscriptionId}?price=${total}&limitAkun=${subscription.limitAkun}&duration=${subscription.duration}`;
+            } else {
+                showNotification('Service pembayaran tidak dikenali', 'error');
+                return;
+            }
+            
+            fetch(url, {
+                method: "POST"
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.paymentUrl) {
+                    // Redirect ke payment gateway untuk pembayaran berbayar
+                    window.location.href = data.paymentUrl;
+                } else if (data.redirect) {
+                    // Redirect ke halaman thank-you-free untuk pembayaran gratis
+                    window.location.href = data.redirect;
+                } else {
+                    showNotification(data.message || "Gagal membuat transaksi", 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showNotification("Gagal membuat transaksi", 'error');
+            });
         }
-    })
-    .catch(err => {
-        console.error(err);
-        showNotification("Gagal membuat transaksi", 'error');
-    });
-}
 
         // Fungsi untuk menangani pembayaran
         function handlePayment() {
@@ -641,7 +755,8 @@ function processPayment() {
             if (!selectedMethod) return showNotification('Pilih metode pembayaran', 'error');
 
             // Tampilkan modal konfirmasi sederhana
-            showConfirmationModal();
+            // showConfirmationModal();
+            processPayment()
         }
 
         // Fungsi untuk menampilkan notifikasi
@@ -847,8 +962,15 @@ function processPayment() {
                 document.getElementById('payButton').disabled = true;
             }
             
-            // Ambil metode pembayaran dari API
-            fetchPaymentMethods();
+            // Setup event listener untuk metode pembayaran default (BCA)
+            const defaultMethod = document.querySelector('#paymentMethodsLoading .payment-method');
+            if (defaultMethod) {
+                defaultMethod.addEventListener('click', () => selectPaymentMethod(defaultMethod));
+            }
+            
+            // Ambil payment service dan setup payment methods
+            getPaymentService();
+            defaultMethod.click()
         });
     </script>
 </body>

@@ -8,6 +8,9 @@ import {
   requireWebRole,
   redirectIfLoggedIn,
   checkActiveSubscription,
+  handleImageUploadError,
+  uploadImage,
+  checkExpiredAndLimit
 } from "../Middlewares/authMiddleware.js";
 
 import {
@@ -46,7 +49,13 @@ import {
 import {
   renderCheckout,
   createOrder,
+  createOrderManual,
   renderCustomCheckout,
+  showInvoice,
+  getConfirmPayment,
+  postConfirmPayment,
+  handleMulterError,
+  verifyPaymentToken,
 } from "../controllers/ManagementOrderController.js";
 
 import {
@@ -99,6 +108,9 @@ router.get("/monitoring-live", requireLogin, (req, res) => {
   res.render("pages/monitoring-live", {navbar: "Monitoring-Live"});
 });
 router.get("/cek-pembayaran", requireLogin, (req, res) => {
+  res.render("pages/cek-pembayaran-studio", {navbar: "Cek-Pembayaran"});
+});
+router.get("/studio/:id/pembayaran", requireLogin, (req, res) => {
   res.render("pages/cek-pembayaran", {navbar: "Cek-Pembayaran"});
 });
 router.get("/histori-live", requireLogin, (req, res) => {
@@ -210,15 +222,15 @@ router.get("/account-management/edit/:id", requireLogin, async (req, res) => {
   }
 });
 
-router.get("/account-management/add", requireLogin, renderAddAccount);
-router.post(
-  "/akun/import",
-  upload.single("csvFile"),
-  requireLogin,
-  importAkunFromCSV
-);
+  router.get("/account-management/add", requireLogin, renderAddAccount);
+  router.post(
+    "/akun/import",
+    upload.single("csvFile"),
+    requireLogin,
+    importAkunFromCSV
+  );
 
-router.get("/dashboard", requireLogin, (req, res) => {
+router.get("/dashboard", requireLogin, checkExpiredAndLimit, (req, res) => {
   console.log("Current User di session:", req.session.user);
   res.redirect("/account-management");
 });
@@ -318,13 +330,12 @@ router.get("/order-management", requireLogin, (req, res) => {
    HALAMAN END USER
 ============================================================ */
 
-router.get("/", (req, res) => {
-  // Cek apakah ada user yang login di session
+router.get("/",  (req, res) => {
   const user = req.session.user || null;
 
   res.render("landing-page", {
     navbar: "Monitoring By Studio",
-    user: user, // kirimkan ke view
+    user: user,
   });
 });
 
@@ -347,6 +358,19 @@ router.get("/thank-you-free", (req, res) => {
   });
 });
 
+
+router.get("/setting-payment", (req, res) => {
+  // Cek apakah ada user yang login di session
+  const user = req.session.user || null;
+
+  res.render("pages/setting-payement", {
+    
+    user: user, // kirimkan ke view
+    navbar: "Setting-Payment",
+    
+  });
+});
+
 router.get("/pilih-subcribtion", (req, res) => {
   // Cek apakah ada user yang login di session
   const user = req.session.user || null;
@@ -357,9 +381,45 @@ router.get("/pilih-subcribtion", (req, res) => {
   });
 });
 
+
+
+
 router.get("/subscription/checkout/:id", renderCheckout);
 router.get("/subscription/custom-checkout", renderCustomCheckout);
 router.post("/subscription/buy/:id", requireLogin, createOrder);
+router.post("/subscription/buy-manual/:id", requireLogin, createOrderManual);
+router.post("/invoice", requireLogin, showInvoice);
+
+
+
+router.get("/affiliate", requireLogin, renderAffiliatePage);
+router.get("/affiliate/edit/:id", requireLogin, renderEditAffiliatePage);
+router.get("/affiliate-management", requireLogin, renderAffiliateManagement);
+
+router.get("/performance", requireLogin, renderPerformanceLiveStream);
+
+
+
+// Web Routes
+router.get("/price-management", renderPriceManagement);
+router.get("/price-management/add", renderAddPrice);
+router.get("/price-management/edit/:id", renderEditPrice);
+
+
+// GET route untuk halaman konfirmasi pembayaran
+router.get("/confirm-payment", getConfirmPayment);
+
+// POST route untuk menangani konfirmasi pembayaran
+router.post(
+  "/confirm-payment", 
+  uploadImage.single('proof'),
+  postConfirmPayment, 
+  handleMulterError
+);
+router.get('/verify-payment-token', verifyPaymentToken);
+
+
+
 router.get("/subscription/checkout/:id_aff/:id", async (req, res) => {
   try {
     const {id_aff, id} = req.params;
@@ -401,12 +461,46 @@ router.get("/subscription/checkout/:id_aff/:id", async (req, res) => {
   }
 });
 
+router.get("/subscription/:id_aff/:id", async (req, res) => {
+  try {
+    const {id_aff, id} = req.params;
+    const subscriptionId = parseInt(id, 10);
 
-router.get("/affiliate", requireLogin, renderAffiliatePage);
-router.get("/affiliate/edit/:id", requireLogin, renderEditAffiliatePage);
-router.get("/affiliate-management", requireLogin, renderAffiliateManagement);
+    // simpan ke cookie (7 hari) selalu diset
+    res.cookie("id_aff", id_aff, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false,
+    });
+    res.cookie("id_sub", id, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: false,
+    });
 
-router.get("/performance", requireLogin, renderPerformanceLiveStream);
+    if (isNaN(subscriptionId)) {
+      return res.redirect("/");
+    }
+
+    // cek subscription
+    const subscription = await prisma.subscription.findUnique({
+      where: {id: subscriptionId},
+      select: {id: true, price: true, limitAkun: true},
+    });
+
+    if (
+      !subscription ||
+      subscription.price == null ||
+      subscription.limitAkun == null
+    ) {
+      return res.redirect("/pilih-subcribtion");
+    }
+
+    // redirect ke halaman checkout jika valid
+    res.redirect(`/`);
+  } catch (err) {
+    console.error("❌ Error cek subscription:", err);
+    res.redirect("/");
+  }
+});
 
 router.get("/thank-you", requireLogin, async (req, res) => {
   try {
@@ -522,10 +616,68 @@ router.get("/thank-you", requireLogin, async (req, res) => {
   }
 });
 
+router.get("/checkout-manual", async (req, res) => {
+  try {
+    // cek user login
+    const user = req.session.user || null;
+    const { transactionId, status, message } = req.query; // Terima parameter status dan message
+    let invoiceData = null;
+    let title = "Checkout Manual";
+    let alertType = status; // 'success' atau 'error'
+    let alertMessage = message || '';
 
-// Web Routes
-router.get("/price-management", renderPriceManagement);
-router.get("/price-management/add", renderAddPrice);
-router.get("/price-management/edit/:id", renderEditPrice);
+    console.log("🔍 transactionId dari query:", transactionId);
+    console.log("🔍 Status dari query:", status);
+    console.log("🔍 Message dari query:", message);
+    
+    if (transactionId) {
+      const order = await prisma.order.findUnique({
+        where: { transactionId },
+        include: {
+          userSubscription: {
+            include: {
+              subscription: true,
+              user: true
+            }
+          },
+          affiliate: true
+        }
+      });
+
+      if (!order) {
+        return res.status(404).send("Order tidak ditemukan");
+      }
+
+      const expiryDate = new Date(order.createdAt);
+      expiryDate.setDate(expiryDate.getDate() + 1);
+
+      invoiceData = {
+        orderId: order.transactionId,
+        createdAt: order.createdAt,
+        expiryDate: expiryDate,
+        status: order.status,
+        amount: order.amount,
+        paymentMethod: order.paymentMethod,
+        subscription: order.userSubscription.subscription.name,
+        customerName: order.userSubscription.user.name,
+        customerEmail: order.userSubscription.user.email
+      };
+      
+      title = `Invoice #${transactionId}`;
+    }
+
+    res.render("order", {
+      user,
+      invoice: invoiceData,
+      title: title,
+      alertType: alertType,    // Kirim ke view
+      alertMessage: alertMessage  // Kirim ke view
+    });
+
+  } catch (error) {
+    console.error("❌ Error checkout-manual:", error.message);
+    res.status(500).send("Terjadi kesalahan saat memuat halaman");
+  }
+});
 
 export default router;

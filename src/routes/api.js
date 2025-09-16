@@ -16,12 +16,13 @@ import {
   createAkun,
 } from "../controllers/AkunController.js";
 import {getShopeeData} from "../controllers/MonitoringLiveController.js";
-import {getDataPembayaran} from "../controllers/CekPembayaranController.js";
-import {getLiveHistory, getStudioLiveHistory} from "../controllers/HistoriLiveController.js";
+import {getDataPembayaran, getDataPembayaranStudio, postDataPembayaran} from "../controllers/CekPembayaranController.js";
+import {getLiveHistory, getStudioLiveHistory, postLiveHistory} from "../controllers/HistoriLiveController.js";
 import {getShopeeProducts} from "../controllers/MonitoringProductController.js";
 import {
   requireLogin,
   checkActiveSubscription,
+  // checkSubscription,
 } from "../Middlewares/authMiddleware.js";
 import {
   index,
@@ -63,6 +64,11 @@ import {
   destroyOrder,
   checkSubscription,
   duitkuCallback,
+  indexPayment,
+  showPayment,
+  storePayment,
+  updatePayment,
+  destroyPayment,
 } from "../controllers/ManagementOrderController.js";
 
 // Import controller affiliate
@@ -102,21 +108,21 @@ const router = express.Router();
    AKUN CONTROLLER (CRUD Akun + Import CSV)
 ============================================================ */
 router.get("/akun", getAllAkun);
-router.post("/akun",  requireApiLogin, createAkun);
-router.get("/akun/:id",   requireApiLogin,   getAkunById);
-router.put("/akun/:id",   requireApiLogin,   updateAkun);
-router.delete("/akun/:id",   requireApiLogin,   deleteAkun);
-router.post("/akun/import",   requireApiLogin,   upload.single("csvFile"), importAkunFromCSV);
-router.get("/download-csv-template",   requireApiLogin,   requireLogin, downloadCSVTemplate);
+router.post("/akun", checkActiveSubscription, requireApiLogin, createAkun);
+router.get("/akun/:id",  checkActiveSubscription, requireApiLogin,   getAkunById);
+router.put("/akun/:id",  checkActiveSubscription, requireApiLogin,   updateAkun);
+router.delete("/akun/:id", checkActiveSubscription,  requireApiLogin,   deleteAkun);
+router.post("/akun/import", checkActiveSubscription,   requireApiLogin,   upload.single("csvFile"), importAkunFromCSV);
+router.get("/download-csv-template",  checkActiveSubscription, requireApiLogin,   requireLogin, downloadCSVTemplate);
 
 /* ============================================================
    USER MANAGEMENT CONTROLLER
 ============================================================ */
-router.get("/users",   requireApiLogin,   index);
-router.get("/users/:id",   requireApiLogin,   show);
-router.post("/users",   requireApiLogin,   store);
-router.put("/users/:id",   requireApiLogin,   update);
-router.delete("/users/:id",   requireApiLogin,   destroy);
+router.get("/users", checkActiveSubscription,  requireApiLogin,   index);
+router.get("/users/:id", checkActiveSubscription,  requireApiLogin,   show);
+router.post("/users",  checkActiveSubscription, requireApiLogin,   store);
+router.put("/users/:id", checkActiveSubscription,  requireApiLogin,   update);
+router.delete("/users/:id", checkActiveSubscription,  requireApiLogin,   destroy);
 
 /* ============================================================
    AFFILIATE CONTROLLER
@@ -133,43 +139,46 @@ router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updat
 /* ============================================================
    MONITORING LIVE CONTROLLER
 ============================================================ */
-router.get("/shopee-data",   requireApiLogin,   getShopeeData);
+router.get("/shopee-data", checkActiveSubscription, requireApiLogin, getShopeeData);
 
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER
 ============================================================ */
-router.post("/cek-pembayaran",   requireApiLogin,   getDataPembayaran);
+router.post("/cek-pembayaran/:id_studio", checkActiveSubscription,  requireApiLogin,   getDataPembayaran);
+router.post("/cek-pembayaran-studio",  requireApiLogin,   getDataPembayaranStudio);
+router.post("/post-cek-pembayaran", checkActiveSubscription,  requireApiLogin,   postDataPembayaran);
 
 /* ============================================================
    HISTORI LIVE CONTROLLER
 ============================================================ */
-router.post("/history",   requireApiLogin,   getLiveHistory);
-router.post("/histori_studio",   requireApiLogin,   getStudioLiveHistory);
+router.post("/history",  checkActiveSubscription, requireApiLogin,   getLiveHistory);
+router.post("/historyPost",  checkActiveSubscription, requireApiLogin,   postLiveHistory);
+router.post("/histori_studio", checkActiveSubscription,  requireApiLogin,   getStudioLiveHistory);
 
 /* ============================================================
    MONITORING PRODUCT CONTROLLER
 ============================================================ */
-router.post("/products",   requireApiLogin,   getShopeeProducts);
+router.post("/products", checkActiveSubscription,  requireApiLogin,   getShopeeProducts);
 
 /* ============================================================
    MANAGEMENT STUDIO  CONTROLLER
 ============================================================ */
-router.get("/studios",    requireApiLogin,   getAllStudios);
-router.get("/studio/:id",   requireApiLogin,   getAkunStudioById);
-router.get("/studios_akun",   requireApiLogin,   indexStudio);
-router.get("/studios/:id",   requireApiLogin,   getStudio);
-router.post("/studios",   requireApiLogin,   postStudios);
-router.put("/studios/:id",   requireApiLogin,   putStudio);
-router.delete("/studios/:id",   requireApiLogin,   delStudio);
+router.get("/studios", checkActiveSubscription,   requireApiLogin,   getAllStudios);
+router.get("/studio/:id", checkActiveSubscription,  requireApiLogin,   getAkunStudioById);
+router.get("/studios_akun",  checkActiveSubscription, requireApiLogin,   indexStudio);
+router.get("/studios/:id", checkActiveSubscription,  requireApiLogin,   getStudio);
+router.post("/studios",  checkActiveSubscription, requireApiLogin,   postStudios);
+router.put("/studios/:id", checkActiveSubscription,  requireApiLogin,   putStudio);
+router.delete("/studios/:id", checkActiveSubscription,  requireApiLogin,   delStudio);
 
 /* ============================================================
    MANAGEMENT SUBSCRIPTIONS  CONTROLLER
 ============================================================ */
 router.get("/subscriptions", indexSubscription);
-router.get("/subscriptions/:id", showSubscription);
-router.post("/subscriptions", storeSubscription);
-router.put("/subscriptions/:id", updateSubscription);
-router.delete("/subscriptions/:id", destroySubscription);
+router.get("/subscriptions/:id", checkActiveSubscription, showSubscription);
+router.post("/subscriptions", checkActiveSubscription, storeSubscription);
+router.put("/subscriptions/:id", checkActiveSubscription, updateSubscription);
+router.delete("/subscriptions/:id", checkActiveSubscription, destroySubscription);
 
 /* ============================================================
    MANAGEMENT USER SUBSCRIPTIONS CONTROLLER
@@ -177,8 +186,8 @@ router.delete("/subscriptions/:id", destroySubscription);
 router.get("/user-subscriptions", indexUserSubscription);
 router.get("/user-subscriptions/:id", showUserSubscription);
 router.post("/user-subscriptions", storeUserSubscription);
-router.put("/user-subscriptions/:id", updateUserSubscription);
-router.delete("/user-subscriptions/:id", destroyUserSubscription);
+router.put("/user-subscriptions/:id",updateUserSubscription);
+router.delete("/user-subscriptions/:id",destroyUserSubscription);
 
 /* ============================================================
    MANAGEMENT ORDERS CONTROLLER
@@ -206,6 +215,8 @@ router.get("/performance-live-streams/:id", requireApiLogin, showPerformance);
 router.post("/performance-live-streams", requireApiLogin, storePerformance);
 router.put("/performance-live-streams/:id", requireApiLogin, updatePerformance);
 router.delete("/performance-live-streams/:id", requireApiLogin, destroyPerformance);
+
+
 
 
 router.get("/payment-methods", async (req, res) => {
@@ -258,5 +269,11 @@ router.get("/prices/:id", requireApiLogin, showPrice);
 router.post("/prices", requireApiLogin, storePrice);
 router.put("/prices/:id", requireApiLogin, updatePrice);
 router.delete("/prices/:id", requireApiLogin, destroyPrice);
+
+router.get("/payments", indexPayment);
+router.get("/payments/:id", requireApiLogin, showPayment);
+router.post("/payments", requireApiLogin, storePayment);
+router.put("/payments/:id", requireApiLogin, updatePayment);
+router.delete("/payments/:id", requireApiLogin, destroyPayment);
 
 export default router;

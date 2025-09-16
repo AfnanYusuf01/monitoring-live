@@ -98,6 +98,44 @@
   .card-float {
     animation: float 6s ease-in-out infinite;
   }
+  
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  
+  .metric-item {
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .metric-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .metric-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 0.25rem;
+  }
+  
+  .studio-card {
+    transition: all 0.3s ease;
+    height: fit-content;
+  }
+  
+  .studio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
 </style>
 
 <script>
@@ -153,13 +191,13 @@
         });
     }
     
-    // Fungsi untuk merender card studio
+    // Fungsi untuk merender card studio dengan semua data yang tersedia
     function renderStudios(studios) {
       studioContainer.innerHTML = studios.map(studio => {
         const isLive = studio.jumlah_live.live > 0;
         
         return `
-        <div class="bg-white rounded-2xl shadow-soft-xl overflow-hidden transition-all duration-300 hover:shadow-soft-2xl border border-gray-100 ${isLive ? 'live-pulse card-float' : ''}">
+        <div class="studio-card bg-white rounded-2xl shadow-soft-xl overflow-hidden border border-gray-100 ${isLive ? 'live-pulse card-float' : ''}">
           ${isLive ? `
             <div class="spectrum-bg h-2 w-full"></div>
           ` : ''}
@@ -178,22 +216,38 @@
                 </div>
               </div>
               
-              <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-100">
-                  <div class="text-xs text-blue-600 font-semibold uppercase tracking-wide">Total Akun</div>
-                  <div class="text-xl font-bold text-blue-800 mt-1">${formatNumber(studio.total_akun)}</div>
+              <div class="metric-grid mb-4">
+                <div class="metric-item">
+                  <div class="metric-label">Total Akun</div>
+                  <div class="metric-value">${formatNumber(studio.total_akun)}</div>
                 </div>
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-100">
-                  <div class="text-xs text-purple-600 font-semibold uppercase tracking-wide">GMV</div>
-                  <div class="text-xl font-bold text-purple-800 mt-1">${studio.total_placedGmv}</div>
+                <div class="metric-item">
+                  <div class="metric-label">GMV</div>
+                  <div class="metric-value">${studio.total_placedGmv}</div>
                 </div>
-                <div class="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl p-4 border border-cyan-100">
-                  <div class="text-xs text-cyan-600 font-semibold uppercase tracking-wide">Ditonton</div>
-                  <div class="text-xl font-bold text-cyan-800 mt-1">${formatNumber(studio.total_ditonton)}</div>
+                <div class="metric-item">
+                  <div class="metric-label">Ditonton</div>
+                  <div class="metric-value">${formatNumber(studio.total_ditonton)}</div>
                 </div>
-                <div class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-100">
-                  <div class="text-xs text-pink-600 font-semibold uppercase tracking-wide">Like</div>
-                  <div class="text-xl font-bold text-pink-800 mt-1">${formatNumber(studio.total_like)}</div>
+                <div class="metric-item">
+                  <div class="metric-label">Views</div>
+                  <div class="metric-value">${formatNumber(studio.totalViews)}</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Like</div>
+                  <div class="metric-value">${formatNumber(studio.total_like)}</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Comments</div>
+                  <div class="metric-value">${formatNumber(studio.totalComments)}</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">ATC</div>
+                  <div class="metric-value">${formatNumber(studio.totalAtc)}</div>
+                </div>
+                <div class="metric-item">
+                  <div class="metric-label">Shares</div>
+                  <div class="metric-value">${formatNumber(studio.totalShares)}</div>
                 </div>
               </div>
               

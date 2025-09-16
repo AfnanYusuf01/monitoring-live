@@ -1,5 +1,14 @@
 <% layout("layouts/main") %>
 <div class="min-h-screen bg-gray-50 overflow-hidden">
+        <!-- Update Data Button -->
+    <div class="mb-4 flex justify-end">
+        <button id="update-history-btn" class="px-5 py-2.5 text-sm font-semibold text-white transition-all bg-gradient-to-tl from-purple-600 to-blue-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-95 flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Update Data Live
+        </button>
+    </div>
     <!-- Navigation Tabs -->
     <div class="flex border-b border-gray-200 mb-6">
         <button id="tab-akun" class="px-6 py-3 font-medium text-blue-600 border-b-2 border-blue-600">
@@ -149,7 +158,7 @@
                     <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
                         <div class="flex flex-wrap justify-between items-center">
                             <!-- Judul -->
-                            <h6 class="text-xl font-semibold text-gray-800">History Live by Studio</h6>
+                            <h6 class="text-xl font-semibold text-gray-800">Histori Live Studio</h6>
 
                             <!-- Aksi -->
                             <div class="flex items-center gap-4">
@@ -372,6 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
             renderStudioHistory(currentStudioHistoryData);
         }
     });
+    document.getElementById('update-history-btn').addEventListener('click', function() {
+        updateLiveHistory();
+    });
     
     // Search functionality for accounts
     const accountSearch = document.getElementById('account-search');
@@ -461,6 +473,100 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Function untuk update live history
+async function updateLiveHistory() {
+    try {
+        // Tampilkan loading state
+        const button = document.getElementById('update-history-btn');
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Memperbarui Data...
+        `;
+        button.disabled = true;
+        
+        // Kirim request ke API
+        const response = await fetch(`${API_BASE_URL}/api/historyPost`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include' // untuk mengirim cookie jika diperlukan auth
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Tampilkan notifikasi sukses
+        showNotification('Data berhasil diperbarui!', 'success');
+        
+    } catch (error) {
+        console.error('Error updating live history:', error);
+        showNotification(`Gagal memperbarui data: ${error.message}`, 'error');
+    } finally {
+        // Kembalikan tombol ke state semula
+        const button = document.getElementById('update-history-btn');
+        button.innerHTML = `
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Update Data Live
+        `;
+        button.disabled = false;
+    }
+}
+
+// Function untuk menampilkan notifikasi
+function showNotification(message, type = 'success') {
+    // Hapus notifikasi sebelumnya jika ada
+    const existingNotification = document.getElementById('history-update-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    // Buat elemen notifikasi
+    const notification = document.createElement('div');
+    notification.id = 'history-update-notification';
+    notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg border-l-4 ${
+        type === 'success' 
+            ? 'bg-green-100 text-green-700 border-green-500' 
+            : 'bg-red-100 text-red-700 border-red-500'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ${type === 'success' 
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
+                }
+            </svg>
+            <span>${message}</span>
+            <button class="ml-4 text-gray-500 hover:text-gray-700" onclick="this.parentElement.parentElement.remove()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    // Tambahkan ke DOM
+    document.body.appendChild(notification);
+    
+    // Hapus otomatis setelah 5 detik
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
 
 // Switch between tabs
 function switchTab(tabName) {
@@ -743,11 +849,37 @@ function renderStudioHistory(historyData) {
         return;
     }
     
+    // Flatten the data for table display
+    const flattenedData = [];
+    historyData.forEach(dateGroup => {
+        Object.entries(dateGroup.accounts).forEach(([accountName, accountData]) => {
+            flattenedData.push({
+                Tanggal: dateGroup.tanggal,
+                Nama: accountName,
+                GMV: accountData.GMV,
+                Ord: accountData.Ord,
+                CO: accountData.CO,
+                Act: accountData.Act,
+                View: accountData.View,
+                Viewer: accountData.Viewer,
+                Like: accountData.Like,
+                Comnt: accountData.Comnt,
+                Shere: accountData.Shere,
+                Sessions: accountData.sessions,
+                // These fields are not in the aggregated data, so we'll use placeholders
+                Session: '-',
+                Durasi: '-',
+                Status: 'Aggregated',
+                Pelanggaran: { jumlah: 0, judul: [] }
+            });
+        });
+    });
+    
     // Calculate pagination
-    studioTotalPages = Math.ceil(historyData.length / studioRowsPerPage);
+    studioTotalPages = Math.ceil(flattenedData.length / studioRowsPerPage);
     const startIndex = (currentStudioPage - 1) * studioRowsPerPage;
-    const endIndex = Math.min(startIndex + studioRowsPerPage, historyData.length);
-    const paginatedData = historyData.slice(startIndex, endIndex);
+    const endIndex = Math.min(startIndex + studioRowsPerPage, flattenedData.length);
+    const paginatedData = flattenedData.slice(startIndex, endIndex);
     
     // Get selected studio info
     const selectedStudioId = document.getElementById('studio-dropdown').value;
@@ -770,7 +902,7 @@ function renderStudioHistory(historyData) {
                 <span class="text-sm">${item.Session}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
-                <span class="text-sm">${item.GMV}</span>
+                <span class="text-sm">${formatRupiah(item.GMV)}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
                 <span class="text-sm">${item.Ord}</span>
@@ -797,7 +929,7 @@ function renderStudioHistory(historyData) {
                 <span class="text-sm">${item.Shere}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
-                <span class="text-sm">${item.Tanggal ? new Date(item.Tanggal).toLocaleString() : '-'}</span>
+                <span class="text-sm">${item.Tanggal}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
                 <span class="text-sm">${item.Durasi}</span>
@@ -806,13 +938,22 @@ function renderStudioHistory(historyData) {
                 <span class="text-sm">${item.Status}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap">
-                <span class="text-sm">${renderPelanggaran(item.Pelanggaran)}</span>
+                <span class="text-sm">${item.Sessions} session(s)</span>
             </td>
         </tr>
     `).join('');
     
     // Update pagination controls
-    updateStudioPaginationControls(historyData.length);
+    updateStudioPaginationControls(flattenedData.length);
+}
+
+// Helper function to format currency as Rupiah
+function formatRupiah(amount) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(amount);
 }
 
 // Update pagination controls for account history
@@ -1182,5 +1323,20 @@ body, html {
 
 .section-content {
     transition: opacity 0.3s ease;
+}
+
+#history-update-notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 </style>

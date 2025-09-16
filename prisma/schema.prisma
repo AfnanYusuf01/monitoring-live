@@ -1,190 +1,288 @@
-  generator client {
-    provider = "prisma-client-js"
-  }
+generator client {
+  provider = "prisma-client-js"
+}
 
-  datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
-  }
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
 
-  model User {
-    id        Int       @id @default(autoincrement())
-    email     String    @unique
-    password  String
-    name      String?
-    nomor_wa  String?
-    role      String    @default("user")
-    isAffiliate Boolean @default(false)
-    createdAt DateTime  @default(now())
+model User {
+  id              Int                @id @default(autoincrement())
+  email           String             @unique
+  password        String
+  name            String?
+  nomor_wa        String?
+  role            String             @default("user")
+  isAffiliate     Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  access_token    String?            @unique
 
-    akun      Akun[]
-    studio    Studio[]
-    userSubscriptions UserSubscription[]
-    affiliates Affiliate[]
-  }
+  akun             Akun[]
+  studio           Studio[]
+  userSubscriptions UserSubscription[]
+  affiliates       Affiliate[]
+}
 
-  model Affiliate {
-    id            Int      @id @default(autoincrement())
-    userId        Int
-    komisi        Float    @default(0)
-    totalDibayar  Float    @default(0)
-    metodeBayar   String?
-    provider      String?
-    nomorTujuan   String?
-    namaPemilik   String?
-    lastPaidAt    DateTime?
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
+model Affiliate {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  komisi        Float    @default(0)
+  totalDibayar  Float    @default(0)
+  metodeBayar   String?
+  provider      String?
+  nomorTujuan   String?
+  namaPemilik   String?
+  lastPaidAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-    user          User     @relation(fields: [userId], references: [id])
-    affiliateOrders AffiliateOrder[]
-    orders        Order[]
-  }
+  user          User     @relation(fields: [userId], references: [id])
+  affiliateOrders AffiliateOrder[]
+  orders        Order[]
+}
 
-  model Akun {
-    id         BigInt   @id // pakai BigInt kalau user_id sangat besar
-    nama_akun  String?
-    email      String?  
-    phone      String?  
-    cookie     String?  @db.Text
-    createdAt  DateTime @default(now())
-    deletedAt  DateTime?
+model Akun {
+  id         BigInt   @id
+  nama_akun  String?
+  email      String?  
+  phone      String?  
+  cookie     String?  @db.Text
+  createdAt  DateTime @default(now())
+  deletedAt  DateTime?
 
-    studioId   Int?
-    studio     Studio?  @relation(fields: [studioId], references: [id])
+  studioId   Int?
+  studio     Studio?  @relation(fields: [studioId], references: [id])
 
-    userId     Int
-    user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
 
-    performanceLiveStreams PerformanceLiveStream[]
-  }
+  performanceLiveStreams PerformanceLiveStream[]
+  histories  History[]
+  pembayarans Pembayaran[] // RELASI BARU KE PEMBAYARAN
+}
+
+model Studio {
+  id          Int      @id @default(autoincrement())
+  nama_studio String?
+  catatan     String?  @db.Text
+
+  akun        Akun[]
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?   @db.Text
+  price       Float?
+  duration    Int?
+  is_custom   Boolean?  @default(false)
+  limitAkun   Int?      @default(1)
+  komisi      Float?    @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userSubscriptions UserSubscription[]
+}
+
+enum UserSubscriptionStatus {
+  active
+  expired
+  canceled
+}
+
+model UserSubscription {
+  id              Int                     @id @default(autoincrement())
+  userId          Int
+  subscriptionId  Int?
+  startDate       DateTime                @default(now())
+  endDate         DateTime
+  status          UserSubscriptionStatus  @default(active)
+  limitAkun       Int                     @default(0)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  user            User           @relation(fields: [userId], references: [id])
+  subscription    Subscription?  @relation(fields: [subscriptionId], references: [id])
+  orders          Order[]
+}
+
+model Price {
+  id             Int     @id @default(autoincrement())
+  skema          String 
+  formAkun       Int
+  toAkun         Int
+  priceAkun      Int
+  priceMount     Int
+}
+
+enum OrderStatus {
+  pending
+  paid
+  failed
+}
+
+model Order {
+  id                 Int       @id @default(autoincrement())
+  userSubscriptionId Int
+  amount             Float?
+  status             OrderStatus @default(pending)
+  paymentMethod      String?
+  transactionId      String?   @unique
+  affiliateId        Int?
+  createdAt          DateTime  @default(now())
+
+  userSubscription   UserSubscription @relation(fields: [userSubscriptionId], references: [id])
+  affiliate          Affiliate? @relation(fields: [affiliateId], references: [id])
+  affiliateOrders    AffiliateOrder[]
+
+  // Tambahin ini 👇
+  confirmPayments    ConfirmPayment[]
+}
 
 
-  model Studio {
-    id          Int      @id @default(autoincrement())
-    nama_studio String?
-    catatan     String?  @db.Text
+model AffiliateOrder {
+  id           Int      @id @default(autoincrement())
+  affiliateId  Int
+  orderId      Int
+  komisi       Float    @default(0)
+  status       KomisiStatus @default(pending)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-    akun        Akun[]
-    userId      Int
-    user        User     @relation(fields: [userId], references: [id])
-  }
+  affiliate    Affiliate @relation(fields: [affiliateId], references: [id])
+  order        Order     @relation(fields: [orderId], references: [id])
+}
 
-  model Subscription {
-    id          Int       @id @default(autoincrement())
-    name        String
-    description String?   @db.Text
-    price       Float?
-    duration    Int?
-    is_custom       Boolean?                @default(false)
-    limitAkun   Int?       @default(1)
-    komisi      Float?     @default(0)
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
-    userSubscriptions UserSubscription[]
-  }
+enum KomisiStatus {
+  pending
+  approved
+  paid
+  canceled
+}
 
-  enum UserSubscriptionStatus {
-    active
-    expired
-    canceled
-  }
+model PerformanceLiveStream {
+  id                   Int      @id @default(autoincrement())
+  title                String
+  startTime            DateTime
+  durationMs           Int
+  statusCode           Int
+  conversionRate       Float    @default(0.0000)
+  totalViews           Int      @default(0)
+  totalLikes           Int      @default(0)
+  followersGrowth      Int      @default(0)
+  productClicks        Int      @default(0)
+  uniqueViewers        Int      @default(0)
+  peakViewers          Int      @default(0)
+  avgViewDuration      Float    @default(0.0)
+  totalComments        Int      @default(0)
+  addToCart            Int      @default(0)
+  placedOrders         Int      @default(0)
+  placedSalesAmount    Float    @default(0.0)
+  confirmedOrders      Int      @default(0)
+  confirmedSalesAmount Float    @default(0.0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  model UserSubscription {
-    id              Int                     @id @default(autoincrement())
-    userId          Int
-    subscriptionId  Int?
-    startDate       DateTime                @default(now())
-    endDate         DateTime
-    status          UserSubscriptionStatus  @default(active)
-    limitAkun       Int                     @default(0)
-    createdAt       DateTime                @default(now())
-    updatedAt       DateTime                @updatedAt
+  akunId               BigInt
+  akun                 Akun     @relation(fields: [akunId], references: [id])
 
-    user            User           @relation(fields: [userId], references: [id])
-    subscription    Subscription?  @relation(fields: [subscriptionId], references: [id])
-    orders          Order[]
-  }
+  @@index([akunId])
+  @@index([startTime])
+}
 
+model Payment {
+  id             Int     @id @default(autoincrement())
+  nameService    String 
+  status         Boolean @default(false)
+}
 
-  model Price {
-    id             Int                     @id @default(autoincrement())
-    skema          String 
-    formAkun       Int
-    toAkun         Int
-    priceAkun      Int
-    priceMount     Int
-  }
+model History {
+  id           Int           @id @default(autoincrement())
+  no           Int
+  nama         String
+  session      BigInt
+  gmv          String
+  ord          Int
+  co           Int
+  act          Int
+  view         Int
+  viewer       Int
+  like         Int
+  comnt        Int
+  shere        Int
+  tanggal      DateTime
+  durasi       String
+  status       StatusHistory
 
+  akunId       BigInt
+  akun         Akun          @relation(fields: [akunId], references: [id])
 
-  enum OrderStatus {
-    pending
-    paid
-    failed
-  }
+  pelanggaran  Pelanggaran[]
 
-  model Order {
-    id                 Int       @id @default(autoincrement())
-    userSubscriptionId Int
-    amount             Float?
-    status             OrderStatus @default(pending)
-    paymentMethod      String?
-    transactionId      String?   @unique
-    affiliateId        Int?
-    createdAt          DateTime  @default(now())
+  // Tambahkan composite unique key
+  @@unique([akunId, session], name: "akunId_session")
+}
 
-    userSubscription   UserSubscription @relation(fields: [userSubscriptionId], references: [id])
-    affiliate          Affiliate? @relation(fields: [affiliateId], references: [id])
-    affiliateOrders    AffiliateOrder[]
-  }
+model Pelanggaran {
+  id        Int      @id @default(autoincrement())
+  jumlah    Int
+  judul     Json
+  historyId Int
+  history   History  @relation(fields: [historyId], references: [id])
+}
 
-  model AffiliateOrder {
-    id           Int      @id @default(autoincrement())
-    affiliateId  Int
-    orderId      Int
-    komisi       Float    @default(0)
-    status       KomisiStatus @default(pending)
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+enum StatusHistory {
+  Sedang_Live
+  Tidak_Live
+}
 
-    affiliate    Affiliate @relation(fields: [affiliateId], references: [id])
-    order        Order     @relation(fields: [orderId], references: [id])
-  }
+// MODEL BARU UNTUK DATA PEMBAYARAN
+model Pembayaran {
+  id                            BigInt    @id @default(autoincrement())
+  nama_akun                     String
+  validation_id                 String    @unique
+  total_payment_amount_dis      String
+  payment_status                String
+  payment_channel               String
+  validation_review_time        DateTime?
+  order_completed_period_end_time DateTime?
+  payment_time                  DateTime?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
 
-  enum KomisiStatus {
-    pending
-    approved
-    paid
-    canceled
-  }
+  // Relasi ke akun
+  akunId                        BigInt
+  akun                          Akun      @relation(fields: [akunId], references: [id])
 
-  model PerformanceLiveStream {
-    id                   Int      @id @default(autoincrement())
-    title                String
-    startTime            DateTime
-    durationMs           Int
-    statusCode           Int
-    conversionRate       Float    @default(0.0000)
-    totalViews           Int      @default(0)
-    totalLikes           Int      @default(0)
-    followersGrowth      Int      @default(0)
-    productClicks        Int      @default(0)
-    uniqueViewers        Int      @default(0)
-    peakViewers          Int      @default(0)
-    avgViewDuration      Float    @default(0.0)
-    totalComments        Int      @default(0)
-    addToCart            Int      @default(0)
-    placedOrders         Int      @default(0)
-    placedSalesAmount    Float    @default(0.0)
-    confirmedOrders      Int      @default(0)
-    confirmedSalesAmount Float    @default(0.0)
-    createdAt            DateTime @default(now())
-    updatedAt            DateTime @updatedAt
+  // Index untuk performa query
+  @@index([akunId])
+  @@index([validation_id])
+  @@index([payment_status])
+  @@index([createdAt])
+  @@index([payment_time])
+}
 
-    akunId               BigInt   // <---- Ubah ke BigInt
-    akun                 Akun     @relation(fields: [akunId], references: [id])
+model ConfirmPayment {
+  id             Int       @id @default(autoincrement())
+  orderId        Int
+  product        String
+  tagihanProduct String
+  senderName     String
+  senderEmail    String
+  bankOrigin     String
+  bankTarget     String
+  amount         Float
+  notes          String?   @db.Text
+  buktiTf        String
+  token          String?   @unique // Token one-time
+  isUsed         Boolean   @default(false) // Status penggunaan token
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-    @@index([akunId])
-    @@index([startTime])
-  }
+  order          Order     @relation(fields: [orderId], references: [id])
 
+  @@index([orderId])
+  @@index([token])
+}

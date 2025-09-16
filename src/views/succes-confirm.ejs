@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Konfirmasi Berhasil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes scaleIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes drawCheck {
+            from { stroke-dashoffset: 50; }
+            to { stroke-dashoffset: 0; }
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease-out forwards;
+        }
+        .animate-draw-check {
+            animation: drawCheck 0.8s ease-in-out forwards;
+            stroke-dasharray: 50;
+            stroke-dashoffset: 50;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8 max-w-md w-full mx-auto">
+        <!-- Success Animation -->
+        <div class="flex justify-center mb-6">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center relative">
+                <div class="w-20 h-20 bg-green-200 rounded-full flex items-center justify-center animate-scale-in">
+                    <svg class="w-12 h-12 text-green-600" viewBox="0 0 24 24" fill="none">
+                        <path d="M7 13L10 16L17 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-draw-check" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Konfirmasi Berhasil!</h1>
+            <p class="text-gray-600 mb-4">Tunggu sebentar untuk diverifikasi oleh admin</p>
+            
+            <!-- Email notification message -->
+            <div class="bg-blue-50 rounded-lg p-4 mb-4 text-left">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-envelope text-blue-500 mt-1"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-blue-700">
+                            Notifikasi konfirmasi admin telah terkirim ke email Anda. Silakan cek inbox atau folder spam Anda.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-sm text-gray-500 mb-1">Status</p>
+            <p class="text-orange-500 font-medium mb-6">Menunggu Konfirmasi Admin</p>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-8">
+                <a href="/" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-home"></i> Kembali ke Beranda
+                </a>
+                <button class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-history"></i> Lihat Status
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menambahkan delay untuk animasi centang
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const checkmark = document.querySelector('.animate-draw-check');
+                if (checkmark) {
+                    checkmark.style.animation = 'drawCheck 0.8s ease-in-out forwards';
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>

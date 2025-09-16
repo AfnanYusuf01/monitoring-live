@@ -287,6 +287,10 @@ export const getAllStudios = async (req, res) => {
         let totalPlacedGmv = 0;
         let totalDitonton = 0;
         let totalLikes = 0;
+        let totalViews = 0;
+        let totalAtc = 0;
+        let totalComments = 0;
+        let totalShares = 0;
         let liveCount = 0;
         let notLiveCount = 0;
 
@@ -306,12 +310,17 @@ export const getAllStudios = async (req, res) => {
             cleaned = cleaned.replace(/,/g, ".");
 
             const gmvNumber = parseFloat(cleaned);
+            
 
             totalPlacedGmv += isNaN(gmvNumber) ? 0 : gmvNumber;
 
             // Likes & Ditonton hanya dihitung jika sedang live
             totalDitonton += akunData.ditonton || 0;
             totalLikes += akunData.likes || 0;
+            totalViews += akunData.views || 0;
+            totalComments += akunData.comments || 0;
+            totalAtc += akunData.atc || 0;
+            totalShares += akunData.shares || 0;
           } else {
             notLiveCount++;
           }
@@ -323,6 +332,10 @@ export const getAllStudios = async (req, res) => {
           total_akun: studio.akun.length,
           total_placedGmv: formatGmv(totalPlacedGmv),
           total_ditonton: totalDitonton,
+          totalViews: totalViews,
+          totalComments: totalComments,
+          totalAtc: totalAtc,
+          totalShares: totalShares,
           total_like: totalLikes,
           jumlah_live: {
             live: liveCount,

@@ -124,24 +124,82 @@
                   </div>
                   
                   <!-- Affiliate Link -->
-                  <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Link Affiliate:</label>
-                    <div class="flex">
-                      <input 
-                        type="text" 
-                        value="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id || '' %>" 
-                        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
-                        readonly
-                        id="link-<%= subscription.id %>"
-                      >
-                      <button 
-                        class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
-                        data-link="link-<%= subscription.id %>"
-                      >
-                        <i class="fas fa-copy"></i>
-                      </button>
-                    </div>
-                  </div>
+<div class="mb-6">
+  <label class="block text-sm font-medium text-gray-700 mb-3">Link Affiliate:</label>
+  
+  <!-- Link Checkout -->
+  <div class="mb-4">
+    <label class="block text-xs font-medium text-gray-500 mb-1">Link Checkout:</label>
+    <div class="flex">
+      <input 
+        type="text" 
+        value="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id || '' %>" 
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
+        readonly
+        id="checkout-link-<%= subscription.id %>"
+      >
+      <button 
+        class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
+        data-link="checkout-link-<%= subscription.id %>"
+      >
+        <i class="fas fa-copy"></i>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Link Subscription -->
+  <div>
+    <label class="block text-xs font-medium text-gray-500 mb-1">Link Subscription:</label>
+    <div class="flex">
+      <input 
+        type="text" 
+        value="<%= APP_BASE_URL %>/subscription/<%= affiliate.id %>/<%= subscription.id || '' %>" 
+        class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm" 
+        readonly
+        id="subscription-link-<%= subscription.id %>"
+      >
+      <button 
+        class="px-3 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors copy-btn"
+        data-link="subscription-link-<%= subscription.id %>"
+      >
+        <i class="fas fa-copy"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Fungsi untuk menyalin teks ke clipboard
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+      console.log('Teks berhasil disalin: ', text);
+    }, function(err) {
+      console.error('Gagal menyalin teks: ', err);
+    });
+  }
+  
+  // Menambahkan event listener ke semua tombol salin
+  document.querySelectorAll('.copy-btn').forEach(function(button) {
+    button.addEventListener('click', function() {
+      const linkId = this.getAttribute('data-link');
+      const inputElement = document.getElementById(linkId);
+      copyToClipboard(inputElement.value);
+      
+      // Feedback visual
+      const originalHtml = this.innerHTML;
+      this.innerHTML = '<i class="fas fa-check"></i>';
+      this.classList.add('bg-green-600');
+      
+      // Kembalikan tampilan setelah 2 detik
+      setTimeout(() => {
+        this.innerHTML = originalHtml;
+        this.classList.remove('bg-green-600');
+      }, 2000);
+    });
+  });
+});
+</script>
                   
                   <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-colors share-btn" 
                     data-link="<%= APP_BASE_URL %>/subscription/checkout/<%= affiliate.id %>/<%= subscription.id || '' %>">

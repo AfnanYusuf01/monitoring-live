@@ -87,102 +87,229 @@ function getShopeeHeaders(cookies) {
   };
 }
 
-// Main controller
 export const getLiveHistory = async (req, res) => {
   try {
-    const {accountId} = req.body;
+    const { accountId } = req.body;
 
     if (!accountId) {
-      return res.status(400).json({error: "Account ID is required"});
+      return res.status(400).json({ error: "Account ID is required" });
     }
-    const userId = req.session.user.id;
 
-
-    // Get account from database
-    const account = await prisma.akun.findUnique({
-      where: {id: parseInt(accountId)},
+    // Ambil data dari database berdasarkan accountId
+    const historyData = await prisma.history.findMany({
+      where: {
+        akunId: BigInt(accountId)
+      },
+      include: {
+        pelanggaran: true // Include data pelanggaran yang terkait
+      },
+      orderBy: {
+        tanggal: 'desc' // Urutkan dari yang terbaru
+      }
     });
 
-    if (!account || !account.cookie) {
-      return res
-        .status(404)
-        .json({error: "Account not found or invalid cookie"});
+    // Format data sesuai dengan response yang diharapkan
+    const formattedResults = historyData.map((item, index) => ({
+      No: index + 1,
+      Nama: item.nama,
+      Session: item.session.toString(),
+      GMV: item.gmv,
+      Ord: item.ord,
+      CO: item.co,
+      Act: item.act,
+      View: item.view,
+      Viewer: item.viewer,
+      Like: item.like,
+      Comnt: item.comnt,
+      Shere: item.shere,
+      Tanggal: item.tanggal ? item.tanggal.toISOString() : null,
+      Durasi: item.durasi,
+      Status: item.status === "Sedang_Live" ? "Sedang Live" : "Tidak Live",
+      Pelanggaran: {
+        jumlah: item.pelanggaran?.jumlah || 0,
+        judul: item.pelanggaran?.judul || []
+      }
+    }));
+
+    return res.json(formattedResults);
+  } catch (error) {
+    console.error("Error in getLiveHistory:", error);
+    return res.status(500).json({
+      error: "Failed to get live history from database",
+      detail: error.message,
+    });
+  }
+};
+
+
+// Tambahkan ini di awal file untuk handle BigInt serialization
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
+
+export const postLiveHistory = async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
     }
 
-    // Get initial session data to determine total count
-    const initialSessionData = await getShopeeSessions(account.cookie);
-    if (!initialSessionData?.total) {
-      return res.json([]);
+    // Ambil semua akun milik user
+    const accounts = await prisma.akun.findMany({
+      where: { 
+        userId: parseInt(userId),
+        cookie: { not: null } // Hanya ambil akun yang memiliki cookie
+      }
+    });
+
+    if (!accounts.length) {
+      return res.status(404).json({ error: "No accounts found for this user or accounts have no cookies" });
     }
 
-    // Get all sessions with total count as pageSize
-    const allSessionsData = await getShopeeSessions(
-      account.cookie,
-      initialSessionData.total
-    );
+    const allHistoryResults = [];
 
-    if (!allSessionsData?.list?.length) {
-      return res.json([]);
-    }
-
-    // Process each session to get detailed data
-    const historyResults = [];
-
-    for (const session of allSessionsData.list) {
+    // Process each account
+    for (const account of accounts) {
       try {
-        const sessionId = session.sessionId;
+        // ambil session list dari Shopee
+        const initialSessionData = await getShopeeSessions(account.cookie);
+        if (!initialSessionData?.total) continue;
 
-        // Get all data in parallel
-        const [liveData, sessionInfo, violations] = await Promise.all([
-          getDataLive(sessionId, account.cookie),
-          getDataSession(sessionId, account.cookie),
-          getViolationsData(sessionId, account.cookie),
-        ]);
+        const allSessionsData = await getShopeeSessions(account.cookie, initialSessionData.total);
+        if (!allSessionsData?.list?.length) continue;
 
-        // Extract data with proper fallbacks
-        const mainData = liveData?.data || {};
-        const engagementData = mainData.engagementData || {};
-        const sessionDetail = sessionInfo?.data || {};
+        const historyResults = [];
 
-        // Format the result object to match VB.NET output
-        const result = {
-          No: historyResults.length + 1,
-          Nama: account.nama_akun,
-          Session: sessionId,
-          GMV: formatRupiah(mainData.placedGmv || 0),
-          Ord: mainData.placedOrder || 0,
-          CO: mainData.confirmedItemsSold || 0,
-          Act: mainData.atc || 0,
-          View: mainData.views || 0,
-          Viewer: mainData.ccu || 0,
-          Like: engagementData.likes || 0,
-          Comnt: engagementData.comments || 0,
-          Shere: engagementData.shares || 0,
-          Tanggal: sessionDetail.lsStartTime
-            ? new Date(sessionDetail.lsStartTime).toISOString()
-            : null,
-          Durasi: sessionDetail.lsStartTime
-            ? formatDuration(sessionDetail.lsStartTime)
-            : "00:00:00",
-          Status: getStatusText(mainData.status),
+        for (const [idx, session] of allSessionsData.list.entries()) {
+          try {
+            const sessionId = session.sessionId;
 
-          // ✅ jadikan object bukan string
-          Pelanggaran: {
-            jumlah: violations?.JumlahPelanggaran || 0,
-            judul: violations?.JudulPelanggaran || [],
-          },
-        };
+            const [liveData, sessionInfo, violations] = await Promise.all([
+              getDataLive(sessionId, account.cookie),
+              getDataSession(sessionId, account.cookie),
+              getViolationsData(sessionId, account.cookie),
+            ]);
 
-        historyResults.push(result);
+            const mainData = liveData?.data || {};
+            const engagementData = mainData.engagementData || {};
+            const sessionDetail = sessionInfo?.data || {};
+
+            const result = {
+              no: idx + 1,
+              nama: account.nama_akun,
+              session: BigInt(sessionId),
+              gmv: formatRupiah(mainData.placedGmv || 0),
+              ord: mainData.placedOrder || 0,
+              co: mainData.confirmedItemsSold || 0,
+              act: mainData.atc || 0,
+              view: mainData.views || 0,
+              viewer: mainData.ccu || 0,
+              like: engagementData.likes || 0,
+              comnt: engagementData.comments || 0,
+              shere: engagementData.shares || 0,
+              tanggal: sessionDetail.lsStartTime ? new Date(sessionDetail.lsStartTime) : null,
+              durasi: sessionDetail.lsStartTime
+                ? formatDuration(sessionDetail.lsStartTime)
+                : "00:00:00",
+              status: getStatusText(mainData.status) === "Sedang Live"
+                ? "Sedang_Live"
+                : "Tidak_Live",
+              akunId: account.id,
+              pelanggaran: {
+                jumlah: violations?.JumlahPelanggaran || 0,
+                judul: violations?.JudulPelanggaran || [],
+              },
+            };
+
+            // ✅ upsert ke DB dengan composite key yang benar
+            await prisma.history.upsert({
+              where: {
+                akunId_session: {
+                  akunId: account.id,
+                  session: BigInt(sessionId),
+                },
+              },
+              update: {
+                no: result.no,
+                nama: result.nama,
+                gmv: result.gmv,
+                ord: result.ord,
+                co: result.co,
+                act: result.act,
+                view: result.view,
+                viewer: result.viewer,
+                like: result.like,
+                comnt: result.comnt,
+                shere: result.shere,
+                tanggal: result.tanggal,
+                durasi: result.durasi,
+                status: result.status,
+                pelanggaran: {
+                  deleteMany: {}, // hapus dulu
+                  create: {
+                    jumlah: result.pelanggaran.jumlah,
+                    judul: result.pelanggaran.judul,
+                  },
+                },
+              },
+              create: {
+                no: result.no,
+                nama: result.nama,
+                session: result.session,
+                gmv: result.gmv,
+                ord: result.ord,
+                co: result.co,
+                act: result.act,
+                view: result.view,
+                viewer: result.viewer,
+                like: result.like,
+                comnt: result.comnt,
+                shere: result.shere,
+                tanggal: result.tanggal,
+                durasi: result.durasi,
+                status: result.status,
+                akunId: result.akunId,
+                pelanggaran: {
+                  create: {
+                    jumlah: result.pelanggaran.jumlah,
+                    judul: result.pelanggaran.judul,
+                  },
+                },
+              },
+            });
+
+            historyResults.push(result);
+          } catch (error) {
+            console.error(`Error processing session ${session.sessionId} for account ${account.id}:`, error);
+          }
+        }
+
+        allHistoryResults.push({
+          accountId: account.id.toString(), // Convert BigInt to string untuk JSON
+          accountName: account.nama_akun,
+          sessionsProcessed: historyResults.length,
+          history: historyResults
+        });
+
       } catch (error) {
-        console.error(`Error processing session ${session.sessionId}:`, error);
-        // Continue with next session even if one fails
+        console.error(`Error processing account ${account.id}:`, error);
+        allHistoryResults.push({
+          accountId: account.id.toString(), // Convert BigInt to string untuk JSON
+          accountName: account.nama_akun,
+          error: error.message,
+          sessionsProcessed: 0
+        });
       }
     }
 
-    return res.json(historyResults);
+    return res.json({
+      message: "Live history processed for all user accounts",
+      totalAccounts: accounts.length,
+      results: allHistoryResults
+    });
   } catch (error) {
-    console.error("Error in getLiveHistory:", error);
+    console.error("Error in postLiveHistory:", error);
     return res.status(500).json({
       error: "Failed to get live history",
       detail: error.message,
@@ -190,9 +317,7 @@ export const getLiveHistory = async (req, res) => {
   }
 };
 
-
-
-// Main controller for studio history
+// Main controller for studio history - Updated to use database
 export const getStudioLiveHistory = async (req, res) => {
   try {
     const { accountIds } = req.body;
@@ -201,263 +326,157 @@ export const getStudioLiveHistory = async (req, res) => {
       return res.status(400).json({ error: "Account IDs array is required" });
     }
 
-    const userId = req.session.user.id;
-    const allHistoryResults = [];
+    // Convert accountIds to numbers
+    const numericAccountIds = accountIds.map(id => parseInt(id)).filter(id => !isNaN(id));
 
-    // Process each account
-    for (const accountId of accountIds) {
-      try {
-        // Get account from database
-        const account = await prisma.akun.findUnique({
-          where: { id: parseInt(accountId) },
-        });
-
-        if (!account || !account.cookie) {
-          console.warn(`Account ${accountId} not found or invalid cookie`);
-          continue;
-        }
-
-        // Get initial session data to determine total count
-        const initialSessionData = await getShopeeSessions(account.cookie);
-        if (!initialSessionData?.total) {
-          continue;
-        }
-
-        // Get all sessions with total count as pageSize
-        const allSessionsData = await getShopeeSessions(
-          account.cookie,
-          initialSessionData.total
-        );
-
-        if (!allSessionsData?.list?.length) {
-          continue;
-        }
-
-        // Process each session to get detailed data
-        for (const session of allSessionsData.list) {
-          try {
-            const sessionId = session.sessionId;
-
-            // Get all data in parallel
-            const [liveData, sessionInfo, violations] = await Promise.all([
-              getDataLive(sessionId, account.cookie),
-              getDataSession(sessionId, account.cookie),
-              getViolationsData(sessionId, account.cookie),
-            ]);
-
-            // Extract data with proper fallbacks
-            const mainData = liveData?.data || {};
-            const engagementData = mainData.engagementData || {};
-            const sessionDetail = sessionInfo?.data || {};
-
-            // Get date in proper timezone for accurate grouping
-            let sessionDate = null;
-            let sessionDateTime = null;
-            
-            if (sessionDetail.lsStartTime) {
-              sessionDateTime = new Date(sessionDetail.lsStartTime);
-              // Create date key in WIB timezone (UTC+7)
-              sessionDate = getDateInWIB(sessionDateTime).toISOString().split('T')[0];
-            }
-
-            // Format the result object
-            const result = {
-              Nama: account.nama_akun,
-              Session: sessionId,
-              GMV: parseFloat((mainData.placedGmv || 0).toString().replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
-              Ord: mainData.placedOrder || 0,
-              CO: mainData.confirmedItemsSold || 0,
-              Act: mainData.atc || 0,
-              View: mainData.views || 0,
-              Viewer: mainData.ccu || 0,
-              Like: engagementData.likes || 0,
-              Comnt: engagementData.comments || 0,
-              Shere: engagementData.shares || 0,
-              Tanggal: sessionDateTime ? sessionDateTime.toISOString() : null,
-              TanggalGroup: sessionDate, // For grouping by date in WIB timezone
-              Durasi: sessionDetail.lsStartTime
-                ? formatDuration(sessionDetail.lsStartTime)
-                : "00:00:00",
-              Status: getStatusText(mainData.status),
-              Pelanggaran: {
-                jumlah: violations?.JumlahPelanggaran || 0,
-                judul: violations?.JudulPelanggaran || [],
-              },
-            };
-
-            allHistoryResults.push(result);
-          } catch (error) {
-            console.error(`Error processing session ${session.sessionId} for account ${accountId}:`, error);
-            // Continue with next session even if one fails
-          }
-        }
-      } catch (error) {
-        console.error(`Error processing account ${accountId}:`, error);
-        // Continue with next account even if one fails
-      }
+    if (numericAccountIds.length === 0) {
+      return res.status(400).json({ error: "Valid account IDs are required" });
     }
 
+    // Ambil data dari database berdasarkan accountIds
+    const historyData = await prisma.history.findMany({
+      where: {
+        akunId: {
+          in: numericAccountIds.map(id => BigInt(id))
+        }
+      },
+      include: {
+        pelanggaran: true // Include data pelanggaran yang terkait
+      },
+      orderBy: {
+        tanggal: 'desc' // Urutkan dari yang terbaru
+      }
+    });
+
+    // Format data sesuai dengan response yang diharapkan
+    const formattedResults = historyData.map(item => {
+      // Get date in WIB timezone for grouping
+      let tanggalGroup = null;
+      if (item.tanggal) {
+        tanggalGroup = getDateInWIB(item.tanggal).toISOString().split('T')[0];
+      }
+
+      return {
+        Nama: item.nama,
+        Session: item.session.toString(),
+        GMV: parseFloat(item.gmv.toString().replace(/[^\d.,]/g, '').replace(',', '.')) || 0,
+        Ord: item.ord,
+        CO: item.co,
+        Act: item.act,
+        View: item.view,
+        Viewer: item.viewer,
+        Like: item.like,
+        Comnt: item.comnt,
+        Shere: item.shere,
+        Tanggal: item.tanggal ? item.tanggal.toISOString() : null,
+        TanggalGroup: tanggalGroup, // For grouping by date in WIB timezone
+        Durasi: item.durasi,
+        Status: item.status === "Sedang_Live" ? "Sedang Live" : "Tidak Live",
+        Pelanggaran: {
+          jumlah: item.pelanggaran?.jumlah || 0,
+          judul: item.pelanggaran?.judul || []
+        }
+      };
+    });
+
     // Group and aggregate data by date and account
-    const groupedData = groupAndAggregateDataByDate(allHistoryResults);
+    const groupedData = groupAndAggregateDataByDate(formattedResults);
 
     return res.json(groupedData);
   } catch (error) {
     console.error("Error in getStudioLiveHistory:", error);
     return res.status(500).json({
-      error: "Failed to get studio live history",
+      error: "Failed to get studio live history from database",
       detail: error.message,
     });
   }
 };
 
-// Helper function to convert date to WIB timezone (UTC+7)
+// Helper function to get date in WIB timezone (UTC+7)
 function getDateInWIB(date) {
-  // Convert to WIB timezone (UTC+7)
-  const offset = 7 * 60; // WIB is UTC+7
-  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-  return new Date(utc + (3600000 * offset));
+  const utcDate = new Date(date);
+  const wibDate = new Date(utcDate.getTime() + (7 * 60 * 60 * 1000)); // UTC+7
+  return wibDate;
 }
 
-// Helper function to group and aggregate data by date and account with proper date handling
+// Helper function to group and aggregate data by date
 function groupAndAggregateDataByDate(data) {
-  const groupedByDateAndAccount = {};
+  const groupedByDate = {};
   
-  // Group data by date and account
   data.forEach(item => {
     if (!item.TanggalGroup) return;
     
-    const key = `${item.TanggalGroup}_${item.Nama}`;
+    if (!groupedByDate[item.TanggalGroup]) {
+      groupedByDate[item.TanggalGroup] = {
+        tanggal: item.TanggalGroup,
+        accounts: {},
+        total: {
+          GMV: 0,
+          Ord: 0,
+          CO: 0,
+          Act: 0,
+          View: 0,
+          Viewer: 0,
+          Like: 0,
+          Comnt: 0,
+          Shere: 0,
+          sessions: 0
+        }
+      };
+    }
     
-    if (!groupedByDateAndAccount[key]) {
-      groupedByDateAndAccount[key] = {
-        Nama: item.Nama,
-        TanggalGroup: item.TanggalGroup,
+    const dateGroup = groupedByDate[item.TanggalGroup];
+    
+    // Initialize account if not exists
+    if (!dateGroup.accounts[item.Nama]) {
+      dateGroup.accounts[item.Nama] = {
         GMV: 0,
         Ord: 0,
         CO: 0,
         Act: 0,
         View: 0,
-        Viewer: 0, // We'll track peak viewers, not sum
+        Viewer: 0,
         Like: 0,
         Comnt: 0,
         Shere: 0,
-        Sessions: 0,
-        Pelanggaran: {
-          jumlah: 0,
-          judul: []
-        },
-        Status: "Tidak Live", // Default status
-        LatestTanggal: item.Tanggal,
-        Durasi: "00:00:00",
-        // For tracking peak viewers
-        PeakViewer: 0,
-        PeakViewerTime: null,
-        // For tracking session times
-        SessionStartTimes: [],
-        SessionDurations: []
+        sessions: 0
       };
     }
     
-    const group = groupedByDateAndAccount[key];
+    const accountData = dateGroup.accounts[item.Nama];
     
-    // Sum numeric values
-    group.GMV += item.GMV;
-    group.Ord += item.Ord;
-    group.CO += item.CO;
-    group.Act += item.Act;
-    group.View += item.View;
-    group.Like += item.Like;
-    group.Comnt += item.Comnt;
-    group.Shere += item.Shere;
-    group.Sessions += 1;
+    // Add to account totals
+    accountData.GMV += item.GMV;
+    accountData.Ord += item.Ord;
+    accountData.CO += item.CO;
+    accountData.Act += item.Act;
+    accountData.View += item.View;
+    accountData.Viewer += item.Viewer;
+    accountData.Like += item.Like;
+    accountData.Comnt += item.Comnt;
+    accountData.Shere += item.Shere;
+    accountData.sessions += 1;
     
-    // Track peak viewers
-    if (item.Viewer > group.PeakViewer) {
-      group.PeakViewer = item.Viewer;
-      group.PeakViewerTime = item.Tanggal;
-    }
-    group.Viewer = group.PeakViewer; // Use peak viewer as the viewer count
-    
-    // Sum violations
-    group.Pelanggaran.jumlah += item.Pelanggaran.jumlah;
-    group.Pelanggaran.judul = [...new Set([...group.Pelanggaran.judul, ...item.Pelanggaran.judul])];
-    
-    // Update status if any session is live
-    if (item.Status === "Sedang Live") {
-      group.Status = "Sedang Live";
-    }
-    
-    // Keep the latest tanggal
-    if (new Date(item.Tanggal) > new Date(group.LatestTanggal)) {
-      group.LatestTanggal = item.Tanggal;
-    }
-    
-    // Track session start times and durations for accurate total duration calculation
-    if (item.Tanggal) {
-      group.SessionStartTimes.push(new Date(item.Tanggal));
-      
-      // Parse duration string (HH:MM:SS) to seconds
-      const durationParts = item.Durasi.split(':');
-      const durationSeconds = parseInt(durationParts[0]) * 3600 + 
-                             parseInt(durationParts[1]) * 60 + 
-                             parseInt(durationParts[2]);
-      group.SessionDurations.push(durationSeconds);
-    }
+    // Add to date totals
+    dateGroup.total.GMV += item.GMV;
+    dateGroup.total.Ord += item.Ord;
+    dateGroup.total.CO += item.CO;
+    dateGroup.total.Act += item.Act;
+    dateGroup.total.View += item.View;
+    dateGroup.total.Viewer += item.Viewer;
+    dateGroup.total.Like += item.Like;
+    dateGroup.total.Comnt += item.Comnt;
+    dateGroup.total.Shere += item.Shere;
+    dateGroup.total.sessions += 1;
   });
   
-  // Calculate total duration for each group
-  Object.keys(groupedByDateAndAccount).forEach(key => {
-    const group = groupedByDateAndAccount[key];
-    
-    if (group.SessionDurations.length > 0) {
-      // Sum all durations in seconds
-      const totalSeconds = group.SessionDurations.reduce((sum, duration) => sum + duration, 0);
-      
-      // Convert back to HH:MM:SS format
-      const hours = Math.floor(totalSeconds / 3600);
-      const minutes = Math.floor((totalSeconds % 3600) / 60);
-      const seconds = totalSeconds % 60;
-      
-      group.Durasi = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-  });
-  
-  // Convert grouped data to array
-  const resultArray = Object.values(groupedByDateAndAccount);
-  
-  // Sort by date (newest first) and then by account name
-  resultArray.sort((a, b) => {
-    // First sort by date (descending - newest first)
-    const dateComparison = new Date(b.TanggalGroup) - new Date(a.TanggalGroup);
-    if (dateComparison !== 0) return dateComparison;
-    
-    // If same date, sort by account name (ascending)
-    return a.Nama.localeCompare(b.Nama);
-  });
-  
-  // Format final result with sequential numbering
-  const result = resultArray.map((group, index) => ({
-    No: index + 1,
-    Nama: group.Nama,
-    Session: `${group.Sessions} session${group.Sessions > 1 ? 's' : ''}`,
-    GMV: formatRupiah(group.GMV),
-    Ord: group.Ord,
-    CO: group.CO,
-    Act: group.Act,
-    View: group.View,
-    Viewer: group.Viewer, // Peak viewers
-    Like: group.Like,
-    Comnt: group.Comnt,
-    Shere: group.Shere,
-    Tanggal: group.LatestTanggal,
-    TanggalGroup: group.TanggalGroup, // Keep for reference if needed
-    Durasi: group.Durasi,
-    Status: group.Status,
-    Pelanggaran: group.Pelanggaran
-  }));
-  
-  return result;
+  // Convert to array format
+  return Object.values(groupedByDate).sort((a, b) => 
+    new Date(b.tanggal) - new Date(a.tanggal)
+  );
 }
+
+
 
 
 
