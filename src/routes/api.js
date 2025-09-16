@@ -14,6 +14,7 @@ import {
   updateAkun,
   deleteAkun,
   createAkun,
+  createAkunViaAPI,
 } from "../controllers/AkunController.js";
 import {getShopeeData} from "../controllers/MonitoringLiveController.js";
 import {getDataPembayaran, getDataPembayaranStudio, postDataPembayaran} from "../controllers/CekPembayaranController.js";
@@ -110,6 +111,7 @@ router.put("/akun/:id",  checkActiveSubscription, requireApiLogin,   updateAkun)
 router.delete("/akun/:id", checkActiveSubscription,  requireApiLogin,   deleteAkun);
 router.post("/akun/import", checkActiveSubscription,   requireApiLogin,   upload.single("csvFile"), importAkunFromCSV);
 router.get("/download-csv-template",  checkActiveSubscription, requireApiLogin,   requireLogin, downloadCSVTemplate);
+router.post('/akun/create', createAkunViaAPI);
 
 /* ============================================================
    USER MANAGEMENT CONTROLLER

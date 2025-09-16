@@ -886,3 +886,102 @@ export const checkCookieStatusEndpoint = async (req, res) => {
     res.status(500).json({error: err.message});
   }
 };
+
+
+// Import necessary modules and functions...
+
+export const createAkunViaAPI = async (req, res) => {
+  const { cookie } = req.body;
+  const accessToken = req.headers['access-token'] || req.headers['authorization'];
+
+  if (!accessToken) {
+    return res.status(401).json({ error: "Access token required" });
+  }
+
+  if (!cookie) {
+    return res.status(400).json({ error: "Cookie wajib diisi" });
+  }
+
+  try {
+    // Cari user berdasarkan access token
+    const user = await prisma.user.findUnique({
+      where: { access_token: accessToken },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: "Access token tidak valid" });
+    }
+
+    const userId = user.id;
+
+    // Ambil data profil dari Shopee API
+    const profileResult = await fetchShopeeProfile(cookie);
+
+    if (!profileResult.success) {
+      if (profileResult.code === 30002) {
+        const nama_akun = `Akun Shopee ${Date.now()}`;
+
+        const akun = await prisma.akun.create({
+          data: {
+            id: BigInt(Date.now()), // fallback id unik
+            nama_akun,
+            email: null,
+            phone: null,
+            cookie,
+            userId: userId,
+          },
+        });
+
+        return res.json({
+          message: "Akun berhasil dibuat, namun cookie tidak valid",
+          akun: serializeBigInt(akun),
+          cookie_status: "logout",
+          warning: "Cookie tidak valid, silakan perbarui cookie",
+        });
+      } else {
+        return res.status(400).json({
+          error: "Gagal mengambil data profil Shopee",
+          detail: profileResult.error,
+        });
+      }
+    }
+
+    const profileData = profileResult.data;
+    const nama_akun = profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
+    const email = profileData.email || null;
+    const phone = profileData.phone || null;
+    const akunId = BigInt(profileData.user_id);
+
+    const akun = await prisma.akun.create({
+      data: {
+        id: akunId,
+        nama_akun,
+        email,
+        phone,
+        cookie,
+        userId: userId,
+      },
+    });
+
+    res.json({
+      message: "Akun berhasil dibuat",
+      akun: serializeBigInt(akun),
+      profile: profileData,
+      cookie_status: "active",
+    });
+  } catch (err) {
+    if (err.code === "P2002") {
+      const target = err.meta?.target;
+      if (target?.includes("email")) {
+        return res.status(400).json({ error: "Email sudah digunakan oleh akun lain" });
+      }
+      if (target?.includes("phone")) {
+        return res.status(400).json({ error: "Nomor telepon sudah digunakan oleh akun lain" });
+      }
+      if (target?.includes("PRIMARY")) {
+        return res.status(400).json({ error: "Akun dengan user_id ini sudah ada" });
+      }
+    }
+    res.status(500).json({ error: err.message });
+  }
+};
