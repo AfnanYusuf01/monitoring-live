@@ -54,7 +54,7 @@ export default {
     }
   },
 
-  register: async (req, res) => {
+register: async (req, res) => {
     const {name, email, password, nomor_wa, terms} = req.body;
 
     try {
@@ -85,14 +85,35 @@ export default {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Buat user baru
+      // Generate access token 8 digit random
+      const generateAccessToken = () => {
+        return Math.floor(10000000 + Math.random() * 90000000).toString();
+      };
+      
+      let accessToken;
+      let isTokenUnique = false;
+      
+      // Pastikan token unik
+      while (!isTokenUnique) {
+        accessToken = generateAccessToken();
+        const existingToken = await prisma.user.findUnique({
+          where: { access_token: accessToken },
+        });
+        
+        if (!existingToken) {
+          isTokenUnique = true;
+        }
+      }
+
+      // Buat user baru dengan access token
       const newUser = await prisma.user.create({
         data: {
           name,
           email,
           password: hashedPassword,
-          nomor_wa, // Simpan nomor WA
+          nomor_wa,
           role: "user",
+          access_token: accessToken, // Menambahkan access token
         },
       });
 
@@ -125,18 +146,16 @@ export default {
                 <p style="margin: 5px 0;"><strong>Detail akun Anda:</strong></p>
                 <p style="margin: 5px 0;">Nama: ${newUser.name}</p>
                 <p style="margin: 5px 0;">Email: ${newUser.email}</p>
-                <p style="margin: 5px 0;">Nomor WhatsApp: ${
-                  newUser.nomor_wa
-                }</p>
+                <p style="margin: 5px 0;">Nomor WhatsApp: ${newUser.nomor_wa}</p>
+                <p style="margin: 5px 0;"><strong>Access Token: ${accessToken}</strong></p>
               </div>
               
+              <p>Access Token ini dapat digunakan untuk mengakses API atau fitur khusus lainnya.</p>
               <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
               <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
               
               <div style="text-align: center; margin: 20px 0;">
-                <a href="${
-                  process.env.APP_URL || "http://localhost:3000"
-                }/login" 
+                <a href="${process.env.APP_URL || "http://localhost:3000"}/login" 
                    style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
                   Login ke Akun Saya
                 </a>
@@ -160,6 +179,7 @@ export default {
         email: newUser.email,
         name: newUser.name,
         nomor_wa: newUser.nomor_wa,
+        access_token: newUser.access_token, // Menambahkan access token ke session
       };
 
       // Redirect ke halaman utama setelah registrasi berhasil
@@ -319,7 +339,7 @@ export default {
     }
   },
 
-  registerApi: async (req, res) => {
+registerApi: async (req, res) => {
     const {name, email, password, nomor_wa, terms} = req.body;
 
     try {
@@ -348,7 +368,27 @@ export default {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Buat user baru
+      // Generate access token 8 digit random
+      const generateAccessToken = () => {
+        return Math.floor(10000000 + Math.random() * 90000000).toString();
+      };
+      
+      let accessToken;
+      let isTokenUnique = false;
+      
+      // Pastikan token unik
+      while (!isTokenUnique) {
+        accessToken = generateAccessToken();
+        const existingToken = await prisma.user.findUnique({
+          where: { access_token: accessToken },
+        });
+        
+        if (!existingToken) {
+          isTokenUnique = true;
+        }
+      }
+
+      // Buat user baru dengan access token
       const newUser = await prisma.user.create({
         data: {
           name,
@@ -356,6 +396,7 @@ export default {
           password: hashedPassword,
           nomor_wa,
           role: "user",
+          access_token: accessToken, // Menambahkan access token
         },
       });
 
@@ -376,19 +417,39 @@ export default {
           to: newUser.email,
           subject: "Selamat Datang di Streamo - Registrasi Berhasil",
           html: `
-          <p>Halo ${newUser.name},</p>
-          <p>Selamat! Akun Streamo Anda telah berhasil dibuat.</p>
-          <p>Detail akun Anda:</p>
-          <ul>
-            <li>Nama: ${newUser.name}</li>
-            <li>Email: ${newUser.email}</li>
-            <li>Nomor WhatsApp: ${newUser.nomor_wa}</li>
-          </ul>
-          <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
-          <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
-          <br>
-          <p>Terima kasih telah bergabung,</p>
-          <p>Tim Streamo</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background-color: #007bff; padding: 20px; text-align: center; color: white;">
+              <h1>Selamat Datang di Streamo!</h1>
+            </div>
+            <div style="padding: 20px; border: 1px solid #ddd;">
+              <p>Halo <strong>${newUser.name}</strong>,</p>
+              <p>Selamat! Akun Streamo Anda telah berhasil dibuat.</p>
+              
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                <p style="margin: 5px 0;"><strong>Detail akun Anda:</strong></p>
+                <p style="margin: 5px 0;">Nama: ${newUser.name}</p>
+                <p style="margin: 5px 0;">Email: ${newUser.email}</p>
+                <p style="margin: 5px 0;">Nomor WhatsApp: ${newUser.nomor_wa}</p>
+                <p style="margin: 5px 0;"><strong>Access Token: ${accessToken}</strong></p>
+              </div>
+              
+              <p>Access Token ini dapat digunakan untuk mengakses API atau fitur khusus lainnya.</p>
+              <p>Simpan token ini dengan aman dan jangan bagikan kepada siapapun.</p>
+              <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
+              <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
+              
+              <div style="text-align: center; margin: 20px 0;">
+                <a href="${process.env.APP_URL || "http://localhost:3000"}/login" 
+                   style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+                  Login ke Akun Saya
+                </a>
+              </div>
+            </div>
+            <div style="background-color: #f8f9fa; padding: 15px; text-align: center; color: #6c757d; font-size: 14px;">
+              <p>Terima kasih telah bergabung dengan Streamo</p>
+              <p>© ${new Date().getFullYear()} Streamo. All rights reserved.</p>
+            </div>
+          </div>
         `,
         });
       } catch (mailErr) {
@@ -403,6 +464,7 @@ export default {
         name: newUser.name,
         nomor_wa: newUser.nomor_wa,
         role: newUser.role,
+        access_token: newUser.access_token, // Menambahkan access token ke session
       };
 
       // Response sukses
@@ -415,6 +477,7 @@ export default {
           email: newUser.email,
           nomor_wa: newUser.nomor_wa,
           role: newUser.role,
+          access_token: newUser.access_token, // Menambahkan access token dalam response
         },
       });
     } catch (err) {
