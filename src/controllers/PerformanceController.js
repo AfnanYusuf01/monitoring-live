@@ -167,7 +167,7 @@ export const createAffiliateStat = async (req, res) => {
       });
 
       // Cek data yang sudah ada untuk menghindari duplikasi
-      const existingRecords = await prisma.affiliateStat.findMany({
+      const existingRecords = await prisma.AffiliateStat.findMany({
         where: {
           accountId: accountId,
           ymd: {
