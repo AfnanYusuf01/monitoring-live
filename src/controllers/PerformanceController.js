@@ -46,7 +46,7 @@ const fetchShopeeProfile = async (cookie) => {
 export const createAffiliateStat = async (req, res) => {
   try {
     const { access_token } = req.headers;
-    const requestDataArray = req.body; // Sekarang menerima array
+    const requestDataArray = req.body;
 
     if (!access_token) {
       return res.status(401).json({
@@ -95,7 +95,6 @@ export const createAffiliateStat = async (req, res) => {
       });
     }
 
-    // Cek apakah user memiliki subscription aktif
     if (user.userSubscriptions.length === 0) {
       return res.status(403).json({
         success: false,
@@ -103,7 +102,6 @@ export const createAffiliateStat = async (req, res) => {
       });
     }
 
-    // Kelompokkan data berdasarkan cookie untuk menghindari fetch profil berulang
     const cookieGroups = {};
     requestDataArray.forEach(item => {
       if (!cookieGroups[item.cookie]) {
@@ -115,139 +113,155 @@ export const createAffiliateStat = async (req, res) => {
     const results = [];
     let totalInserted = 0;
     let totalDuplicates = 0;
+    let hasFailures = false;
 
     // Proses setiap kelompok cookie
     for (const [cookie, items] of Object.entries(cookieGroups)) {
-      // Fetch profil Shopee untuk dapat accountId
-      const profileResult = await fetchShopeeProfile(cookie);
-      if (!profileResult.success) {
-        results.push({
-          cookie: cookie,
-          success: false,
-          message: "Gagal mengambil profil Shopee",
-          error: profileResult.error,
-          code: profileResult.code || null,
-        });
-        continue;
-      }
-
-      const accountId = String(profileResult.data.user_id);
+      let accountId;
       
-      // Cek apakah accountId sudah ada di database
-      const existingAkun = await prisma.akun.findFirst({
-        where: {
-          userId: user.id,
-          id: BigInt(accountId)
-        }
-      });
-
-      // Jika akun sudah ada, update cookie-nya
-      if (existingAkun) {
-        await prisma.akun.update({
-          where: { id: BigInt(accountId) },
-          data: { cookie: cookie }
-        });
-      } else {
-        // Jika akun belum ada, buat akun baru
-        await prisma.akun.create({
-          data: {
-            id: BigInt(accountId),
-            nama_akun: profileResult.data.username || `Shopee-${accountId}`,
-            email: profileResult.data.email || null,
+      try {
+        // Fetch profil Shopee untuk dapat accountId
+        const profileResult = await fetchShopeeProfile(cookie);
+        if (!profileResult.success) {
+          results.push({
             cookie: cookie,
-            userId: user.id
+            success: false,
+            message: "Gagal mengambil profil Shopee",
+            error: profileResult.error,
+          });
+          hasFailures = true;
+          continue;
+        }
+
+        accountId = String(profileResult.data.user_id);
+        
+        // CEK DULU apakah akun dengan ID ini sudah ada (di seluruh database, bukan hanya milik user ini)
+        const existingAkun = await prisma.akun.findUnique({
+          where: { id: BigInt(accountId) }
+        });
+
+        // Jika akun sudah ada, update cookie-nya (hanya jika milik user yang sama)
+        if (existingAkun) {
+          if (existingAkun.userId !== user.id) {
+            results.push({
+              accountId,
+              success: false,
+              message: "Akun sudah terdaftar dengan user lain",
+              error: "Account already belongs to another user",
+            });
+            hasFailures = true;
+            continue;
+          }
+          
+          await prisma.akun.update({
+            where: { id: BigInt(accountId) },
+            data: { cookie: cookie }
+          });
+        } else {
+          // Jika akun belum ada, buat akun baru
+          await prisma.akun.create({
+            data: {
+              id: BigInt(accountId),
+              nama_akun: profileResult.data.username || `Shopee-${accountId}`,
+              email: profileResult.data.email || null,
+              cookie: cookie,
+              userId: user.id
+            }
+          });
+        }
+
+        // Ekstrak data statistik
+        const statDataArray = items.map(item => {
+          const { cookie: itemCookie, ...statData } = item;
+          return {
+            ...statData,
+            ymd: new Date(statData.ymd)
+          };
+        });
+
+        // Cek duplikasi data statistik
+        const existingDates = await prisma.affiliateStat.findMany({
+          where: {
+            accountId: accountId,
+            ymd: {
+              in: statDataArray.map(d => d.ymd)
+            }
+          },
+          select: {
+            ymd: true
           }
         });
-      }
 
-      // Ekstrak data statistik dari setiap item
-      const statDataArray = items.map(item => {
-        const { cookie: itemCookie, ...statData } = item;
-        return statData;
-      });
+        const existingYmdSet = new Set(
+          existingDates.map(r => r.ymd.toISOString().split('T')[0])
+        );
 
-      // Cek data yang sudah ada untuk menghindari duplikasi
-      const existingRecords = await prisma.affiliateStat.findMany({
-        where: {
-          accountId: accountId,
-          ymd: {
-            in: statDataArray.map(d => new Date(d.ymd))
-          }
-        },
-        select: {
-          ymd: true
+        // Filter data yang belum ada
+        const newData = statDataArray.filter(d => 
+          !existingYmdSet.has(d.ymd.toISOString().split('T')[0])
+        );
+
+        if (newData.length === 0) {
+          results.push({
+            accountId,
+            success: true,
+            message: "Semua data sudah ada (duplikat)",
+            inserted: 0,
+            duplicates: statDataArray.length,
+          });
+          totalDuplicates += statDataArray.length;
+          continue;
         }
-      });
 
-      // Filter data yang belum ada di database
-      const existingYmdSet = new Set(existingRecords.map(r => r.ymd.toISOString().split('T')[0]));
-      const newData = statDataArray.filter(d => !existingYmdSet.has(d.ymd));
+        // Simpan data baru
+        const created = await prisma.affiliateStat.createMany({
+          data: newData.map((d) => ({
+            accountId,
+            ymd: d.ymd,
+            clicks: d.clicks || 0,
+            cvByOrder: d.cv_by_order || 0,
+            orderCvr: d.order_cvr || 0,
+            orderAmount: BigInt(d.order_amount || 0),
+            totalCommission: BigInt(d.total_commission || 0),
+            totalIncome: BigInt(d.total_income || 0),
+            newBuyer: d.new_buyer || 0,
+            programType: d.program_type || 0,
+            itemSold: d.item_sold || 0,
+            estCommission: BigInt(d.est_commission || 0),
+            estIncome: BigInt(d.est_income || 0),
+            userId: user.id,
+          })),
+        });
 
-      if (newData.length === 0) {
+        totalInserted += created.count;
+        totalDuplicates += (statDataArray.length - created.count);
+        
         results.push({
           accountId,
           success: true,
-          message: "Semua data sudah ada di database, tidak ada data baru yang disimpan",
-          inserted: 0,
-          duplicates: statDataArray.length,
-          akunStatus: existingAkun ? 'updated' : 'created'
+          message: "Data berhasil disimpan",
+          inserted: created.count,
+          duplicates: statDataArray.length - created.count,
         });
-        totalDuplicates += statDataArray.length;
-        continue;
+
+      } catch (error) {
+        results.push({
+          accountId: accountId || 'unknown',
+          success: false,
+          message: "Gagal memproses data",
+          error: error.message,
+        });
+        hasFailures = true;
+        console.error("Error processing account:", error);
       }
-
-      // Simpan hanya data yang baru
-      const created = await prisma.affiliateStat.createMany({
-        data: newData.map((d) => ({
-          accountId,
-          ymd: new Date(d.ymd),
-          clicks: d.clicks,
-          cvByOrder: d.cv_by_order,
-          orderCvr: d.order_cvr,
-          orderAmount: BigInt(d.order_amount),
-          totalCommission: BigInt(d.total_commission),
-          totalIncome: BigInt(d.total_income),
-          newBuyer: d.new_buyer,
-          programType: d.program_type,
-          itemSold: d.item_sold,
-          estCommission: BigInt(d.est_commission),
-          estIncome: BigInt(d.est_income),
-          userId: user.id,
-        })),
-      });
-
-      totalInserted += created.count;
-      totalDuplicates += (statDataArray.length - created.count);
-      
-      results.push({
-        accountId,
-        success: true,
-        message: "Affiliate stats berhasil disimpan",
-        inserted: created.count,
-        duplicates: statDataArray.length - created.count,
-        akunStatus: existingAkun ? 'updated' : 'created'
-      });
     }
 
-    // Periksa jika ada hasil yang gagal
-    const hasFailures = results.some(result => !result.success);
-    
+    // Response yang disederhanakan
     if (hasFailures) {
-      return res.status(207).json({ // 207 Multi-Status
+      return res.status(207).json({
         success: false,
         message: "Beberapa data gagal diproses",
         data: results,
-        summary: {
-          totalProcessed: requestDataArray.length,
-          totalInserted,
-          totalDuplicates,
-          successful: results.filter(r => r.success).length,
-          failed: results.filter(r => !r.success).length
-        },
-        meta: {
-          userId: user.id,
-          timestamp: new Date().toISOString(),
-        },
       });
     }
 
@@ -255,17 +269,6 @@ export const createAffiliateStat = async (req, res) => {
       success: true,
       message: "Semua affiliate stats berhasil disimpan",
       data: results,
-      summary: {
-        totalProcessed: requestDataArray.length,
-        totalInserted,
-        totalDuplicates,
-        successful: results.length,
-        failed: 0
-      },
-      meta: {
-        userId: user.id,
-        timestamp: new Date().toISOString(),
-      },
     });
   } catch (err) {
     console.error("❌ Error createAffiliateStat:", err.message);
