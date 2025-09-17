@@ -2053,7 +2053,7 @@ export const postConfirmPayment = async (req, res) => {
 
     console.log(`💾 Konfirmasi pembayaran disimpan dengan ID: ${confirmPayment.id}`);
 
-    // ✅ KIRIM EMAIL KE ADMIN
+    // ✅ KIRIM EMAIL KE ADMIN DENGAN BUKTI TRANSFER
     try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -2085,6 +2085,20 @@ export const postConfirmPayment = async (req, res) => {
         const appUrl = process.env.APP_URL || "http://localhost:3000";
         const paymentSuccessUrl = `${appUrl}/verify-payment-token?transactionId=${transactionId}&token=${token}`;
         
+        // Baca file bukti transfer
+        let attachment = null;
+        try {
+          if (fs.existsSync(req.file.path)) {
+            attachment = {
+              filename: `bukti-transfer-${transactionId}${path.extname(req.file.originalname)}`,
+              path: req.file.path,
+              contentType: req.file.mimetype
+            };
+          }
+        } catch (fileError) {
+          console.error("❌ Gagal membaca file bukti transfer:", fileError.message);
+        }
+
         // DEFINE mailOptions YANG TEPAT
         const mailOptions = {
           from: process.env.SMTP_FROM,
@@ -2136,7 +2150,13 @@ export const postConfirmPayment = async (req, res) => {
               </table>
               
               <p><strong>Bukti Transfer:</strong></p>
-              <p><img src="${req.file.path}" alt="Bukti Transfer" style="max-width: 100%; height: auto;"></p>
+              ${attachment ? `
+              <p style="text-align: center; margin: 20px 0;">
+                <img src="cid:buktiTransfer" alt="Bukti Transfer" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" />
+                <br>
+                <small>Preview bukti transfer</small>
+              </p>
+              ` : '<p>File bukti transfer terlampir dalam email ini.</p>'}
               
               <p><strong>Link Verifikasi (Hanya Sekali Pakai):</strong></p>
               <p><a href="${paymentSuccessUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verifikasi Pembayaran</a></p>
@@ -2147,6 +2167,24 @@ export const postConfirmPayment = async (req, res) => {
             </div>
           `,
         };
+
+        // Tambahkan attachment jika file ada
+        if (attachment) {
+          mailOptions.attachments = [
+            {
+              filename: attachment.filename,
+              path: attachment.path,
+              contentType: attachment.contentType
+            },
+            // Juga embed gambar dalam email untuk preview
+            {
+              filename: `preview-${attachment.filename}`,
+              path: attachment.path,
+              cid: 'buktiTransfer', // Content ID untuk embedding
+              contentType: attachment.contentType
+            }
+          ];
+        }
         
         await transporter.sendMail(mailOptions);
         console.log("📧 Email notifikasi dengan bukti transfer berhasil dikirim ke admin");
