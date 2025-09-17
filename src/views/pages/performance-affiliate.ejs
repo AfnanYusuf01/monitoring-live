@@ -1,0 +1,519 @@
+<% layout("layouts/main") %>
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="flex flex-wrap -mx-3">
+    <div class="flex-none w-full max-w-full px-3">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border shadow-soft-xl">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+          <div class="flex flex-wrap justify-between items-center">
+            <div>
+              <h6 class="mb-0 font-bold text-slate-800 text-2xl">Affiliate Performance Dashboard</h6>
+              <p class="text-sm text-slate-600 mt-1">Performance monitoring across all studios</p>
+              <p class="text-xs text-slate-500 mt-1">
+              </p>
+            </div>
+            <div class="flex space-x-2">
+              <button id="refresh-data-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                Refresh Data
+              </button>
+            </div>  
+          </div>
+          <div class="mt-4 text-sm text-slate-600 flex items-center">
+            <span id="refresh-status" class="flex items-center">
+              <span class="w-3 h-3 rounded-full bg-gray-400 mr-2" id="status-indicator"></span>
+              Auto refresh tidak aktif
+            </span>
+            <span id="last-updated" class="ml-4"></span>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="px-6 py-4">
+          <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Summary cards will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Container untuk card studio -->
+        <div class="flex flex-wrap px-6 py-4">
+          <div id="studio-container" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Data studio akan dimuat di sini -->
+          </div>
+          
+          <!-- Loading indicator -->
+          <div id="loading-indicator" class="w-full flex justify-center py-12">
+            <div class="flex flex-col items-center">
+              <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
+              <p class="text-blue-600 font-medium">Memuat data affiliate...</p>
+            </div>
+          </div>
+          
+          <!-- Empty state -->
+          <div id="empty-state" class="w-full text-center py-12 hidden">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-4">
+              <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <h3 class="mt-4 text-lg font-medium text-gray-900">Tidak ada data affiliate</h3>
+            <p class="mt-1 text-sm text-gray-500">Belum ada data performance affiliate yang tersedia.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes spectrum {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
+  @keyframes pulse-glow {
+    0% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
+  }
+  
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  .spectrum-bg {
+    background: linear-gradient(270deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
+    background-size: 800% 800%;
+    animation: spectrum 8s ease infinite;
+  }
+  
+  .live-pulse {
+    animation: pulse-glow 2s infinite;
+  }
+  
+  .card-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .metric-item {
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .metric-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .metric-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    margin-bottom: 0.25rem;
+  }
+  
+  .metric-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+  
+  .studio-card {
+    transition: all 0.3s ease;
+    height: fit-content;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    background: white;
+    cursor: pointer;
+    position: relative;
+  }
+  
+  .studio-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+  }
+  
+  .studio-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.03) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .studio-card:hover::after {
+    opacity: 1;
+  }
+  
+  .studio-header {
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  }
+  
+  .studio-content {
+    padding: 1.5rem;
+    background: white;
+  }
+  
+  .studio-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .summary-card {
+    border-radius: 1rem;
+    padding: 1.5rem;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .view-detail-indicator {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .studio-card:hover .view-detail-indicator {
+    opacity: 0.8;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const studioContainer = document.getElementById('studio-container');
+    const summaryCards = document.getElementById('summary-cards');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const emptyState = document.getElementById('empty-state');
+    const refreshBtn = document.getElementById('refresh-data-btn');
+    const refreshStatus = document.getElementById('refresh-status');
+    const statusIndicator = document.getElementById('status-indicator');
+    const lastUpdated = document.getElementById('last-updated');
+    
+    let refreshInterval = null;
+    
+    // Array warna untuk studio card
+    const studioColors = [
+      { 
+        bg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-purple-500 to-pink-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-green-500 to-teal-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-yellow-500 to-orange-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-red-500 to-pink-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-teal-500 to-cyan-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-orange-500 to-red-600',
+        text: 'text-white'
+      }
+    ];
+    
+    // Array warna untuk metric items
+    const metricColors = [
+      { 
+        bg: 'bg-gradient-to-br from-blue-100 to-blue-200',
+        text: 'text-blue-800',
+        border: 'border-blue-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-purple-100 to-purple-200',
+        text: 'text-purple-800',
+        border: 'border-purple-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-green-100 to-green-200',
+        text: 'text-green-800',
+        border: 'border-green-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-yellow-100 to-yellow-200',
+        text: 'text-yellow-800',
+        border: 'border-yellow-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-red-100 to-red-200',
+        text: 'text-red-800',
+        border: 'border-red-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
+        text: 'text-indigo-800',
+        border: 'border-indigo-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-pink-100 to-pink-200',
+        text: 'text-pink-800',
+        border: 'border-pink-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-cyan-100 to-cyan-200',
+        text: 'text-cyan-800',
+        border: 'border-cyan-200'
+      }
+    ];
+    
+    // Fungsi untuk memformat angka dengan pemisah ribuan
+    function formatNumber(num) {
+      if (num === null || num === undefined) return '0';
+      return new Intl.NumberFormat('id-ID').format(num);
+    }
+    
+    // Fungsi untuk memformat angka dalam format Rupiah
+    function formatCurrency(amount) {
+      if (amount === null || amount === undefined) return 'Rp 0';
+      
+      // Jika angka sangat besar, format dalam miliar
+      if (amount >= 1000000000) {
+        return 'Rp ' + (amount / 1000000000).toFixed(1) + 'M';
+      }
+      
+      // Jika angka besar, format dalam juta
+      if (amount >= 1000000) {
+        return 'Rp ' + (amount / 1000000).toFixed(1) + 'Jt';
+      }
+      
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+    
+    // Fungsi untuk memformat persentase
+    function formatPercentage(value) {
+      if (value === null || value === undefined) return '0%';
+      return value.toFixed(1) + '%';
+    }
+    
+    // Fungsi untuk memuat data affiliate stats
+    function loadAffiliateStats() {
+      loadingIndicator.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      
+      fetch('/api/performa-affiliate/studio')
+        .then(response => response.json())
+        .then(data => {
+          loadingIndicator.classList.add('hidden');
+          
+          if (data.success && data.data && data.data.studios && data.data.studios.length > 0) {
+            renderSummaryCards(data.data.summary);
+            renderStudios(data.data.studios);
+            emptyState.classList.add('hidden');
+          } else {
+            studioContainer.innerHTML = '';
+            summaryCards.innerHTML = '';
+            emptyState.classList.remove('hidden');
+          }
+          
+          // Update last updated time
+          lastUpdated.textContent = `Terakhir diperbarui: ${new Date().toLocaleTimeString()}`;
+        })
+        .catch(error => {
+          console.error('Error fetching affiliate stats:', error);
+          loadingIndicator.classList.add('hidden');
+          studioContainer.innerHTML = `
+            <div class="w-full col-span-full py-8 text-center">
+              <div class="text-red-500 font-medium">Gagal memuat data affiliate</div>
+              <button onclick="loadAffiliateStats()" class="mt-2 px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
+                Coba Lagi
+              </button>
+            </div>
+          `;
+        });
+    }
+    
+    // Fungsi untuk merender summary cards
+    function renderSummaryCards(summary) {
+      if (!summary) return;
+      
+      summaryCards.innerHTML = `
+        <div class="summary-card bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+          <div class="metric-label text-blue-100">Total Commission</div>
+          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.totalCommission)}</div>
+          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.akunCount)} akun</div>
+        </div>
+        
+        <div class="summary-card bg-gradient-to-br from-green-500 to-teal-600 text-white">
+          <div class="metric-label text-green-100">Total Income</div>
+          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.totalIncome)}</div>
+          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.clicks)} clicks</div>
+        </div>
+        
+        <div class="summary-card bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+          <div class="metric-label text-purple-100">Order Amount</div>
+          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.orderAmount)}</div>
+          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.itemSold)} items sold</div>
+        </div>
+        
+        <div class="summary-card bg-gradient-to-br from-orange-500 to-red-600 text-white">
+          <div class="metric-label text-orange-100">Estimated Income</div>
+          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.estIncome)}</div>
+          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.newBuyer)} new buyers</div>
+        </div>
+      `;
+    }
+    
+    // Fungsi untuk merender card studio dengan data affiliate
+    function renderStudios(studios) {
+      studioContainer.innerHTML = studios.map((studio, index) => {
+        const colorIndex = index % studioColors.length;
+        const color = studioColors[colorIndex];
+        const stats = studio.totalStats || {};
+        
+        // Filter daily stats untuk menghapus hari dengan data 0
+        const nonZeroDailyStats = studio.dailyStats ? studio.dailyStats.filter(day => 
+          day.clicks > 0 || day.cvByOrder > 0 || day.orderAmount > 0
+        ) : [];
+        
+        return `
+        <div class="studio-card" data-studio-id="${studio.studioId}">
+          <div class="studio-header ${color.bg}">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="text-lg font-bold ${color.text}">${studio.studioName}</h3>
+              <div class="view-detail-indicator">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="${color.text} text-opacity-90 text-sm">
+                ${stats.akunCount || 0} Akun
+              </div>
+              <div class="${color.text} font-bold text-sm">
+                ${formatCurrency(stats.totalCommission)}
+              </div>
+            </div>
+          </div>
+          
+          <div class="studio-content">
+            <div class="metric-grid mb-4">
+              <div class="metric-item ${metricColors[0].bg} border ${metricColors[0].border}">
+                <div class="metric-label ${metricColors[0].text}">Clicks</div>
+                <div class="metric-value ${metricColors[0].text}">${formatNumber(stats.clicks)}</div>
+              </div>
+              <div class="metric-item ${metricColors[1].bg} border ${metricColors[1].border}">
+                <div class="metric-label ${metricColors[1].text}">Order Amount</div>
+                <div class="metric-value ${metricColors[1].text}">${formatCurrency(stats.orderAmount)}</div>
+              </div>
+              <div class="metric-item ${metricColors[2].bg} border ${metricColors[2].border}">
+                <div class="metric-label ${metricColors[2].text}">Commission</div>
+                <div class="metric-value ${metricColors[2].text}">${formatCurrency(stats.totalCommission)}</div>
+              </div>
+              <div class="metric-item ${metricColors[3].bg} border ${metricColors[3].border}">
+                <div class="metric-label ${metricColors[3].text}">Income</div>
+                <div class="metric-value ${metricColors[3].text}">${formatCurrency(stats.totalIncome)}</div>
+              </div>
+              <div class="metric-item ${metricColors[4].bg} border ${metricColors[4].border}">
+                <div class="metric-label ${metricColors[4].text}">New Buyers</div>
+                <div class="metric-value ${metricColors[4].text}">${formatNumber(stats.newBuyer)}</div>
+              </div>
+              <div class="metric-item ${metricColors[5].bg} border ${metricColors[5].border}">
+                <div class="metric-label ${metricColors[5].text}">Items Sold</div>
+                <div class="metric-value ${metricColors[5].text}">${formatNumber(stats.itemSold)}</div>
+              </div>
+            </div>
+            
+            ${nonZeroDailyStats.length > 0 ? `
+            <div class="mt-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-2">Performance History</h4>
+              <div class="space-y-2">
+                ${nonZeroDailyStats.slice(0, 3).map(day => `
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="text-gray-600">${new Date(day.date).toLocaleDateString()}</span>
+                    <span class="font-medium text-green-600">${formatCurrency(day.totalIncome)}</span>
+                  </div>
+                `).join('')}
+                ${nonZeroDailyStats.length > 3 ? `
+                  <div class="text-center text-xs text-blue-600 mt-2">
+                    +${nonZeroDailyStats.length - 3} hari lainnya
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            ` : ''}
+          </div>
+          
+          <div class="studio-footer">
+            <div class="text-sm font-medium text-gray-600">
+              ${studio.akunList ? studio.akunList.length : 0} akun affiliate
+            </div>
+            <div class="text-xs text-gray-500">
+              ${formatNumber(stats.cvByOrder)} conversions
+            </div>
+          </div>
+        </div>
+        `;
+      }).join('');
+      
+      // Tambahkan event listener untuk setiap card studio
+      document.querySelectorAll('.studio-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const studioId = this.getAttribute('data-studio-id');
+          window.location.href = `/performance-affiliate/${studioId}`;
+        });
+      });
+    }
+    
+    // Event listener untuk tombol refresh
+    refreshBtn.addEventListener('click', function() {
+      loadAffiliateStats();
+    });
+    
+    // Load data awal
+    loadAffiliateStats();
+  });
+</script>

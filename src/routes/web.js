@@ -196,6 +196,17 @@ router.get("/account-management/add", requireLogin, (req, res) => {
   });
 });
 
+router.get("/performance-affiliate", requireLogin, (req, res) => {
+  res.render("pages/performance-affiliate", {
+    navbar: "Performance Affiliate",
+  });
+});
+router.get("/performance-affiliate/:studio_id", requireLogin, (req, res) => {
+  res.render("pages/performanceAffiliate", {
+    navbar: "Performance Affiliate",
+  });
+});
+
 router.get("/account-management/edit/:id", requireLogin, async (req, res) => {
   try {
     const {id} = req.params;

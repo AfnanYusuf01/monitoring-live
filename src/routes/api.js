@@ -84,7 +84,8 @@ import {
 
 import {
 createAffiliateStat,
-getAffiliateStatsByStudio,
+getAffiliateStats,
+getAffiliateStatsByStudioId,
 } from "../controllers/PerformanceController.js";
 
 import {
@@ -139,7 +140,8 @@ router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updat
    MONITORING LIVE CONTROLLER
 ============================================================ */
 router.get("/shopee-data",  requireApiLogin, getShopeeData);
-router.get("/performa-affiliate/studio",  requireApiLogin, getAffiliateStatsByStudio);
+router.get("/performa-affiliate/studio",  requireApiLogin, getAffiliateStats);
+router.post("performa-affiliate/studio/:studio_id",  requireApiLogin, getAffiliateStatsByStudioId);
 
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER
@@ -212,6 +214,7 @@ router.get("/check-subscription/:subscriptionId", requireApiLogin, checkSubscrip
 ============================================================ */
 
 router.post("/affiliate-stats", createAffiliateStat);
+
 
 
 

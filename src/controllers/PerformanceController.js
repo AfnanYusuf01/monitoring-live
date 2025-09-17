@@ -167,7 +167,7 @@ export const createAffiliateStat = async (req, res) => {
       });
 
       // Cek data yang sudah ada untuk menghindari duplikasi
-      const existingRecords = await prisma.AffiliateStat.findMany({
+      const existingRecords = await prisma.affiliateStat.findMany({
         where: {
           accountId: accountId,
           ymd: {
@@ -277,9 +277,8 @@ export const createAffiliateStat = async (req, res) => {
   }
 };
 
-export const getAffiliateStatsByStudio = async (req, res) => {
+export const getAffiliateStats = async (req, res) => {
   try {
-    // Ambil user dari session (asumsi sudah ada middleware yang men-set req.session.user)
     const user = req.session.user;
 
     if (!user || !user.id) {
@@ -294,26 +293,21 @@ export const getAffiliateStatsByStudio = async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 7);
 
-    // Ambil data user dengan akun, studio, dan affiliate stats
+    // 1. Ambil user dengan studio dan akun-akunnya
     const userData = await prisma.user.findUnique({
       where: { id: user.id },
       include: {
-        akun: {
+        studio: {
           include: {
-            studio: true,
-            affiliateStats: {
-              where: {
-                ymd: {
-                  gte: startDate,
-                  lte: endDate,
-                },
-              },
-              orderBy: {
-                ymd: 'asc'
-              }
-            },
-          },
+            akun: true // Hanya ambil data akun saja
+          }
         },
+        // Juga include akun tanpa studio
+        akun: {
+          where: {
+            studioId: null
+          }
+        }
       },
     });
 
@@ -323,6 +317,37 @@ export const getAffiliateStatsByStudio = async (req, res) => {
         message: "User tidak ditemukan",
       });
     }
+
+    // Kumpulkan semua ID akun dari user ini
+    const allAkunIds = [];
+    
+    // Akun dari studio
+    userData.studio.forEach(studio => {
+      studio.akun.forEach(akun => {
+        allAkunIds.push(akun.id.toString());
+      });
+    });
+    
+    // Akun tanpa studio
+    userData.akun.forEach(akun => {
+      allAkunIds.push(akun.id.toString());
+    });
+
+    // 2. Ambil affiliate stats untuk semua akun user ini dalam periode 7 hari
+    const affiliateStats = await prisma.affiliateStat.findMany({
+      where: {
+        accountId: {
+          in: allAkunIds
+        },
+        ymd: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      orderBy: {
+        ymd: 'asc'
+      }
+    });
 
     // Kelompokkan data per studio
     const studioStats = {};
@@ -350,9 +375,10 @@ export const getAffiliateStatsByStudio = async (req, res) => {
       };
     }
 
-    userData.akun.forEach((akun) => {
-      const studioId = akun.studioId || "unassigned";
-      const studioName = akun.studio?.nama_studio || "Tanpa Studio";
+    // Proses studio yang dimiliki user
+    userData.studio.forEach((studio) => {
+      const studioId = studio.id;
+      const studioName = studio.nama_studio || "Studio tanpa nama";
 
       if (!studioStats[studioId]) {
         studioStats[studioId] = {
@@ -377,48 +403,130 @@ export const getAffiliateStatsByStudio = async (req, res) => {
         };
       }
 
-      // Tambahkan akun ke list
-      studioStats[studioId].akunList.push({
-        id: akun.id.toString(),
-        nama_akun: akun.nama_akun,
-        email: akun.email
-      });
+      // Proses setiap akun dalam studio
+      studio.akun.forEach((akun) => {
+        // Tambahkan akun ke list
+        studioStats[studioId].akunList.push({
+          id: akun.id.toString(),
+          nama_akun: akun.nama_akun,
+          email: akun.email
+        });
 
-      // Hitung statistik untuk akun ini
-      akun.affiliateStats.forEach((stat) => {
-        const statDate = stat.ymd.toISOString().split('T')[0];
+        // Cari affiliate stats untuk akun ini
+        const akunStats = affiliateStats.filter(stat => stat.accountId === akun.id.toString());
         
-        if (studioStats[studioId].dailyStats[statDate]) {
-          studioStats[studioId].dailyStats[statDate].clicks += stat.clicks;
-          studioStats[studioId].dailyStats[statDate].cvByOrder += stat.cvByOrder;
-          studioStats[studioId].dailyStats[statDate].orderCvr += stat.orderCvr;
-          studioStats[studioId].dailyStats[statDate].orderAmount += Number(stat.orderAmount);
-          studioStats[studioId].dailyStats[statDate].totalCommission += Number(stat.totalCommission);
-          studioStats[studioId].dailyStats[statDate].totalIncome += Number(stat.totalIncome);
-          studioStats[studioId].dailyStats[statDate].newBuyer += stat.newBuyer;
-          studioStats[studioId].dailyStats[statDate].programType += stat.programType;
-          studioStats[studioId].dailyStats[statDate].itemSold += stat.itemSold;
-          studioStats[studioId].dailyStats[statDate].estCommission += Number(stat.estCommission);
-          studioStats[studioId].dailyStats[statDate].estIncome += Number(stat.estIncome);
-          studioStats[studioId].dailyStats[statDate].akunCount++;
-        }
+        // Hitung statistik untuk akun ini
+        akunStats.forEach((stat) => {
+          const statDate = stat.ymd.toISOString().split('T')[0];
+          
+          if (studioStats[studioId].dailyStats[statDate]) {
+            studioStats[studioId].dailyStats[statDate].clicks += stat.clicks;
+            studioStats[studioId].dailyStats[statDate].cvByOrder += stat.cvByOrder;
+            studioStats[studioId].dailyStats[statDate].orderCvr += stat.orderCvr;
+            studioStats[studioId].dailyStats[statDate].orderAmount += Number(stat.orderAmount);
+            studioStats[studioId].dailyStats[statDate].totalCommission += Number(stat.totalCommission);
+            studioStats[studioId].dailyStats[statDate].totalIncome += Number(stat.totalIncome);
+            studioStats[studioId].dailyStats[statDate].newBuyer += stat.newBuyer;
+            studioStats[studioId].dailyStats[statDate].programType += stat.programType;
+            studioStats[studioId].dailyStats[statDate].itemSold += stat.itemSold;
+            studioStats[studioId].dailyStats[statDate].estCommission += Number(stat.estCommission);
+            studioStats[studioId].dailyStats[statDate].estIncome += Number(stat.estIncome);
+            studioStats[studioId].dailyStats[statDate].akunCount++;
+          }
 
-        // Tambahkan ke total stats
-        studioStats[studioId].totalStats.clicks += stat.clicks;
-        studioStats[studioId].totalStats.cvByOrder += stat.cvByOrder;
-        studioStats[studioId].totalStats.orderCvr += stat.orderCvr;
-        studioStats[studioId].totalStats.orderAmount += Number(stat.orderAmount);
-        studioStats[studioId].totalStats.totalCommission += Number(stat.totalCommission);
-        studioStats[studioId].totalStats.totalIncome += Number(stat.totalIncome);
-        studioStats[studioId].totalStats.newBuyer += stat.newBuyer;
-        studioStats[studioId].totalStats.programType += stat.programType;
-        studioStats[studioId].totalStats.itemSold += stat.itemSold;
-        studioStats[studioId].totalStats.estCommission += Number(stat.estCommission);
-        studioStats[studioId].totalStats.estIncome += Number(stat.estIncome);
+          // Tambahkan ke total stats
+          studioStats[studioId].totalStats.clicks += stat.clicks;
+          studioStats[studioId].totalStats.cvByOrder += stat.cvByOrder;
+          studioStats[studioId].totalStats.orderCvr += stat.orderCvr;
+          studioStats[studioId].totalStats.orderAmount += Number(stat.orderAmount);
+          studioStats[studioId].totalStats.totalCommission += Number(stat.totalCommission);
+          studioStats[studioId].totalStats.totalIncome += Number(stat.totalIncome);
+          studioStats[studioId].totalStats.newBuyer += stat.newBuyer;
+          studioStats[studioId].totalStats.programType += stat.programType;
+          studioStats[studioId].totalStats.itemSold += stat.itemSold;
+          studioStats[studioId].totalStats.estCommission += Number(stat.estCommission);
+          studioStats[studioId].totalStats.estIncome += Number(stat.estIncome);
+        });
+
+        studioStats[studioId].totalStats.akunCount++;
       });
-
-      studioStats[studioId].totalStats.akunCount++;
     });
+
+    // Proses akun tanpa studio (jika ada)
+    if (userData.akun.length > 0) {
+      const studioId = "unassigned";
+      const studioName = "Tanpa Studio";
+
+      if (!studioStats[studioId]) {
+        studioStats[studioId] = {
+          studioId,
+          studioName,
+          totalStats: {
+            clicks: 0,
+            cvByOrder: 0,
+            orderCvr: 0,
+            orderAmount: 0,
+            totalCommission: 0,
+            totalIncome: 0,
+            newBuyer: 0,
+            programType: 0,
+            itemSold: 0,
+            estCommission: 0,
+            estIncome: 0,
+            akunCount: 0,
+          },
+          dailyStats: JSON.parse(JSON.stringify(allDailyStats)),
+          akunList: []
+        };
+      }
+
+      userData.akun.forEach((akun) => {
+        // Tambahkan akun ke list
+        studioStats[studioId].akunList.push({
+          id: akun.id.toString(),
+          nama_akun: akun.nama_akun,
+          email: akun.email
+        });
+
+        // Cari affiliate stats untuk akun ini
+        const akunStats = affiliateStats.filter(stat => stat.accountId === akun.id.toString());
+        
+        // Hitung statistik untuk akun ini
+        akunStats.forEach((stat) => {
+          const statDate = stat.ymd.toISOString().split('T')[0];
+          
+          if (studioStats[studioId].dailyStats[statDate]) {
+            studioStats[studioId].dailyStats[statDate].clicks += stat.clicks;
+            studioStats[studioId].dailyStats[statDate].cvByOrder += stat.cvByOrder;
+            studioStats[studioId].dailyStats[statDate].orderCvr += stat.orderCvr;
+            studioStats[studioId].dailyStats[statDate].orderAmount += Number(stat.orderAmount);
+            studioStats[studioId].dailyStats[statDate].totalCommission += Number(stat.totalCommission);
+            studioStats[studioId].dailyStats[statDate].totalIncome += Number(stat.totalIncome);
+            studioStats[studioId].dailyStats[statDate].newBuyer += stat.newBuyer;
+            studioStats[studioId].dailyStats[statDate].programType += stat.programType;
+            studioStats[studioId].dailyStats[statDate].itemSold += stat.itemSold;
+            studioStats[studioId].dailyStats[statDate].estCommission += Number(stat.estCommission);
+            studioStats[studioId].dailyStats[statDate].estIncome += Number(stat.estIncome);
+            studioStats[studioId].dailyStats[statDate].akunCount++;
+          }
+
+          // Tambahkan ke total stats
+          studioStats[studioId].totalStats.clicks += stat.clicks;
+          studioStats[studioId].totalStats.cvByOrder += stat.cvByOrder;
+          studioStats[studioId].totalStats.orderCvr += stat.orderCvr;
+          studioStats[studioId].totalStats.orderAmount += Number(stat.orderAmount);
+          studioStats[studioId].totalStats.totalCommission += Number(stat.totalCommission);
+          studioStats[studioId].totalStats.totalIncome += Number(stat.totalIncome);
+          studioStats[studioId].totalStats.newBuyer += stat.newBuyer;
+          studioStats[studioId].totalStats.programType += stat.programType;
+          studioStats[studioId].totalStats.itemSold += stat.itemSold;
+          studioStats[studioId].totalStats.estCommission += Number(stat.estCommission);
+          studioStats[studioId].totalStats.estIncome += Number(stat.estIncome);
+        });
+
+        studioStats[studioId].totalStats.akunCount++;
+      });
+    }
 
     // Konversi dailyStats menjadi array dan urutkan berdasarkan tanggal
     const formattedStudioStats = Object.values(studioStats).map(studio => ({
@@ -439,7 +547,7 @@ export const getAffiliateStatsByStudio = async (req, res) => {
         studios: formattedStudioStats,
         summary: {
           totalStudios: formattedStudioStats.length,
-          totalAkun: userData.akun.length,
+          totalAkun: userData.studio.reduce((acc, studio) => acc + studio.akun.length, 0) + userData.akun.length,
           totalStats: formattedStudioStats.reduce((acc, studio) => ({
             clicks: acc.clicks + studio.totalStats.clicks,
             cvByOrder: acc.cvByOrder + studio.totalStats.cvByOrder,
@@ -487,3 +595,221 @@ export const getAffiliateStatsByStudio = async (req, res) => {
 };
 
 
+export const getAffiliateStatsByStudioId = async (req, res) => {
+  try {
+    const user = req.session.user;
+    const { studio_id } = req.params;
+    const { startDate, endDate } = req.body;
+
+    if (!user || !user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User tidak terautentikasi",
+      });
+    }
+
+    // Validasi input
+    if (!studio_id) {
+      return res.status(400).json({
+        success: false,
+        message: "Studio ID harus diisi",
+      });
+    }
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Start date dan end date harus diisi",
+      });
+    }
+
+    // Parse dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: "Format tanggal tidak valid",
+      });
+    }
+
+    // 1. Cek apakah studio milik user
+    const studio = await prisma.studio.findFirst({
+      where: {
+        id: parseInt(studio_id),
+        userId: user.id
+      },
+      include: {
+        akun: {
+          where: {
+            deletedAt: null
+          },
+          orderBy: {
+            id: 'asc'
+          }
+        }
+      }
+    });
+
+    if (!studio) {
+      return res.status(404).json({
+        success: false,
+        message: "Studio tidak ditemukan atau tidak memiliki akses",
+      });
+    }
+
+    // 2. Ambil semua ID akun dalam studio
+    const akunIds = studio.akun.map(akun => akun.id.toString());
+
+    if (akunIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Tidak ada akun dalam studio ini",
+        data: {
+          studio: {
+            id: studio.id,
+            nama_studio: studio.nama_studio,
+            catatan: studio.catatan
+          },
+          period: {
+            startDate: startDate,
+            endDate: endDate
+          },
+          affiliateStats: [],
+          summary: {
+            totalAkun: 0,
+            totalStats: {
+              clicks: 0,
+              cvByOrder: 0,
+              orderCvr: 0,
+              orderAmount: 0,
+              totalCommission: 0,
+              totalIncome: 0,
+              newBuyer: 0,
+              programType: 0,
+              itemSold: 0,
+              estCommission: 0,
+              estIncome: 0
+            }
+          }
+        }
+      });
+    }
+
+    // 3. Ambil affiliate stats untuk semua akun dalam periode yang diminta
+    const affiliateStats = await prisma.affiliateStat.findMany({
+      where: {
+        accountId: {
+          in: akunIds
+        },
+        ymd: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: [
+        { accountId: 'asc' },
+        { ymd: 'asc' }
+      ]
+    });
+
+    // 4. Buat mapping untuk info akun
+    const akunMap = {};
+    studio.akun.forEach(akun => {
+      akunMap[akun.id.toString()] = {
+        id: akun.id.toString(),
+        nama_akun: akun.nama_akun,
+        email: akun.email,
+        phone: akun.phone
+      };
+    });
+
+    // 5. Format data per tanggal per akun
+    const formattedStats = [];
+    const summary = {
+      clicks: 0,
+      cvByOrder: 0,
+      orderCvr: 0,
+      orderAmount: 0,
+      totalCommission: 0,
+      totalIncome: 0,
+      newBuyer: 0,
+      programType: 0,
+      itemSold: 0,
+      estCommission: 0,
+      estIncome: 0
+    };
+
+    affiliateStats.forEach(stat => {
+      const accountInfo = akunMap[stat.accountId];
+      
+      if (accountInfo) {
+        const statData = {
+          account: accountInfo,
+          date: stat.ymd.toISOString().split('T')[0],
+          clicks: stat.clicks,
+          cvByOrder: stat.cvByOrder,
+          orderCvr: stat.orderCvr,
+          orderAmount: Number(stat.orderAmount),
+          totalCommission: Number(stat.totalCommission),
+          totalIncome: Number(stat.totalIncome),
+          newBuyer: stat.newBuyer,
+          programType: stat.programType,
+          itemSold: stat.itemSold,
+          estCommission: Number(stat.estCommission),
+          estIncome: Number(stat.estIncome)
+        };
+
+        formattedStats.push(statData);
+
+        // Update summary
+        summary.clicks += stat.clicks;
+        summary.cvByOrder += stat.cvByOrder;
+        summary.orderCvr += stat.orderCvr;
+        summary.orderAmount += Number(stat.orderAmount);
+        summary.totalCommission += Number(stat.totalCommission);
+        summary.totalIncome += Number(stat.totalIncome);
+        summary.newBuyer += stat.newBuyer;
+        summary.programType += stat.programType;
+        summary.itemSold += stat.itemSold;
+        summary.estCommission += Number(stat.estCommission);
+        summary.estIncome += Number(stat.estIncome);
+      }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Data affiliate stats berhasil diambil",
+      data: {
+        studio: {
+          id: studio.id,
+          nama_studio: studio.nama_studio,
+          catatan: studio.catatan
+        },
+        period: {
+          startDate: startDate,
+          endDate: endDate
+        },
+        affiliateStats: formattedStats,
+        summary: {
+          totalAkun: studio.akun.length,
+          totalStats: summary
+        }
+      },
+      meta: {
+        userId: user.id,
+        userName: user.name,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+  } catch (err) {
+    console.error("❌ Error getAffiliateStatsByStudioId:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+      error: err.message,
+    });
+  }
+};
