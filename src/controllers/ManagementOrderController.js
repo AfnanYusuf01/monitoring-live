@@ -817,7 +817,7 @@ Tim Support`;
             <h3 style="color: #333; margin-top: 30px;">Cara Pembayaran</h3>
             <p>Lakukan transfer hingga 3 digit angka terakhir sesuai total pembayaran yaitu Rp. ${paddedLastThree}. Bila jumlahnya tidak sesuai dengan invoice, sistem tidak bisa mengenali pembayaranmu.</p>
             
-            <p>Setelah melakukan transfer, jika dalam 15 menit belum mendapat pesan whatsapp yang berisi akses Streamo, maka konfirmasikan pembayaranmu melalui link dibawah ini:</p>
+            <p>Setelah melakukan transfer, maka segera melakukan konfirmasi melalui link berikut:</p>
             
             <p style="text-align: center; margin: 30px 0;">
               <a href="https://streamo.d/confirm" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Konfirmasi Pembayaran</a>
