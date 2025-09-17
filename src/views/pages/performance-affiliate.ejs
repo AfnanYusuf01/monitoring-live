@@ -331,7 +331,7 @@
                 ${stats.akunCount || 0} Akun
               </div>
               <div class="text-white font-bold text-sm">
-                ${stats.cvByOrder}
+              
               </div>
             </div>
           </div>
@@ -348,7 +348,7 @@
               </div>
               <div class="metric-item">
                 <div class="metric-label">Pesanan</div>
-                <div class="metric-value">${formatCurrency(stats.cvByOrder)}</div>
+                <div class="metric-value">${stats.cvByOrder}</div>
               </div>
               <div class="metric-item">
                 <div class="metric-label">Komisi Kotor</div>
@@ -371,7 +371,7 @@
                 ${nonZeroDailyStats.slice(0, 3).map(day => `
                   <div class="flex justify-between items-center text-xs">
                     <span class="text-gray-600">${new Date(day.date).toLocaleDateString()}</span>
-                    <span class="font-medium text-green-600">${formatCurrency(day.totalIncome)}</span>
+                    <span class="font-medium text-green-600">${formatCurrency(day.orderAmount)}</span>
                   </div>
                 `).join('')}
                 ${nonZeroDailyStats.length > 3 ? `
