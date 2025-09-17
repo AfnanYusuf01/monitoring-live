@@ -92,9 +92,9 @@ router.get("/sign-in", redirectIfLoggedIn, (req, res) => {
 router.get("/sign-up", redirectIfLoggedIn, (req, res) => {
   res.render("pages/sign-up");
 });
-router.get("/profile", requireLogin, (req, res) => {
-  res.render("pages/profile", {navbar: "Profile"});
-});
+// router.get("/profile", requireLogin, (req, res) => {
+//   res.render("pages/profile", {navbar: "Profile"});
+// });
 router.get("/profile", requireLogin, AuthController.profile);
 router.post("/profile/update", requireLogin, AuthController.updateProfile);
 

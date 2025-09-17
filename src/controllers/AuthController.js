@@ -203,26 +203,27 @@ register: async (req, res) => {
   },
 
   // render profile page
-  profile: async (req, res) => {
-    try {
-      const user = await prisma.user.findUnique({
-        where: {id: req.session.user.id},
-      });
+profile: async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.session.user.id },
+    });
+    console.log("data user", user);
 
-      res.render("pages/profile", {
-        navbar: "Profile",
-        user: user,
-        success: req.flash("success"),
-        error: req.flash("error"),
-      });
-    } catch (err) {
-      console.error(err);
-      res.render("pages/profile", {
-        navbar: "Profile",
-        error: "Terjadi kesalahan server",
-      });
-    }
-  },
+    res.render("pages/profile", {
+      navbar: "Profile",
+      currentUser: user, // Mengubah dari 'user' menjadi 'currentUser'
+      success: req.flash("success"),
+      error: req.flash("error"),
+    });
+  } catch (err) {
+    console.error(err);
+    res.render("pages/profile", {
+      navbar: "Profile",
+      error: "Terjadi kesalahan server",
+    });
+  }
+},
 
   // update profile
   updateProfile: async (req, res) => {
