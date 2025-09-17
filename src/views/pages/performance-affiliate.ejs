@@ -278,7 +278,7 @@
     //   summaryCards.innerHTML = `
     //     <div class="summary-card bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200">
     //       <div class="summary-label">Total Commission</div>
-    //       <div class="summary-value">${formatCurrency(totalStats.totalCommission)}</div>
+    //       <div class="summary-value">${formatCurrency(totalStats.cvByOrder)}</div>
     //       <div class="summary-subtext">${formatNumber(totalStats.akunCount)} akun</div>
     //     </div>
         
@@ -331,7 +331,7 @@
                 ${stats.akunCount || 0} Akun
               </div>
               <div class="text-white font-bold text-sm">
-                ${formatCurrency(stats.totalCommission)}
+                ${stats.cvByOrder}
               </div>
             </div>
           </div>
@@ -347,12 +347,12 @@
                 <div class="metric-value">${formatCurrency(stats.orderAmount)}</div>
               </div>
               <div class="metric-item">
-                <div class="metric-label">Commission</div>
-                <div class="metric-value">${formatCurrency(stats.totalCommission)}</div>
+                <div class="metric-label">Pesanan</div>
+                <div class="metric-value">${formatCurrency(stats.cvByOrder)}</div>
               </div>
               <div class="metric-item">
-                <div class="metric-label">Income</div>
-                <div class="metric-value">${formatCurrency(stats.totalIncome)}</div>
+                <div class="metric-label">Komisi Kotor</div>
+                <div class="metric-value">${formatCurrency(stats.estCommission)}</div>
               </div>
               <div class="metric-item">
                 <div class="metric-label">New Buyers</div>

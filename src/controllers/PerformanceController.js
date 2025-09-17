@@ -135,7 +135,7 @@ export const createAffiliateStat = async (req, res) => {
 
         accountId = String(profileResult.data.user_id);
         
-        // CEK DULU apakah akun dengan ID ini sudah ada (di seluruh database, bukan hanya milik user ini)
+        // CEK DULU apakah akun dengan ID ini sudah ada
         const existingAkun = await prisma.akun.findUnique({
           where: { id: BigInt(accountId) }
         });
@@ -170,12 +170,25 @@ export const createAffiliateStat = async (req, res) => {
           });
         }
 
-        // Ekstrak data statistik
+        // Ekstrak data statistik dan bagi dengan 100000
         const statDataArray = items.map(item => {
           const { cookie: itemCookie, ...statData } = item;
+          
+          // Konversi nilai yang perlu dibagi 100000
+          const order_amount = Math.round(Number(statData.order_amount) / 100000);
+          const total_income = Math.round(Number(statData.total_income) / 100000);
+          const est_commission = Math.round(Number(statData.est_commission) / 100000);
+          const total_commission = Math.round(Number(statData.total_commission || 0) / 100000);
+          const est_income = Math.round(Number(statData.est_income || 0) / 100000);
+          
           return {
             ...statData,
-            ymd: new Date(statData.ymd)
+            ymd: new Date(statData.ymd),
+            order_amount,
+            total_income,
+            est_commission,
+            total_commission,
+            est_income
           };
         });
 
