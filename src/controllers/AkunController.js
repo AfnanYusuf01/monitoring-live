@@ -906,10 +906,46 @@ export const createAkunViaAPI = async (req, res) => {
     // Cari user berdasarkan access token
     const user = await prisma.user.findUnique({
       where: { access_token: accessToken },
+      include: {
+        userSubscriptions: {
+          where: {
+            status: 'active',
+            endDate: {
+              gt: new Date() // Hanya subscription yang masih aktif
+            }
+          },
+          orderBy: {
+            endDate: 'desc' // Ambil yang paling baru
+          },
+          take: 1
+        }
+      }
     });
 
     if (!user) {
       return res.status(401).json({ error: "Access token tidak valid" });
+    }
+
+    // Cek apakah user memiliki subscription aktif
+    const activeSubscription = user.userSubscriptions[0];
+    if (!activeSubscription) {
+      return res.status(403).json({ error: "Anda tidak memiliki subscription aktif" });
+    }
+
+    // Hitung jumlah akun yang sudah dimiliki user
+    const akunCount = await prisma.akun.count({
+      where: {
+        userId: user.id,
+        deletedAt: null // Hanya hitung akun yang tidak dihapus
+      }
+    });
+
+    // Cek apakah user masih memiliki limit akun yang tersedia
+    if (akunCount >= activeSubscription.limitAkun) {
+      return res.status(403).json({ 
+        error: "Limit akun telah tercapai", 
+        detail: `Anda memiliki ${akunCount} akun dari ${activeSubscription.limitAkun} yang diizinkan` 
+      });
     }
 
     const userId = user.id;
@@ -968,6 +1004,11 @@ export const createAkunViaAPI = async (req, res) => {
       akun: serializeBigInt(akun),
       profile: profileData,
       cookie_status: "active",
+      subscription_info: {
+        total_akun: akunCount + 1,
+        limit_akun: activeSubscription.limitAkun,
+        remaining: activeSubscription.limitAkun - (akunCount + 1)
+      }
     });
   } catch (err) {
     if (err.code === "P2002") {

@@ -141,7 +141,7 @@ router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updat
 ============================================================ */
 router.get("/shopee-data",  requireApiLogin, getShopeeData);
 router.get("/performa-affiliate/studio",  requireApiLogin, getAffiliateStats);
-router.post("performa-affiliate/studio/:studio_id",  requireApiLogin, getAffiliateStatsByStudioId);
+router.post("/performa-affiliate/studio/:studio_id",  requireApiLogin, getAffiliateStatsByStudioId);
 
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER

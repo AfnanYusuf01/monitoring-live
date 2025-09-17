@@ -202,8 +202,11 @@ router.get("/performance-affiliate", requireLogin, (req, res) => {
   });
 });
 router.get("/performance-affiliate/:studio_id", requireLogin, (req, res) => {
+  const { studio_id } = req.params;
+  
   res.render("pages/performanceAffiliate", {
     navbar: "Performance Affiliate",
+     studioId: studio_id,
   });
 });
 

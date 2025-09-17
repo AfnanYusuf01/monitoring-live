@@ -1,19 +1,17 @@
 <% layout("layouts/main") %>
 
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+<div class="min-h-screen bg-gray-50">
   <div class="flex flex-wrap -mx-3">
     <div class="flex-none w-full max-w-full px-3">
-      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border shadow-soft-xl">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
         <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
           <div class="flex flex-wrap justify-between items-center">
             <div>
-              <h6 class="mb-0 font-bold text-slate-800 text-2xl">Affiliate Performance Dashboard</h6>
-              <p class="text-sm text-slate-600 mt-1">Performance monitoring across all studios</p>
-              <p class="text-xs text-slate-500 mt-1">
-              </p>
+              <h6 class="mb-0 font-bold text-slate-700 text-2xl">Dashboard Performa Affiliate</h6>
+              <p class="text-sm text-slate-500 mt-1">Monitoring performa affiliate di semua studio</p>
             </div>
             <div class="flex space-x-2">
-              <button id="refresh-data-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
+              <button id="refresh-data-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -21,10 +19,10 @@
               </button>
             </div>  
           </div>
-          <div class="mt-4 text-sm text-slate-600 flex items-center">
+          <div class="mt-4 text-sm text-slate-500 flex items-center">
             <span id="refresh-status" class="flex items-center">
               <span class="w-3 h-3 rounded-full bg-gray-400 mr-2" id="status-indicator"></span>
-              Auto refresh tidak aktif
+              Data dimuat
             </span>
             <span id="last-updated" class="ml-4"></span>
           </div>
@@ -53,7 +51,7 @@
           
           <!-- Empty state -->
           <div id="empty-state" class="w-full text-center py-12 hidden">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-4">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4">
               <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
               </svg>
@@ -68,115 +66,98 @@
 </div>
 
 <style>
-  @keyframes spectrum {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  @keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0px); }
-  }
-  
-  .spectrum-bg {
-    background: linear-gradient(270deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
-    background-size: 800% 800%;
-    animation: spectrum 8s ease infinite;
-  }
-  
-  .live-pulse {
-    animation: pulse-glow 2s infinite;
-  }
-  
-  .card-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
   .metric-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
   
   .metric-item {
-    border-radius: 0.75rem;
-    padding: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-  }
-  
-  .metric-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    background: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
   }
   
   .metric-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    color: #64748b;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
-    margin-bottom: 0.25rem;
   }
   
   .metric-value {
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
+    color: #1e293b;
+    margin-top: 0.25rem;
   }
   
   .studio-card {
     transition: all 0.3s ease;
     height: fit-content;
-    border-radius: 1rem;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
     background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
     cursor: pointer;
-    position: relative;
   }
   
   .studio-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
   
-  .studio-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.03) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  .summary-card {
+    background: rgb(189, 240, 210);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
   }
   
-  .studio-card:hover::after {
-    opacity: 1;
+  .summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+  }
+  
+  .summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0.5rem 0;
+  }
+  
+  .summary-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+  
+  .summary-subtext {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.25rem;
   }
   
   .studio-header {
-    padding: 1.5rem;
+    padding: 1.25rem;
     color: white;
-    position: relative;
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
   }
   
   .studio-content {
-    padding: 1.5rem;
+    padding: 1.25rem;
     background: white;
   }
   
   .studio-footer {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1.25rem;
     border-top: 1px solid #f1f5f9;
     background: #f8fafc;
     display: flex;
@@ -184,23 +165,7 @@
     align-items: center;
   }
   
-  .summary-card {
-    border-radius: 1rem;
-    padding: 1.5rem;
-    background: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-  }
-  
-  .summary-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  }
-  
   .view-detail-indicator {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
     opacity: 0;
     transition: opacity 0.3s ease;
   }
@@ -221,86 +186,16 @@
     const statusIndicator = document.getElementById('status-indicator');
     const lastUpdated = document.getElementById('last-updated');
     
-    let refreshInterval = null;
-    
     // Array warna untuk studio card
     const studioColors = [
-      { 
-        bg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-purple-500 to-pink-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-green-500 to-teal-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-yellow-500 to-orange-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-red-500 to-pink-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-teal-500 to-cyan-600',
-        text: 'text-white'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-orange-500 to-red-600',
-        text: 'text-white'
-      }
-    ];
-    
-    // Array warna untuk metric items
-    const metricColors = [
-      { 
-        bg: 'bg-gradient-to-br from-blue-100 to-blue-200',
-        text: 'text-blue-800',
-        border: 'border-blue-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-purple-100 to-purple-200',
-        text: 'text-purple-800',
-        border: 'border-purple-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-green-100 to-green-200',
-        text: 'text-green-800',
-        border: 'border-green-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-yellow-100 to-yellow-200',
-        text: 'text-yellow-800',
-        border: 'border-yellow-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-red-100 to-red-200',
-        text: 'text-red-800',
-        border: 'border-red-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
-        text: 'text-indigo-800',
-        border: 'border-indigo-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-pink-100 to-pink-200',
-        text: 'text-pink-800',
-        border: 'border-pink-200'
-      },
-      { 
-        bg: 'bg-gradient-to-br from-cyan-100 to-cyan-200',
-        text: 'text-cyan-800',
-        border: 'border-cyan-200'
-      }
+      'bg-gradient-to-br from-blue-600 to-indigo-700',
+      'bg-gradient-to-br from-purple-600 to-pink-700',
+      'bg-gradient-to-br from-green-600 to-teal-700',
+      'bg-gradient-to-br from-amber-600 to-orange-700',
+      'bg-gradient-to-br from-red-600 to-pink-700',
+      'bg-gradient-to-br from-indigo-600 to-purple-700',
+      'bg-gradient-to-br from-teal-600 to-cyan-700',
+      'bg-gradient-to-br from-orange-600 to-red-700'
     ];
     
     // Fungsi untuk memformat angka dengan pemisah ribuan
@@ -348,7 +243,7 @@
           loadingIndicator.classList.add('hidden');
           
           if (data.success && data.data && data.data.studios && data.data.studios.length > 0) {
-            renderSummaryCards(data.data.summary);
+            // renderSummaryCards(data.data.summary);
             renderStudios(data.data.studios);
             emptyState.classList.add('hidden');
           } else {
@@ -375,41 +270,43 @@
     }
     
     // Fungsi untuk merender summary cards
-    function renderSummaryCards(summary) {
-      if (!summary) return;
+    // function renderSummaryCards(summary) {
+    //   if (!summary) return;
       
-      summaryCards.innerHTML = `
-        <div class="summary-card bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-          <div class="metric-label text-blue-100">Total Commission</div>
-          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.totalCommission)}</div>
-          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.akunCount)} akun</div>
-        </div>
+    //   const totalStats = summary.totalStats || {};
+      
+    //   summaryCards.innerHTML = `
+    //     <div class="summary-card bg-gradient-to-br from-blue-100 to-blue-200 border border-blue-200">
+    //       <div class="summary-label">Total Commission</div>
+    //       <div class="summary-value">${formatCurrency(totalStats.totalCommission)}</div>
+    //       <div class="summary-subtext">${formatNumber(totalStats.akunCount)} akun</div>
+    //     </div>
         
-        <div class="summary-card bg-gradient-to-br from-green-500 to-teal-600 text-white">
-          <div class="metric-label text-green-100">Total Income</div>
-          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.totalIncome)}</div>
-          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.clicks)} clicks</div>
-        </div>
+    //     <div class="summary-card">
+    //       <div class="summary-label">Total Income</div>
+    //       <div class="summary-value">${formatCurrency(totalStats.totalIncome)}</div>
+    //       <div class="summary-subtext">${formatNumber(totalStats.clicks)} clicks</div>
+    //     </div>
         
-        <div class="summary-card bg-gradient-to-br from-purple-500 to-pink-600 text-white">
-          <div class="metric-label text-purple-100">Order Amount</div>
-          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.orderAmount)}</div>
-          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.itemSold)} items sold</div>
-        </div>
+    //     <div class="summary-card">
+    //       <div class="summary-label">Order Amount</div>
+    //       <div class="summary-value">${formatCurrency(totalStats.orderAmount)}</div>
+    //       <div class="summary-subtext">${formatNumber(totalStats.itemSold)} items sold</div>
+    //     </div>
         
-        <div class="summary-card bg-gradient-to-br from-orange-500 to-red-600 text-white">
-          <div class="metric-label text-orange-100">Estimated Income</div>
-          <div class="metric-value text-2xl">${formatCurrency(summary.totalStats.estIncome)}</div>
-          <div class="text-sm opacity-90 mt-1">${formatNumber(summary.totalStats.newBuyer)} new buyers</div>
-        </div>
-      `;
-    }
+    //     <div class="summary-card">
+    //       <div class="summary-label">Estimated Income</div>
+    //       <div class="summary-value">${formatCurrency(totalStats.estIncome)}</div>
+    //       <div class="summary-subtext">${formatNumber(totalStats.newBuyer)} new buyers</div>
+    //     </div>
+    //   `;
+    // }
     
     // Fungsi untuk merender card studio dengan data affiliate
     function renderStudios(studios) {
       studioContainer.innerHTML = studios.map((studio, index) => {
         const colorIndex = index % studioColors.length;
-        const color = studioColors[colorIndex];
+        const colorClass = studioColors[colorIndex];
         const stats = studio.totalStats || {};
         
         // Filter daily stats untuk menghapus hari dengan data 0
@@ -419,9 +316,9 @@
         
         return `
         <div class="studio-card" data-studio-id="${studio.studioId}">
-          <div class="studio-header ${color.bg}">
+          <div class="studio-header ${colorClass}">
             <div class="flex justify-between items-start mb-2">
-              <h3 class="text-lg font-bold ${color.text}">${studio.studioName}</h3>
+              <h3 class="text-lg font-bold text-white">${studio.studioName}</h3>
               <div class="view-detail-indicator">
                 <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -430,10 +327,10 @@
               </div>
             </div>
             <div class="flex justify-between items-center">
-              <div class="${color.text} text-opacity-90 text-sm">
+              <div class="text-white text-opacity-90 text-sm">
                 ${stats.akunCount || 0} Akun
               </div>
-              <div class="${color.text} font-bold text-sm">
+              <div class="text-white font-bold text-sm">
                 ${formatCurrency(stats.totalCommission)}
               </div>
             </div>
@@ -441,29 +338,29 @@
           
           <div class="studio-content">
             <div class="metric-grid mb-4">
-              <div class="metric-item ${metricColors[0].bg} border ${metricColors[0].border}">
-                <div class="metric-label ${metricColors[0].text}">Clicks</div>
-                <div class="metric-value ${metricColors[0].text}">${formatNumber(stats.clicks)}</div>
+              <div class="metric-item">
+                <div class="metric-label">Clicks</div>
+                <div class="metric-value">${formatNumber(stats.clicks)}</div>
               </div>
-              <div class="metric-item ${metricColors[1].bg} border ${metricColors[1].border}">
-                <div class="metric-label ${metricColors[1].text}">Order Amount</div>
-                <div class="metric-value ${metricColors[1].text}">${formatCurrency(stats.orderAmount)}</div>
+              <div class="metric-item">
+                <div class="metric-label">Order Amount</div>
+                <div class="metric-value">${formatCurrency(stats.orderAmount)}</div>
               </div>
-              <div class="metric-item ${metricColors[2].bg} border ${metricColors[2].border}">
-                <div class="metric-label ${metricColors[2].text}">Commission</div>
-                <div class="metric-value ${metricColors[2].text}">${formatCurrency(stats.totalCommission)}</div>
+              <div class="metric-item">
+                <div class="metric-label">Commission</div>
+                <div class="metric-value">${formatCurrency(stats.totalCommission)}</div>
               </div>
-              <div class="metric-item ${metricColors[3].bg} border ${metricColors[3].border}">
-                <div class="metric-label ${metricColors[3].text}">Income</div>
-                <div class="metric-value ${metricColors[3].text}">${formatCurrency(stats.totalIncome)}</div>
+              <div class="metric-item">
+                <div class="metric-label">Income</div>
+                <div class="metric-value">${formatCurrency(stats.totalIncome)}</div>
               </div>
-              <div class="metric-item ${metricColors[4].bg} border ${metricColors[4].border}">
-                <div class="metric-label ${metricColors[4].text}">New Buyers</div>
-                <div class="metric-value ${metricColors[4].text}">${formatNumber(stats.newBuyer)}</div>
+              <div class="metric-item">
+                <div class="metric-label">New Buyers</div>
+                <div class="metric-value">${formatNumber(stats.newBuyer)}</div>
               </div>
-              <div class="metric-item ${metricColors[5].bg} border ${metricColors[5].border}">
-                <div class="metric-label ${metricColors[5].text}">Items Sold</div>
-                <div class="metric-value ${metricColors[5].text}">${formatNumber(stats.itemSold)}</div>
+              <div class="metric-item">
+                <div class="metric-label">Items Sold</div>
+                <div class="metric-value">${formatNumber(stats.itemSold)}</div>
               </div>
             </div>
             
@@ -511,6 +408,21 @@
     // Event listener untuk tombol refresh
     refreshBtn.addEventListener('click', function() {
       loadAffiliateStats();
+      
+      // Animasi loading pada tombol
+      const originalText = refreshBtn.innerHTML;
+      refreshBtn.innerHTML = `
+        <svg class="animate-spin w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        Memuat...
+      `;
+      refreshBtn.disabled = true;
+      
+      setTimeout(() => {
+        refreshBtn.innerHTML = originalText;
+        refreshBtn.disabled = false;
+      }, 1500);
     });
     
     // Load data awal

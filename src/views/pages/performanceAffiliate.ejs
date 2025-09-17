@@ -204,6 +204,9 @@
 </div>
 
 <script>
+
+  const studioId = <%= studioId || 0 %>;
+
 // Global variables for pagination and search
 let allAffiliateData = [];
 let filteredAffiliateData = [];
@@ -301,7 +304,7 @@ async function getAffiliateData() {
         document.getElementById('studio-info').classList.add('hidden');
 
         // Call API with studio ID
-        const response = await fetch(`/api/performa-affiliate/studio/4`, {
+        const response = await fetch(`/api/performa-affiliate/studio/${studioId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
