@@ -257,6 +257,25 @@
                 margin-bottom: 1rem;
             }
         }
+
+        /* Dropdown styles */
+        .dropdown-enter {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .dropdown-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .dropdown-exit {
+            opacity: 1;
+        }
+        .dropdown-exit-active {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50 text-gray-700">
@@ -342,6 +361,7 @@
                     <a href="/sign-in" class="block text-primary-500 hover:text-primary-600 text-sm font-medium py-2">Login</a>
                     <a href="/sign-up" class="block text-white bg-primary-500 hover:bg-primary-600 px-3 py-2 rounded-md text-sm font-medium mt-2">Daftar</a>
                 <% } else { %>
+                    <a href="/dashboard" class="block text-gray-600 hover:text-primary-500 text-sm font-medium py-2">Dashboard</a>
                     <a href="/profile" class="block text-gray-600 hover:text-primary-500 text-sm font-medium py-2">Profile</a>
                     <a href="/logout" class="block text-red-600 hover:text-red-700 text-sm font-medium py-2">Logout</a>
                 <% } %>
@@ -845,6 +865,38 @@
                 }
             });
             
+            // Dropdown menu functionality for desktop
+            const dropdownButton = document.getElementById("dropdownButton");
+            const dropdownMenu = document.getElementById("dropdownMenu");
+            
+            if (dropdownButton && dropdownMenu) {
+                dropdownButton.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle("hidden");
+                    
+                    // Rotate chevron icon
+                    const chevron = this.querySelector('.fa-chevron-down');
+                    if (chevron) {
+                        chevron.classList.toggle('rotate-180');
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener("click", function (event) {
+                    if (dropdownMenu && !dropdownMenu.contains(event.target) && 
+                        dropdownButton && !dropdownButton.contains(event.target) && 
+                        !dropdownMenu.classList.contains("hidden")) {
+                        dropdownMenu.classList.add("hidden");
+                        
+                        // Reset chevron rotation
+                        const chevron = dropdownButton.querySelector('.fa-chevron-down');
+                        if (chevron) {
+                            chevron.classList.remove('rotate-180');
+                        }
+                    }
+                });
+            }
+            
             // Smooth scrolling for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
@@ -858,6 +910,15 @@
                         // Close mobile menu if open
                         if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
                             mobileMenu.classList.add("hidden");
+                        }
+                        
+                        // Close dropdown menu if open
+                        if (dropdownMenu && !dropdownMenu.classList.contains("hidden")) {
+                            dropdownMenu.classList.add("hidden");
+                            const chevron = dropdownButton.querySelector('.fa-chevron-down');
+                            if (chevron) {
+                                chevron.classList.remove('rotate-180');
+                            }
                         }
                         
                         window.scrollTo({
