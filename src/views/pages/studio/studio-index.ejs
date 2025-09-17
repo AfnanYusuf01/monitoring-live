@@ -1,24 +1,24 @@
 <% layout("layouts/main") %>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen  to-indigo-100">
   <div class="flex flex-wrap -mx-3">
-    <div class="flex-none w-full max-w-full px-3">
-      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+    <div class="flex-none w-full max-w-full px-3 bg-white">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border ">
         <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
           <div class="flex flex-wrap justify-between items-center">
             <div>
-              <h6 class="mb-0 font-bold text-slate-700 text-2xl">Studio Monitoring Dashboard</h6>
-              <p class="text-sm text-slate-500 mt-1">Real-time monitoring of all studio activities</p>
+              <h6 class="mb-0 font-bold text-slate-800 text-2xl">Studio Monitoring Dashboard</h6>
+              <p class="text-sm text-slate-600 mt-1">Real-time monitoring of all studio activities</p>
             </div>
             <div class="flex space-x-2">
-              <button id="start-monitor-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-blue-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
+              <button id="start-monitor-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 Start Live
               </button>
-              <button id="stop-monitor-btn" disabled class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gray-500 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 opacity-70 flex items-center">
+              <button id="stop-monitor-btn" disabled class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-red-500 to-red-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 opacity-70 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
@@ -27,7 +27,7 @@
               </button>
             </div>  
           </div>
-          <div class="mt-4 text-sm text-slate-500 flex items-center">
+          <div class="mt-4 text-sm text-slate-600 flex items-center">
             <span id="refresh-status" class="flex items-center">
               <span class="w-3 h-3 rounded-full bg-gray-400 mr-2" id="status-indicator"></span>
               Monitoring tidak aktif
@@ -52,7 +52,7 @@
           
           <!-- Empty state -->
           <div id="empty-state" class="w-full text-center py-12 hidden">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-4">
               <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-8 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
               </svg>
@@ -67,16 +67,28 @@
 </div>
 
 <style>
+  @keyframes spectrum {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  
   @keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-    50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    0% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
   }
   
   @keyframes float {
     0% { transform: translateY(0px); }
-    50% { transform: translateY(-3px); }
+    50% { transform: translateY(-5px); }
     100% { transform: translateY(0px); }
+  }
+  
+  .spectrum-bg {
+    background: linear-gradient(270deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
+    background-size: 800% 800%;
+    animation: spectrum 8s ease infinite;
   }
   
   .live-pulse {
@@ -90,45 +102,75 @@
   .metric-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
   
   .metric-item {
-    background: #f8fafc;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .metric-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
   }
   
   .metric-label {
-    font-size: 0.7rem;
-    color: #64748b;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
+    margin-bottom: 0.25rem;
   }
   
   .metric-value {
-    font-size: 1rem;
+    font-size: 1.125rem;
     font-weight: 700;
-    color: #1e293b;
-    margin-top: 0.25rem;
   }
   
   .studio-card {
     transition: all 0.3s ease;
     height: fit-content;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+    background: white;
   }
   
   .studio-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
   }
   
   .live-indicator {
     width: 100%;
     height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    background: linear-gradient(90deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
+    background-size: 400% 400%;
+    animation: spectrum 4s ease infinite;
+  }
+  
+  .studio-header {
+    padding: 1.5rem;
+    color: white;
+    position: relative;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  }
+  
+  .studio-content {
+    padding: 1.5rem;
+    background: white;
+  }
+  
+  .studio-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f1f5f9;
+    background: #f8fafc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 </style>
 
@@ -144,6 +186,86 @@
     const lastUpdated = document.getElementById('last-updated');
     
     let refreshInterval = null;
+    
+    // Array warna untuk studio card
+    const studioColors = [
+      { 
+        bg: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-purple-500 to-pink-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-green-500 to-teal-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-yellow-500 to-orange-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-red-500 to-pink-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-teal-500 to-cyan-600',
+        text: 'text-white'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-orange-500 to-red-600',
+        text: 'text-white'
+      }
+    ];
+    
+    // Array warna untuk metric items
+    const metricColors = [
+      { 
+        bg: 'bg-gradient-to-br from-blue-100 to-blue-200',
+        text: 'text-blue-800',
+        border: 'border-blue-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-purple-100 to-purple-200',
+        text: 'text-purple-800',
+        border: 'border-purple-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-green-100 to-green-200',
+        text: 'text-green-800',
+        border: 'border-green-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-yellow-100 to-yellow-200',
+        text: 'text-yellow-800',
+        border: 'border-yellow-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-red-100 to-red-200',
+        text: 'text-red-800',
+        border: 'border-red-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-indigo-100 to-indigo-200',
+        text: 'text-indigo-800',
+        border: 'border-indigo-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-pink-100 to-pink-200',
+        text: 'text-pink-800',
+        border: 'border-pink-200'
+      },
+      { 
+        bg: 'bg-gradient-to-br from-cyan-100 to-cyan-200',
+        text: 'text-cyan-800',
+        border: 'border-cyan-200'
+      }
+    ];
     
     // Fungsi untuk memformat angka dengan pemisah ribuan
     function formatNumber(num) {
@@ -187,69 +309,73 @@
     
     // Fungsi untuk merender card studio dengan semua data yang tersedia
     function renderStudios(studios) {
-      studioContainer.innerHTML = studios.map(studio => {
+      studioContainer.innerHTML = studios.map((studio, index) => {
         const isLive = studio.jumlah_live.live > 0;
+        const colorIndex = index % studioColors.length;
+        const color = studioColors[colorIndex];
         
         return `
-        <div class="studio-card bg-white rounded-2xl shadow-soft-xl overflow-hidden border border-gray-200 ${isLive ? 'live-pulse card-float' : ''}">
+        <div class="studio-card ${isLive ? 'live-pulse card-float' : ''}">
           ${isLive ? `<div class="live-indicator"></div>` : ''}
           
           <a href="/studio/${studio.id}" class="block">
-            <div class="p-6">
-              <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-slate-800">${studio.nama_studio}</h3>
+            <div class="studio-header ${color.bg}">
+              <div class="flex justify-between items-start mb-2">
+                <h3 class="text-lg font-bold ${color.text}">${studio.nama_studio}</h3>
                 <div class="flex items-center">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isLive ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isLive ? 'bg-white text-green-600' : 'bg-black bg-opacity-20 text-white'}">
                     ${isLive ? `
-                      <span class="w-2 h-2 rounded-full bg-blue-500 mr-1"></span>
+                      <span class="w-2 h-2 rounded-full bg-green-500 mr-1 animate-pulse"></span>
                       LIVE
                     ` : 'OFFLINE'}
                   </span>
                 </div>
               </div>
-              
-              <div class="metric-grid mb-4">
-                <div class="metric-item">
-                  <div class="metric-label">Total Akun</div>
-                  <div class="metric-value">${formatNumber(studio.total_akun)}</div>
+              <div class="flex justify-between items-center">
+                <div class="${color.text} text-opacity-90 text-sm">
+                  ${studio.total_akun} Akun
                 </div>
-                <div class="metric-item">
-                  <div class="metric-label">GMV</div>
-                  <div class="metric-value">${studio.total_placedGmv}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Ditonton</div>
-                  <div class="metric-value">${formatNumber(studio.total_ditonton)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Views</div>
-                  <div class="metric-value">${formatNumber(studio.totalViews)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Like</div>
-                  <div class="metric-value">${formatNumber(studio.total_like)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Comments</div>
-                  <div class="metric-value">${formatNumber(studio.totalComments)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">ATC</div>
-                  <div class="metric-value">${formatNumber(studio.totalAtc)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Shares</div>
-                  <div class="metric-value">${formatNumber(studio.totalShares)}</div>
+                <div class="${color.text} font-bold">
+                  ${studio.total_placedGmv}
                 </div>
               </div>
-              
-              <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                <div class="text-sm font-medium ${isLive ? 'text-blue-600' : 'text-gray-500'}">
-                  ${isLive ? '🔴 Streaming aktif' : '⚫ Tidak ada streaming'}
+            </div>
+            
+            <div class="studio-content">
+              <div class="metric-grid mb-4">
+                <div class="metric-item ${metricColors[0].bg} border ${metricColors[0].border}">
+                  <div class="metric-label ${metricColors[0].text}">Ditonton</div>
+                  <div class="metric-value ${metricColors[0].text}">${formatNumber(studio.total_ditonton)}</div>
                 </div>
-                <div class="text-xs text-gray-500">
-                  ${studio.jumlah_live.live} live / ${studio.jumlah_live.tidak_live} offline
+                <div class="metric-item ${metricColors[1].bg} border ${metricColors[1].border}">
+                  <div class="metric-label ${metricColors[1].text}">Views</div>
+                  <div class="metric-value ${metricColors[1].text}">${formatNumber(studio.totalViews)}</div>
                 </div>
+                <div class="metric-item ${metricColors[2].bg} border ${metricColors[2].border}">
+                  <div class="metric-label ${metricColors[2].text}">Like</div>
+                  <div class="metric-value ${metricColors[2].text}">${formatNumber(studio.total_like)}</div>
+                </div>
+                <div class="metric-item ${metricColors[3].bg} border ${metricColors[3].border}">
+                  <div class="metric-label ${metricColors[3].text}">Comments</div>
+                  <div class="metric-value ${metricColors[3].text}">${formatNumber(studio.totalComments)}</div>
+                </div>
+                <div class="metric-item ${metricColors[4].bg} border ${metricColors[4].border}">
+                  <div class="metric-label ${metricColors[4].text}">ATC</div>
+                  <div class="metric-value ${metricColors[4].text}">${formatNumber(studio.totalAtc)}</div>
+                </div>
+                <div class="metric-item ${metricColors[5].bg} border ${metricColors[5].border}">
+                  <div class="metric-label ${metricColors[5].text}">Shares</div>
+                  <div class="metric-value ${metricColors[5].text}">${formatNumber(studio.totalShares)}</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="studio-footer">
+              <div class="text-sm font-medium ${isLive ? 'text-green-600' : 'text-gray-500'}">
+                ${isLive ? '🔴 Streaming aktif' : '⚫ Tidak ada streaming'}
+              </div>
+              <div class="text-xs text-gray-500">
+                ${studio.jumlah_live.live} live / ${studio.jumlah_live.tidak_live} offline
               </div>
             </div>
           </a>
@@ -272,10 +398,10 @@
       stopBtn.disabled = false;
       stopBtn.classList.remove('opacity-70');
       refreshStatus.textContent = 'Monitoring aktif (refresh setiap 10 detik)';
-      refreshStatus.classList.add('text-blue-600');
+      refreshStatus.classList.add('text-green-600');
       refreshStatus.classList.remove('text-gray-500');
       statusIndicator.classList.remove('bg-gray-400');
-      statusIndicator.classList.add('bg-blue-500');
+      statusIndicator.classList.add('bg-green-500', 'animate-pulse');
     });
     
     // Event listener untuk tombol stop monitoring
@@ -292,9 +418,9 @@
       stopBtn.disabled = true;
       stopBtn.classList.add('opacity-70');
       refreshStatus.textContent = 'Monitoring tidak aktif';
-      refreshStatus.classList.remove('text-blue-600');
+      refreshStatus.classList.remove('text-green-600');
       refreshStatus.classList.add('text-gray-500');
-      statusIndicator.classList.remove('bg-blue-500');
+      statusIndicator.classList.remove('bg-green-500', 'animate-pulse');
       statusIndicator.classList.add('bg-gray-400');
     });
     

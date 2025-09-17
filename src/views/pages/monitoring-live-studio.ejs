@@ -1,23 +1,23 @@
 <% layout("layouts/main") %>
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50">
+<div class="min-h-screen bg-gray-50">
   <!-- Monitoring Table -->
   <div class="flex flex-wrap -mx-3">
     <div class="flex-none w-full max-w-full px-3">
-      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border shadow-soft-xl">
-        <div class="p-6 pb-0 mb-0 bg-gradient-to-r from-blue-600 to-cyan-500 border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
           <div class="flex flex-wrap justify-between items-center">
-            <h6 class="text-white">Live Monitoring - Studio <span id="studio-name" class="font-bold"></span></h6>
+            <h6>Live Monitoring - Studio <span id="studio-name"></span></h6>
             <div class="">
               <button id="start-monitor-btn"
-                class="px-4 py-2 mr-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-green-600 to-emerald-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
                 Proses Monitor Live
               </button>
               <button id="stop-monitor-btn" disabled
-                class="px-4 py-2 mr-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-rose-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-red-600 to-rose-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
                 Stop
               </button>
               <button id="refresh-btn"
-                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-purple-600 to-pink-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
+                class="px-4 py-2 text-xs font-bold text-white uppercase transition-all bg-gradient-to-tl from-blue-600 to-cyan-400 rounded-lg ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-102 active:opacity-85">
                 Refresh
               </button>
             </div>  
@@ -26,8 +26,8 @@
           <!-- Search Bar -->
           <div class="mt-4 mb-4">
             <div class="relative flex items-center max-w-md">
-              <input type="text" id="search-input" placeholder="Cari data..." class="pl-10 pr-4 py-2 text-sm leading-normal text-slate-700 border border-gray-300 rounded-lg bg-white bg-clip-border focus:shadow-soft-primary-outline ease-soft-in outline-none transition-all focus:border-cyan-400 focus:outline-none" />
-              <div class="absolute left-3 text-slate-500">
+              <input type="text" id="search-input" placeholder="Cari data..." class="pl-10 pr-4 py-2 text-sm leading-normal text-slate-500 border border-gray-200 rounded-lg focus:shadow-soft-primary-outline ease-soft-in outline-none transition-all focus:border-fuchsia-300 focus:outline-none" />
+              <div class="absolute left-3 text-slate-400">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
@@ -36,37 +36,32 @@
           </div>
         </div>
         
-        <div class="flex-auto px-0 pt-0 pb-2 bg-gradient-to-br from-blue-50 to-cyan-50">
+        <div class="flex-auto px-0 pt-0 pb-2">
           <div class="p-0 overflow-x-auto">
-            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-700">
+            <table class="items-center w-full mb-0 align-top border-gray-200 text-slate-500">
               <thead class="align-bottom">
-                <tr class="bg-gradient-to-r from-blue-500 to-cyan-400 text-white">
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">No</th>
-                  <th class="px-6 py-3 font-bold text-left uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Nama</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">GMV</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Order</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Check Out</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Keranjang</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">View</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Ditonton</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Like</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Comment</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Share</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Tanggal</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Durasi</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Status</th>
-                  <th class="px-6 py-3 font-bold text-center uppercase align-middle shadow-none text-xxs border-none tracking-none whitespace-nowrap">Pelanggaran</th>
+                <tr>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">No</th>
+                  <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Nama</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">GMV</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Check Out</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Keranjang</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">View</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Ditonton</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Like</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Comment</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Share</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Durasi</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Status</th>
+                  <th class="px-6 py-3 font-bold text-center uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Pelanggaran</th>
                 </tr>
               </thead>
-              <tbody id="monitoring-table-body" class="divide-y divide-gray-200">
+              <tbody id="monitoring-table-body">
                 <!-- Data will be loaded dynamically -->
-                <tr class="bg-white hover:bg-blue-50 transition-colors duration-150">
-                  <td colspan="15" class="text-center py-8">
-                    <div class="flex justify-center items-center">
-                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                      <span class="ml-3 text-blue-600">Memuat data...</span>
-                    </div>
-                  </td>
+                <tr>
+                  <td colspan="14" class="text-center py-4">Memuat data...</td>
                 </tr>
               </tbody>
             </table>
@@ -108,9 +103,6 @@
     document.getElementById('start-monitor-btn').disabled = true;
     document.getElementById('stop-monitor-btn').disabled = false;
     
-    // Add animation to indicate monitoring is active
-    document.getElementById('stop-monitor-btn').classList.add('pulse-animation');
-    
     // Initial fetch
     fetchMonitoringData();
     
@@ -126,22 +118,11 @@
     isMonitoring = false;
     document.getElementById('start-monitor-btn').disabled = false;
     document.getElementById('stop-monitor-btn').disabled = true;
-    
-    // Remove animation
-    document.getElementById('stop-monitor-btn').classList.remove('pulse-animation');
   }
 
   // Refresh data function (stops monitoring and reloads)
   function refreshData() {
     stopMonitoring();
-    
-    // Add refresh animation
-    const refreshBtn = document.getElementById('refresh-btn');
-    refreshBtn.classList.add('rotate-animation');
-    setTimeout(() => {
-      refreshBtn.classList.remove('rotate-animation');
-    }, 1000);
-    
     loadStudioData();
   }
 
@@ -196,13 +177,8 @@
     try {
       // Show loading state
       document.getElementById('monitoring-table-body').innerHTML = `
-        <tr class="bg-white hover:bg-blue-50 transition-colors duration-150">
-          <td colspan="15" class="text-center py-8">
-            <div class="flex justify-center items-center">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <span class="ml-3 text-blue-600">Memuat data studio...</span>
-            </div>
-          </td>
+        <tr>
+          <td colspan="14" class="text-center py-4">Memuat data studio...</td>
         </tr>
       `;
       
@@ -245,15 +221,8 @@
     } catch (error) {
       console.error('Error:', error);
       document.getElementById('monitoring-table-body').innerHTML = `
-        <tr class="bg-white hover:bg-blue-50 transition-colors duration-150">
-          <td colspan="15" class="text-center py-8 text-red-500">
-            <div class="flex flex-col items-center">
-              <svg class="w-12 h-12 text-red-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Gagal memuat data studio: ${error.message}</span>
-            </div>
-          </td>
+        <tr>
+          <td colspan="14" class="text-center py-4 text-red-500">Gagal memuat data studio: ${error.message}</td>
         </tr>
       `;
     }
@@ -320,15 +289,8 @@
     
     if (data.length === 0) {
       tbody.innerHTML = `
-        <tr class="bg-white hover:bg-blue-50 transition-colors duration-150">
-          <td colspan="15" class="text-center py-8">
-            <div class="flex flex-col items-center text-gray-500">
-              <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Tidak ada data monitoring</span>
-            </div>
-          </td>
+        <tr>
+          <td colspan="14" class="text-center py-4">Tidak ada data monitoring</td>
         </tr>
       `;
       return;
@@ -337,61 +299,58 @@
     tbody.innerHTML = data.map((item, index) => {
       const violationCount = item.pelanggaran?.jumlah || 0;
       const violationTitles = item.pelanggaran?.judul || [];
-      const rowColorClass = index % 2 === 0 ? 'bg-blue-50' : 'bg-white';
       
       return `
-      <tr class="${rowColorClass} hover:bg-blue-100 transition-colors duration-150">
+      <tr>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent">
           <span class="text-xs font-semibold leading-tight">${index + 1}</span>
         </td>
         <td class="p-2 align-middle bg-transparent border-b whitespace-nowrap shadow-transparent nama-cell">
           <div class="flex px-2 py-1">
             <div class="flex flex-col justify-center">
-              <h6 class="mb-0 text-sm leading-normal font-semibold">${item.nama}</h6>
+              <h6 class="mb-0 text-sm leading-normal">${item.nama}</h6>
             </div>
           </div>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent gmv-cell">
-          <span class="text-xs font-semibold leading-tight text-blue-600">${item.gmv}</span>
+          <span class="text-xs font-semibold leading-tight">${item.gmv}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent order-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-green-500 rounded-full">${item.order}</span>
+          <span class="text-xs font-semibold leading-tight">${item.order}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent checkout-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-emerald-500 rounded-full">${item.checkout}</span>
+          <span class="text-xs font-semibold leading-tight">${item.checkout}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent keranjang-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-amber-500 rounded-full">${item.keranjang}</span>
+          <span class="text-xs font-semibold leading-tight">${item.keranjang}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent view-cell">
-          <span class="text-xs font-semibold leading-tight text-purple-600">${item.view}</span>
+          <span class="text-xs font-semibold leading-tight">${item.view}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent ditonton-cell">
-          <span class="text-xs font-semibold leading-tight text-pink-600">${item.ditonton}</span>
+          <span class="text-xs font-semibold leading-tight">${item.ditonton}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent like-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">${item.like}</span>
+          <span class="text-xs font-semibold leading-tight">${item.like}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent comment-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-indigo-500 rounded-full">${item.comment}</span>
+          <span class="text-xs font-semibold leading-tight">${item.comment}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent share-cell">
-          <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-teal-500 rounded-full">${item.share}</span>
+          <span class="text-xs font-semibold leading-tight">${item.share}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent tanggal-cell">
-          <span class="text-xs font-semibold leading-tight text-gray-600">${item.tanggal}</span>
+          <span class="text-xs font-semibold leading-tight">${item.tanggal}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent durasi-cell">
-          <span class="text-xs font-semibold leading-tight text-cyan-600">${item.durasi}</span>
+          <span class="text-xs font-semibold leading-tight">${item.durasi}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent status-cell">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)} ${getStatusBgColor(item.status)}">
-            ${item.status}
-          </span>
+          <span class="text-xs font-semibold leading-tight ${getStatusColor(item.status)}">${item.status}</span>
         </td>
         <td class="p-2 text-center align-middle bg-transparent border-b whitespace-nowrap shadow-transparent pelanggaran-cell">
           ${violationCount > 0 
-            ? `<span class="relative group cursor-pointer inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getViolationColor(violationCount)} ${getViolationBgColor(violationCount)}">
+            ? `<span class="relative group cursor-pointer ${getViolationColor(violationCount)}">
                  ${violationCount}
                  <div class="absolute invisible group-hover:visible z-50 w-64 p-2 text-xs bg-gray-800 text-white rounded shadow-lg bottom-full left-1/2 transform -translate-x-1/2 mb-2">
                    <div class="font-bold mb-1">Detail Pelanggaran:</div>
@@ -401,7 +360,7 @@
                    }
                  </div>
                </span>`
-            : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getViolationColor(violationCount)} ${getViolationBgColor(violationCount)}">${violationCount}</span>`
+            : `<span class="${getViolationColor(violationCount)}">${violationCount}</span>`
           }
         </td>
       </tr>
@@ -410,52 +369,27 @@
 
   // Helper function for status color
   function getStatusColor(status) {
-    if (!status) return 'text-gray-800';
+    if (!status) return 'text-gray-600';
     switch(status.toLowerCase()) {
       case 'aktif': 
       case 'live': 
       case 'sedang live':
-        return 'text-green-800';
+        return 'text-green-600';
       case 'nonaktif': 
       case 'tidak live': 
       case 'tidak live':
-        return 'text-red-800';
+        return 'text-red-600';
       case 'paused': 
-        return 'text-yellow-800';
-      default: return 'text-gray-800';
-    }
-  }
-
-  // Helper function for status background color
-  function getStatusBgColor(status) {
-    if (!status) return 'bg-gray-100';
-    switch(status.toLowerCase()) {
-      case 'aktif': 
-      case 'live': 
-      case 'sedang live':
-        return 'bg-green-100';
-      case 'nonaktif': 
-      case 'tidak live': 
-      case 'tidak live':
-        return 'bg-red-100';
-      case 'paused': 
-        return 'bg-yellow-100';
-      default: return 'bg-gray-100';
+        return 'text-yellow-600';
+      default: return 'text-gray-600';
     }
   }
 
   // Helper function for violation color
   function getViolationColor(violationCount) {
-    if (violationCount === 0) return 'text-green-800';
-    if (violationCount <= 2) return 'text-yellow-800';
-    return 'text-red-800';
-  }
-
-  // Helper function for violation background color
-  function getViolationBgColor(violationCount) {
-    if (violationCount === 0) return 'bg-green-100';
-    if (violationCount <= 2) return 'bg-yellow-100';
-    return 'bg-red-100';
+    if (violationCount === 0) return 'text-green-600';
+    if (violationCount <= 2) return 'text-yellow-600';
+    return 'text-red-600';
   }
 
   // Filter data based on search term
@@ -466,15 +400,8 @@
     
     if (filteredData.length === 0) {
       document.getElementById('monitoring-table-body').innerHTML = `
-        <tr class="bg-white hover:bg-blue-50 transition-colors duration-150">
-          <td colspan="15" class="text-center py-8">
-            <div class="flex flex-col items-center text-gray-500">
-              <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Tidak ada data yang cocok</span>
-            </div>
-          </td>
+        <tr>
+          <td colspan="14" class="text-center py-4">Tidak ada data yang cocok</td>
         </tr>
       `;
     } else {
@@ -482,53 +409,3 @@
     }
   }
 </script>
-
-<style>
-  .pulse-animation {
-    animation: pulse 2s infinite;
-  }
-  
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-    }
-    70% {
-      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-    }
-  }
-  
-  .rotate-animation {
-    animation: rotate 1s ease-in-out;
-  }
-  
-  @keyframes rotate {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-  
-  /* Custom scrollbar for table */
-  .overflow-x-auto::-webkit-scrollbar {
-    height: 8px;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #c5c5c5;
-    border-radius: 4px;
-  }
-  
-  .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-</style>

@@ -295,8 +295,8 @@ async function updatePayments() {
         document.getElementById('success-notification').classList.add('hidden');
         document.getElementById('summary-section').classList.add('hidden');
 
-        // Call API for update with studio ID
-        const response = await fetch(`/api/cek-pembayaran/${window.currentStudioId}`, {
+        // PERUBAHAN: Menggunakan endpoint yang baru
+        const response = await fetch(`/api/post-cek-pembayaran`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
