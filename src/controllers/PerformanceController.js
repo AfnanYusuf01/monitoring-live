@@ -293,19 +293,13 @@ export const getAffiliateStats = async (req, res) => {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 7);
 
-    // 1. Ambil user dengan studio dan akun-akunnya
+    // 1. Ambil user dengan studio dan akun-akunnya (hanya yang punya studio)
     const userData = await prisma.user.findUnique({
       where: { id: user.id },
       include: {
         studio: {
           include: {
             akun: true // Hanya ambil data akun saja
-          }
-        },
-        // Juga include akun tanpa studio
-        akun: {
-          where: {
-            studioId: null
           }
         }
       },
@@ -318,20 +312,54 @@ export const getAffiliateStats = async (req, res) => {
       });
     }
 
-    // Kumpulkan semua ID akun dari user ini
+    // Kumpulkan semua ID akun dari studio user ini saja
     const allAkunIds = [];
     
-    // Akun dari studio
+    // Akun dari studio saja (tidak termasuk akun tanpa studio)
     userData.studio.forEach(studio => {
       studio.akun.forEach(akun => {
         allAkunIds.push(akun.id.toString());
       });
     });
-    
-    // Akun tanpa studio
-    userData.akun.forEach(akun => {
-      allAkunIds.push(akun.id.toString());
-    });
+
+    // Jika tidak ada akun sama sekali, kembalikan data kosong
+    if (allAkunIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "Data affiliate stats berhasil diambil",
+        data: {
+          period: {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0],
+            days: 7
+          },
+          studios: [],
+          summary: {
+            totalStudios: 0,
+            totalAkun: 0,
+            totalStats: {
+              clicks: 0,
+              cvByOrder: 0,
+              orderCvr: 0,
+              orderAmount: 0,
+              totalCommission: 0,
+              totalIncome: 0,
+              newBuyer: 0,
+              programType: 0,
+              itemSold: 0,
+              estCommission: 0,
+              estIncome: 0,
+              akunCount: 0,
+            }
+          }
+        },
+        meta: {
+          userId: user.id,
+          userName: user.name,
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
 
     // 2. Ambil affiliate stats untuk semua akun user ini dalam periode 7 hari
     const affiliateStats = await prisma.affiliateStat.findMany({
@@ -452,82 +480,6 @@ export const getAffiliateStats = async (req, res) => {
       });
     });
 
-    // Proses akun tanpa studio (jika ada)
-    if (userData.akun.length > 0) {
-      const studioId = "unassigned";
-      const studioName = "Tanpa Studio";
-
-      if (!studioStats[studioId]) {
-        studioStats[studioId] = {
-          studioId,
-          studioName,
-          totalStats: {
-            clicks: 0,
-            cvByOrder: 0,
-            orderCvr: 0,
-            orderAmount: 0,
-            totalCommission: 0,
-            totalIncome: 0,
-            newBuyer: 0,
-            programType: 0,
-            itemSold: 0,
-            estCommission: 0,
-            estIncome: 0,
-            akunCount: 0,
-          },
-          dailyStats: JSON.parse(JSON.stringify(allDailyStats)),
-          akunList: []
-        };
-      }
-
-      userData.akun.forEach((akun) => {
-        // Tambahkan akun ke list
-        studioStats[studioId].akunList.push({
-          id: akun.id.toString(),
-          nama_akun: akun.nama_akun,
-          email: akun.email
-        });
-
-        // Cari affiliate stats untuk akun ini
-        const akunStats = affiliateStats.filter(stat => stat.accountId === akun.id.toString());
-        
-        // Hitung statistik untuk akun ini
-        akunStats.forEach((stat) => {
-          const statDate = stat.ymd.toISOString().split('T')[0];
-          
-          if (studioStats[studioId].dailyStats[statDate]) {
-            studioStats[studioId].dailyStats[statDate].clicks += stat.clicks;
-            studioStats[studioId].dailyStats[statDate].cvByOrder += stat.cvByOrder;
-            studioStats[studioId].dailyStats[statDate].orderCvr += stat.orderCvr;
-            studioStats[studioId].dailyStats[statDate].orderAmount += Number(stat.orderAmount);
-            studioStats[studioId].dailyStats[statDate].totalCommission += Number(stat.totalCommission);
-            studioStats[studioId].dailyStats[statDate].totalIncome += Number(stat.totalIncome);
-            studioStats[studioId].dailyStats[statDate].newBuyer += stat.newBuyer;
-            studioStats[studioId].dailyStats[statDate].programType += stat.programType;
-            studioStats[studioId].dailyStats[statDate].itemSold += stat.itemSold;
-            studioStats[studioId].dailyStats[statDate].estCommission += Number(stat.estCommission);
-            studioStats[studioId].dailyStats[statDate].estIncome += Number(stat.estIncome);
-            studioStats[studioId].dailyStats[statDate].akunCount++;
-          }
-
-          // Tambahkan ke total stats
-          studioStats[studioId].totalStats.clicks += stat.clicks;
-          studioStats[studioId].totalStats.cvByOrder += stat.cvByOrder;
-          studioStats[studioId].totalStats.orderCvr += stat.orderCvr;
-          studioStats[studioId].totalStats.orderAmount += Number(stat.orderAmount);
-          studioStats[studioId].totalStats.totalCommission += Number(stat.totalCommission);
-          studioStats[studioId].totalStats.totalIncome += Number(stat.totalIncome);
-          studioStats[studioId].totalStats.newBuyer += stat.newBuyer;
-          studioStats[studioId].totalStats.programType += stat.programType;
-          studioStats[studioId].totalStats.itemSold += stat.itemSold;
-          studioStats[studioId].totalStats.estCommission += Number(stat.estCommission);
-          studioStats[studioId].totalStats.estIncome += Number(stat.estIncome);
-        });
-
-        studioStats[studioId].totalStats.akunCount++;
-      });
-    }
-
     // Konversi dailyStats menjadi array dan urutkan berdasarkan tanggal
     const formattedStudioStats = Object.values(studioStats).map(studio => ({
       ...studio,
@@ -547,7 +499,7 @@ export const getAffiliateStats = async (req, res) => {
         studios: formattedStudioStats,
         summary: {
           totalStudios: formattedStudioStats.length,
-          totalAkun: userData.studio.reduce((acc, studio) => acc + studio.akun.length, 0) + userData.akun.length,
+          totalAkun: userData.studio.reduce((acc, studio) => acc + studio.akun.length, 0),
           totalStats: formattedStudioStats.reduce((acc, studio) => ({
             clicks: acc.clicks + studio.totalStats.clicks,
             cvByOrder: acc.cvByOrder + studio.totalStats.cvByOrder,
