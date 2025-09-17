@@ -216,27 +216,75 @@ export async function updateSubscription(req, res) {
   }
 }
 
-// Delete subscription
+// Delete subscription with transaction
 export async function destroySubscription(req, res) {
   try {
     const {id} = req.params;
+    const subscriptionId = parseInt(id);
 
-    // Hapus semua UserSubscription terkait dulu biar FK aman
-    await prisma.userSubscription.deleteMany({
-      where: {subscriptionId: parseInt(id)},
-    });
+    await prisma.$transaction(async (tx) => {
+      // Check if subscription exists
+      const subscription = await tx.subscription.findUnique({
+        where: { id: subscriptionId },
+        include: {
+          userSubscriptions: {
+            select: { id: true }
+          }
+        }
+      });
 
-    await prisma.subscription.delete({
-      where: {id: parseInt(id)},
+      if (!subscription) {
+        throw new Error("Subscription not found");
+      }
+
+      // Get all user subscription IDs
+      const userSubscriptionIds = subscription.userSubscriptions.map(us => us.id);
+
+      if (userSubscriptionIds.length > 0) {
+        // Delete affiliate orders for orders related to these user subscriptions
+        await tx.affiliateOrder.deleteMany({
+          where: {
+            order: {
+              userSubscriptionId: { in: userSubscriptionIds }
+            }
+          }
+        });
+
+        // Delete confirm payments for orders related to these user subscriptions
+        await tx.confirmPayment.deleteMany({
+          where: {
+            order: {
+              userSubscriptionId: { in: userSubscriptionIds }
+            }
+          }
+        });
+
+        // Delete orders related to these user subscriptions
+        await tx.order.deleteMany({
+          where: {
+            userSubscriptionId: { in: userSubscriptionIds }
+          }
+        });
+      }
+
+      // Delete user subscriptions
+      await tx.userSubscription.deleteMany({
+        where: { subscriptionId: subscriptionId },
+      });
+
+      // Delete the subscription
+      await tx.subscription.delete({
+        where: { id: subscriptionId },
+      });
     });
 
     res.status(200).json({
       status: "success",
-      message: "Subscription deleted successfully",
+      message: "Subscription and all related data deleted successfully",
     });
   } catch (error) {
     console.error("Error deleting subscription:", error);
-    if (error.code === "P2025") {
+    if (error.message === "Subscription not found") {
       return res.status(404).json({
         status: "error",
         message: "Subscription not found",

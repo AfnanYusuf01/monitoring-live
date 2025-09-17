@@ -10,16 +10,21 @@ async function main() {
   // Hapus data existing dengan error handling
   console.log("🧹 Cleaning existing data...");
   
-  // Gunakan try-catch untuk setiap deleteMany karena beberapa tabel mungkin belum ada
+  // Urutan penghapusan yang benar sesuai dengan constraint foreign key
   const deleteOperations = [
     { model: 'affiliateOrder', operation: prisma.affiliateOrder.deleteMany() },
+    { model: 'confirmPayment', operation: prisma.confirmPayment.deleteMany() },
     { model: 'order', operation: prisma.order.deleteMany() },
+    { model: 'affiliateStat', operation: prisma.affiliateStat.deleteMany() },
+    { model: 'pelanggaran', operation: prisma.pelanggaran.deleteMany() },
+    { model: 'history', operation: prisma.history.deleteMany() },
+    { model: 'pembayaran', operation: prisma.pembayaran.deleteMany() },
+    { model: 'akun', operation: prisma.akun.deleteMany() },
     { model: 'userSubscription', operation: prisma.userSubscription.deleteMany() },
     { model: 'subscription', operation: prisma.subscription.deleteMany() },
-    { model: 'performanceLiveStream', operation: prisma.performanceLiveStream.deleteMany() },
-    { model: 'akun', operation: prisma.akun.deleteMany() },
     { model: 'studio', operation: prisma.studio.deleteMany() },
     { model: 'affiliate', operation: prisma.affiliate.deleteMany() },
+    { model: 'payment', operation: prisma.payment.deleteMany() },
     { model: 'user', operation: prisma.user.deleteMany() },
   ];
 
@@ -31,7 +36,7 @@ async function main() {
       if (error.code === 'P2021') {
         console.log(`- Table ${op.model} doesn't exist yet, skipping delete`);
       } else {
-        throw error;
+        console.log(`Error clearing ${op.model}:`, error.message);
       }
     }
   }
@@ -120,7 +125,7 @@ async function main() {
     for (let i = 0; i < akunCount; i++) {
       const akun = await prisma.akun.create({
         data: {
-          id: faker.number.int({ min: 1000, max: 9999 }),
+          id: faker.number.bigInt({ min: 1000, max: 9999 }),
           nama_akun: `${faker.person.firstName()}_${faker.number.int(100)}`,
           email: faker.internet.email(),
           phone: faker.phone.number(),
@@ -184,7 +189,7 @@ async function main() {
     },
   });
 
-  // 8️⃣ Affiliate order (jika tabel sudah ada)
+  // 8️⃣ Affiliate order
   console.log("💸 Creating affiliate order...");
   try {
     const affiliateOrder = await prisma.affiliateOrder.create({
@@ -200,45 +205,110 @@ async function main() {
     if (error.code === 'P2021' || error.code === 'P2003') {
       console.log("- AffiliateOrder table doesn't exist yet, skipping");
     } else {
-      throw error;
+      console.log("Error creating affiliate order:", error.message);
     }
   }
 
-  // 9️⃣ Performance live stream (hanya 1-2 data per akun)
-  console.log("📊 Creating performance live stream data...");
+  // 9️⃣ History data untuk setiap akun
+  console.log("📊 Creating history data...");
   for (const akun of akuns) {
     try {
-      const performance = await prisma.performanceLiveStream.create({
+      const history = await prisma.history.create({
         data: {
-          title: faker.commerce.productName() + " Live Stream",
-          startTime: faker.date.recent({ days: 7 }),
-          durationMs: faker.number.int({ min: 300000, max: 3600000 }),
-          statusCode: faker.number.int({ min: 1, max: 3 }),
-          conversionRate: faker.number.float({ min: 0, max: 0.05, precision: 0.0001 }),
-          totalViews: faker.number.int({ min: 10, max: 200 }),
-          totalLikes: faker.number.int({ min: 0, max: 50 }),
-          followersGrowth: faker.number.int({ min: -5, max: 20 }),
-          productClicks: faker.number.int({ min: 0, max: 10 }),
-          uniqueViewers: faker.number.int({ min: 5, max: 50 }),
-          peakViewers: faker.number.int({ min: 1, max: 10 }),
-          avgViewDuration: faker.number.float({ min: 10000, max: 180000, precision: 0.1 }),
-          totalComments: faker.number.int({ min: 0, max: 10 }),
-          addToCart: faker.number.int({ min: 0, max: 5 }),
-          placedOrders: faker.number.int({ min: 0, max: 3 }),
-          placedSalesAmount: faker.number.float({ min: 0, max: 50000, precision: 0.01 }),
-          confirmedOrders: faker.number.int({ min: 0, max: 2 }),
-          confirmedSalesAmount: faker.number.float({ min: 0, max: 30000, precision: 0.01 }),
+          no: faker.number.int({ min: 1, max: 100 }),
+          nama: faker.person.fullName(),
+          session: faker.number.bigInt({ min: 1000, max: 9999 }),
+          gmv: faker.commerce.price(),
+          ord: faker.number.int({ min: 0, max: 50 }),
+          co: faker.number.int({ min: 0, max: 20 }),
+          act: faker.number.int({ min: 0, max: 100 }),
+          view: faker.number.int({ min: 0, max: 1000 }),
+          viewer: faker.number.int({ min: 0, max: 500 }),
+          like: faker.number.int({ min: 0, max: 200 }),
+          comnt: faker.number.int({ min: 0, max: 50 }),
+          shere: faker.number.int({ min: 0, max: 30 }),
+          tanggal: faker.date.recent({ days: 7 }),
+          durasi: `${faker.number.int({ min: 10, max: 120 })} menit`,
+          status: faker.helpers.arrayElement(["Sedang_Live", "Tidak_Live"]),
+          akunId: akun.id,
+        },
+      });
+
+      // Buat pelanggaran untuk beberapa history
+      if (faker.datatype.boolean()) {
+        await prisma.pelanggaran.create({
+          data: {
+            jumlah: faker.number.int({ min: 1, max: 5 }),
+            judul: JSON.stringify([faker.lorem.words(3), faker.lorem.words(2)]),
+            historyId: history.id,
+          },
+        });
+      }
+    } catch (error) {
+      console.log("Error creating history:", error.message);
+    }
+  }
+
+  // 🔟 Pembayaran data
+  console.log("💳 Creating pembayaran data...");
+  for (const akun of akuns) {
+    try {
+      await prisma.pembayaran.create({
+        data: {
+          id: faker.number.bigInt({ min: 10000, max: 99999 }),
+          nama_akun: akun.nama_akun,
+          validation_id: `val_${faker.string.alphanumeric(10)}`,
+          total_payment_amount_dis: faker.commerce.price({ min: 10000, max: 500000 }),
+          payment_status: faker.helpers.arrayElement(["success", "pending", "failed"]),
+          payment_channel: faker.helpers.arrayElement(["bank_transfer", "credit_card", "e_wallet"]),
+          validation_review_time: faker.date.recent({ days: 5 }),
+          order_completed_period_end_time: faker.date.soon({ days: 10 }),
+          payment_time: faker.date.recent({ days: 3 }),
           akunId: akun.id,
         },
       });
     } catch (error) {
-      if (error.code === 'P2021') {
-        console.log("- PerformanceLiveStream table doesn't exist yet, skipping");
-        break;
-      } else {
-        throw error;
-      }
+      console.log("Error creating pembayaran:", error.message);
     }
+  }
+
+  // 1️⃣1️⃣ AffiliateStat data untuk affiliate user
+  console.log("📈 Creating affiliate stats...");
+  try {
+    await prisma.affiliateStat.create({
+      data: {
+        accountId: `acc_${faker.string.alphanumeric(8)}`,
+        ymd: faker.date.recent({ days: 30 }),
+        clicks: faker.number.int({ min: 10, max: 1000 }),
+        cvByOrder: faker.number.int({ min: 1, max: 50 }),
+        orderCvr: faker.number.int({ min: 1, max: 20 }),
+        orderAmount: faker.number.bigInt({ min: 100000, max: 10000000 }),
+        totalCommission: faker.number.bigInt({ min: 10000, max: 1000000 }),
+        totalIncome: faker.number.bigInt({ min: 50000, max: 5000000 }),
+        newBuyer: faker.number.int({ min: 0, max: 20 }),
+        programType: faker.number.int({ min: 1, max: 3 }),
+        itemSold: faker.number.int({ min: 0, max: 100 }),
+        estCommission: faker.number.bigInt({ min: 10000, max: 1000000 }),
+        estIncome: faker.number.bigInt({ min: 50000, max: 5000000 }),
+        userId: affiliateUser.id,
+      },
+    });
+  } catch (error) {
+    console.log("Error creating affiliate stat:", error.message);
+  }
+
+  // 1️⃣2️⃣ Payment data
+  console.log("🏦 Creating payment methods...");
+  try {
+    await prisma.payment.createMany({
+      data: [
+        { nameService: "Bank Transfer", status: true },
+        { nameService: "E-Wallet", status: true },
+        { nameService: "Credit Card", status: false },
+      ],
+    });
+  } catch (error) {
+    console.log("Error creating payment methods:", error.message);
   }
 
   console.log("✅ Simplified seeding completed!");

@@ -1,312 +1,312 @@
-<% layout("layouts/main") %>
+  <% layout("layouts/main") %>
 
-<div class="min-h-screen bg-gray-50">
-  <div class="flex flex-wrap -mx-3">
-    <div class="flex-none w-full max-w-full px-3">
-      <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
-        <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
-          <div class="flex flex-wrap justify-between items-center">
-            <div>
-              <h6 class="mb-0 font-bold text-slate-700 text-2xl">Studio Monitoring Dashboard</h6>
-              <p class="text-sm text-slate-500 mt-1">Real-time monitoring of all studio activities</p>
+  <div class="min-h-screen bg-gray-50">
+    <div class="flex flex-wrap -mx-3">
+      <div class="flex-none w-full max-w-full px-3">
+        <div class="relative flex flex-col min-w-0 mb-6 break-words bg-white border-0 border-transparent border-solid rounded-2xl bg-clip-border">
+          <div class="p-6 pb-0 mb-0 bg-white border-b-0 border-b-solid rounded-t-2xl border-b-transparent">
+            <div class="flex flex-wrap justify-between items-center">
+              <div>
+                <h6 class="mb-0 font-bold text-slate-700 text-2xl">Studio Monitoring Dashboard</h6>
+                <p class="text-sm text-slate-500 mt-1">Real-time monitoring of all studio activities</p>
+              </div>
+              <div class="flex space-x-2">
+                <button id="start-monitor-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  Start Live
+                </button>
+                <button id="stop-monitor-btn" disabled class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-red-500 to-red-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 opacity-70 flex items-center">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                  </svg>
+                  Stop Live
+                </button>
+              </div>  
             </div>
-            <div class="flex space-x-2">
-              <button id="start-monitor-btn" class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Start Live
-              </button>
-              <button id="stop-monitor-btn" disabled class="px-5 py-3 text-sm font-bold text-white uppercase transition-all bg-gradient-to-r from-red-500 to-red-600 rounded-xl ease-soft-in tracking-tight-soft shadow-soft-md bg-150 bg-x-25 hover:scale-105 active:opacity-85 opacity-70 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
-                </svg>
-                Stop Live
-              </button>
-            </div>  
+            <div class="mt-4 text-sm text-slate-500 flex items-center">
+              <span id="refresh-status" class="flex items-center">
+                <span class="w-3 h-3 rounded-full bg-gray-400 mr-2" id="status-indicator"></span>
+                Monitoring tidak aktif
+              </span>
+              <span id="last-updated" class="ml-4"></span>
+            </div>
           </div>
-          <div class="mt-4 text-sm text-slate-500 flex items-center">
-            <span id="refresh-status" class="flex items-center">
-              <span class="w-3 h-3 rounded-full bg-gray-400 mr-2" id="status-indicator"></span>
-              Monitoring tidak aktif
-            </span>
-            <span id="last-updated" class="ml-4"></span>
-          </div>
-        </div>
 
-        <!-- Container untuk card studio -->
-        <div class="flex flex-wrap px-6 py-4">
-          <div id="studio-container" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Data studio akan dimuat di sini -->
-          </div>
-          
-          <!-- Loading indicator -->
-          <div id="loading-indicator" class="w-full flex justify-center py-12">
-            <div class="flex flex-col items-center">
-              <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
-              <p class="text-blue-600 font-medium">Memuat data studio...</p>
+          <!-- Container untuk card studio -->
+          <div class="flex flex-wrap px-6 py-4">
+            <div id="studio-container" class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <!-- Data studio akan dimuat di sini -->
             </div>
-          </div>
-          
-          <!-- Empty state -->
-          <div id="empty-state" class="w-full text-center py-12 hidden">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4">
-              <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-8 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-              </svg>
+            
+            <!-- Loading indicator -->
+            <div id="loading-indicator" class="w-full flex justify-center py-12">
+              <div class="flex flex-col items-center">
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
+                <p class="text-blue-600 font-medium">Memuat data studio...</p>
+              </div>
             </div>
-            <h3 class="mt-4 text-lg font-medium text-gray-900">Tidak ada studio</h3>
-            <p class="mt-1 text-sm text-gray-500">Belum ada data studio yang tersedia.</p>
+            
+            <!-- Empty state -->
+            <div id="empty-state" class="w-full text-center py-12 hidden">
+              <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4">
+                <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-8 0H5m2 0h4M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+              </div>
+              <h3 class="mt-4 text-lg font-medium text-gray-900">Tidak ada studio</h3>
+              <p class="mt-1 text-sm text-gray-500">Belum ada data studio yang tersedia.</p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<style>
-  @keyframes spectrum {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  @keyframes pulse-glow {
-    0% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
-    50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.8); }
-    100% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
-  }
-  
-  @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0px); }
-  }
-  
-  .spectrum-bg {
-    background: linear-gradient(270deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
-    background-size: 800% 800%;
-    animation: spectrum 8s ease infinite;
-  }
-  
-  .live-pulse {
-    animation: pulse-glow 2s infinite;
-  }
-  
-  .card-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .metric-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-  }
-  
-  .metric-item {
-    background: #f8fafc;
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-  }
-  
-  .metric-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-  }
-  
-  .metric-value {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-top: 0.25rem;
-  }
-  
-  .studio-card {
-    transition: all 0.3s ease;
-    height: fit-content;
-  }
-  
-  .studio-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-</style>
+  <style>
+    @keyframes spectrum {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(72, 187, 120, 0.8); }
+      100% { box-shadow: 0 0 5px rgba(72, 187, 120, 0.5); }
+    }
+    
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .spectrum-bg {
+      background: linear-gradient(270deg, #10b981, #22d3ee, #8b5cf6, #ec4899);
+      background-size: 800% 800%;
+      animation: spectrum 8s ease infinite;
+    }
+    
+    .live-pulse {
+      animation: pulse-glow 2s infinite;
+    }
+    
+    .card-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    
+    .metric-item {
+      background: #f8fafc;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .metric-label {
+      font-size: 0.7rem;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+    
+    .metric-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 0.25rem;
+    }
+    
+    .studio-card {
+      transition: all 0.3s ease;
+      height: fit-content;
+    }
+    
+    .studio-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const studioContainer = document.getElementById('studio-container');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const emptyState = document.getElementById('empty-state');
-    const startBtn = document.getElementById('start-monitor-btn');
-    const stopBtn = document.getElementById('stop-monitor-btn');
-    const refreshStatus = document.getElementById('refresh-status');
-    const statusIndicator = document.getElementById('status-indicator');
-    const lastUpdated = document.getElementById('last-updated');
-    
-    let refreshInterval = null;
-    
-    // Fungsi untuk memformat angka dengan pemisah ribuan
-    function formatNumber(num) {
-      return new Intl.NumberFormat('id-ID').format(num);
-    }
-    
-    // Fungsi untuk memuat data studio
-    function loadStudios() {
-      loadingIndicator.classList.remove('hidden');
-      emptyState.classList.add('hidden');
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const studioContainer = document.getElementById('studio-container');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      const emptyState = document.getElementById('empty-state');
+      const startBtn = document.getElementById('start-monitor-btn');
+      const stopBtn = document.getElementById('stop-monitor-btn');
+      const refreshStatus = document.getElementById('refresh-status');
+      const statusIndicator = document.getElementById('status-indicator');
+      const lastUpdated = document.getElementById('last-updated');
       
-      fetch('/api/studios')
-        .then(response => response.json())
-        .then(data => {
-          loadingIndicator.classList.add('hidden');
-          
-          if (data.success && data.data && data.data.length > 0) {
-            renderStudios(data.data);
-            emptyState.classList.add('hidden');
-          } else {
-            studioContainer.innerHTML = '';
-            emptyState.classList.remove('hidden');
-          }
-          
-          // Update last updated time
-          lastUpdated.textContent = `Terakhir diperbarui: ${new Date().toLocaleTimeString()}`;
-        })
-        .catch(error => {
-          console.error('Error fetching studios:', error);
-          loadingIndicator.classList.add('hidden');
-          studioContainer.innerHTML = `
-            <div class="w-full col-span-full py-8 text-center">
-              <div class="text-red-500 font-medium">Gagal memuat data studio</div>
-              <button onclick="loadStudios()" class="mt-2 px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
-                Coba Lagi
-              </button>
-            </div>
-          `;
-        });
-    }
-    
-    // Fungsi untuk merender card studio dengan semua data yang tersedia
-    function renderStudios(studios) {
-      studioContainer.innerHTML = studios.map(studio => {
-        const isLive = studio.jumlah_live.live > 0;
-        
-        return `
-        <div class="studio-card bg-white rounded-2xl shadow-soft-xl overflow-hidden border border-gray-100 ${isLive ? 'live-pulse card-float' : ''}">
-          ${isLive ? `
-            <div class="spectrum-bg h-2 w-full"></div>
-          ` : ''}
-          
-          <a href="/studio/${studio.id}" class="block">
-            <div class="p-6">
-              <div class="flex justify-between items-start mb-4">
-                <h3 class="text-lg font-bold text-slate-800">${studio.nama_studio}</h3>
-                <div class="flex items-center">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isLive ? 'bg-green-100 text-green-800 animate-pulse' : 'bg-gray-100 text-gray-800'}">
-                    ${isLive ? `
-                      <span class="w-2 h-2 rounded-full bg-green-500 mr-1 animate-pulse"></span>
-                      LIVE
-                    ` : 'OFFLINE'}
-                  </span>
-                </div>
-              </div>
-              
-              <div class="metric-grid mb-4">
-                <div class="metric-item">
-                  <div class="metric-label">Total Akun</div>
-                  <div class="metric-value">${formatNumber(studio.total_akun)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">GMV</div>
-                  <div class="metric-value">${studio.total_placedGmv}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Ditonton</div>
-                  <div class="metric-value">${formatNumber(studio.total_ditonton)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Views</div>
-                  <div class="metric-value">${formatNumber(studio.totalViews)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Like</div>
-                  <div class="metric-value">${formatNumber(studio.total_like)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Comments</div>
-                  <div class="metric-value">${formatNumber(studio.totalComments)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">ATC</div>
-                  <div class="metric-value">${formatNumber(studio.totalAtc)}</div>
-                </div>
-                <div class="metric-item">
-                  <div class="metric-label">Shares</div>
-                  <div class="metric-value">${formatNumber(studio.totalShares)}</div>
-                </div>
-              </div>
-              
-              <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
-                <div class="text-sm font-medium ${isLive ? 'text-green-600' : 'text-gray-500'}">
-                  ${isLive ? '🔴 Streaming aktif' : '⚫ Tidak ada streaming'}
-                </div>
-                <div class="text-xs text-gray-500">
-                  ${studio.jumlah_live.live} live / ${studio.jumlah_live.tidak_live} offline
-                </div>
-              </div>
-            </div>
-          </a>
-        </div>
-        `;
-      }).join('');
-    }
-    
-    // Event listener untuk tombol start monitoring
-    startBtn.addEventListener('click', function() {
-      // Load data pertama kali
-      loadStudios();
+      let refreshInterval = null;
       
-      // Set interval untuk refresh otomatis setiap 10 detik
-      refreshInterval = setInterval(loadStudios, 10000);
-      
-      // Update UI
-      startBtn.disabled = true;
-      startBtn.classList.add('opacity-70');
-      stopBtn.disabled = false;
-      stopBtn.classList.remove('opacity-70');
-      refreshStatus.textContent = 'Monitoring aktif (refresh setiap 10 detik)';
-      refreshStatus.classList.add('text-green-600');
-      refreshStatus.classList.remove('text-gray-500');
-      statusIndicator.classList.remove('bg-gray-400');
-      statusIndicator.classList.add('bg-green-500', 'animate-pulse');
-    });
-    
-    // Event listener untuk tombol stop monitoring
-    stopBtn.addEventListener('click', function() {
-      // Hentikan interval
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
+      // Fungsi untuk memformat angka dengan pemisah ribuan
+      function formatNumber(num) {
+        return new Intl.NumberFormat('id-ID').format(num);
       }
       
-      // Update UI
-      startBtn.disabled = false;
-      startBtn.classList.remove('opacity-70');
-      stopBtn.disabled = true;
-      stopBtn.classList.add('opacity-70');
-      refreshStatus.textContent = 'Monitoring tidak aktif';
-      refreshStatus.classList.remove('text-green-600');
-      refreshStatus.classList.add('text-gray-500');
-      statusIndicator.classList.remove('bg-green-500', 'animate-pulse');
-      statusIndicator.classList.add('bg-gray-400');
+      // Fungsi untuk memuat data studio
+      function loadStudios() {
+        loadingIndicator.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        
+        fetch('/api/studios')
+          .then(response => response.json())
+          .then(data => {
+            loadingIndicator.classList.add('hidden');
+            
+            if (data.success && data.data && data.data.length > 0) {
+              renderStudios(data.data);
+              emptyState.classList.add('hidden');
+            } else {
+              studioContainer.innerHTML = '';
+              emptyState.classList.remove('hidden');
+            }
+            
+            // Update last updated time
+            lastUpdated.textContent = `Terakhir diperbarui: ${new Date().toLocaleTimeString()}`;
+          })
+          .catch(error => {
+            console.error('Error fetching studios:', error);
+            loadingIndicator.classList.add('hidden');
+            studioContainer.innerHTML = `
+              <div class="w-full col-span-full py-8 text-center">
+                <div class="text-red-500 font-medium">Gagal memuat data studio</div>
+                <button onclick="loadStudios()" class="mt-2 px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">
+                  Coba Lagi
+                </button>
+              </div>
+            `;
+          });
+      }
+      
+      // Fungsi untuk merender card studio dengan semua data yang tersedia
+      function renderStudios(studios) {
+        studioContainer.innerHTML = studios.map(studio => {
+          const isLive = studio.jumlah_live.live > 0;
+          
+          return `
+          <div class="studio-card bg-white rounded-2xl shadow-soft-xl overflow-hidden border border-gray-100 ${isLive ? 'live-pulse card-float' : ''}">
+            ${isLive ? `
+              <div class="spectrum-bg h-2 w-full"></div>
+            ` : ''}
+            
+            <a href="/studio/${studio.id}" class="block">
+              <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                  <h3 class="text-lg font-bold text-slate-800">${studio.nama_studio}</h3>
+                  <div class="flex items-center">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${isLive ? 'bg-green-100 text-green-800 animate-pulse' : 'bg-gray-100 text-gray-800'}">
+                      ${isLive ? `
+                        <span class="w-2 h-2 rounded-full bg-green-500 mr-1 animate-pulse"></span>
+                        LIVE
+                      ` : 'OFFLINE'}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="metric-grid mb-4">
+                  <div class="metric-item">
+                    <div class="metric-label">Total Akun</div>
+                    <div class="metric-value">${formatNumber(studio.total_akun)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">GMV</div>
+                    <div class="metric-value">${studio.total_placedGmv}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Ditonton</div>
+                    <div class="metric-value">${formatNumber(studio.total_ditonton)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Views</div>
+                    <div class="metric-value">${formatNumber(studio.totalViews)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Like</div>
+                    <div class="metric-value">${formatNumber(studio.total_like)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Comments</div>
+                    <div class="metric-value">${formatNumber(studio.totalComments)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">ATC</div>
+                    <div class="metric-value">${formatNumber(studio.totalAtc)}</div>
+                  </div>
+                  <div class="metric-item">
+                    <div class="metric-label">Shares</div>
+                    <div class="metric-value">${formatNumber(studio.totalShares)}</div>
+                  </div>
+                </div>
+                
+                <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-100">
+                  <div class="text-sm font-medium ${isLive ? 'text-green-600' : 'text-gray-500'}">
+                    ${isLive ? '🔴 Streaming aktif' : '⚫ Tidak ada streaming'}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    ${studio.jumlah_live.live} live / ${studio.jumlah_live.tidak_live} offline
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          `;
+        }).join('');
+      }
+      
+      // Event listener untuk tombol start monitoring
+      startBtn.addEventListener('click', function() {
+        // Load data pertama kali
+        loadStudios();
+        
+        // Set interval untuk refresh otomatis setiap 10 detik
+        refreshInterval = setInterval(loadStudios, 10000);
+        
+        // Update UI
+        startBtn.disabled = true;
+        startBtn.classList.add('opacity-70');
+        stopBtn.disabled = false;
+        stopBtn.classList.remove('opacity-70');
+        refreshStatus.textContent = 'Monitoring aktif (refresh setiap 10 detik)';
+        refreshStatus.classList.add('text-green-600');
+        refreshStatus.classList.remove('text-gray-500');
+        statusIndicator.classList.remove('bg-gray-400');
+        statusIndicator.classList.add('bg-green-500', 'animate-pulse');
+      });
+      
+      // Event listener untuk tombol stop monitoring
+      stopBtn.addEventListener('click', function() {
+        // Hentikan interval
+        if (refreshInterval) {
+          clearInterval(refreshInterval);
+          refreshInterval = null;
+        }
+        
+        // Update UI
+        startBtn.disabled = false;
+        startBtn.classList.remove('opacity-70');
+        stopBtn.disabled = true;
+        stopBtn.classList.add('opacity-70');
+        refreshStatus.textContent = 'Monitoring tidak aktif';
+        refreshStatus.classList.remove('text-green-600');
+        refreshStatus.classList.add('text-gray-500');
+        statusIndicator.classList.remove('bg-green-500', 'animate-pulse');
+        statusIndicator.classList.add('bg-gray-400');
+      });
+      
+      // Load data awal (tanpa auto-refresh)
+      loadStudios();
     });
-    
-    // Load data awal (tanpa auto-refresh)
-    loadStudios();
-  });
-</script>
+  </script>

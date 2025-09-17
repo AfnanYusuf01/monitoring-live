@@ -3,6 +3,7 @@ import axios from "axios";
 import crypto from "crypto";
 import config from "../config/duitku.js";
 import dotenv from "dotenv";
+import { fileURLToPath } from 'url';
 import nodemailer from "nodemailer";
 import multer from "multer";
 import path from "path";
@@ -10,7 +11,8 @@ import fs from "fs";
 
 
 const {PrismaClient, OrderStatus} = pkg;
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const prisma = new PrismaClient();
 
 // Get all orders
@@ -636,6 +638,42 @@ export const createOrderManual = async (req, res) => {
         console.error("❌ Gagal kirim email free subscription:", mailErr.message);
       }
 
+      // === Kirim WhatsApp untuk free subscription ===
+      try {
+        const user = userSub.user;
+        if (user.nomor_wa) {
+          const whatsappMessage = `🎉 *SELAMAT!* Anda telah berhasil mendapatkan paket gratis *${userSub.subscription.name}*.
+
+Subscription Anda sekarang aktif dan dapat digunakan.
+
+🔗 *Link Akses Aplikasi:*
+${appUrl}/login
+
+Terima kasih telah bergabung! 🙏
+
+Hormat kami,
+Tim Support`;
+
+          const success = await sendWhatsAppNotification(
+            user.nomor_wa,
+            whatsappMessage,
+            null,
+            [],
+            user.name || "Customer"
+          );
+          
+          if (success) {
+            console.log("✅ WhatsApp notification sent successfully (free subscription)");
+          } else {
+            console.error("❌ Gagal mengirim WhatsApp (free subscription)");
+          }
+        } else {
+          console.log("ℹ️ User tidak memiliki nomor WhatsApp, tidak mengirim notifikasi");
+        }
+      } catch (whatsappErr) {
+        console.error("❌ Error sending WhatsApp (free subscription):", whatsappErr.message);
+      }
+
       // === Render halaman thank-you-free (bukan redirect) ===
       return res.json({
         success: true,
@@ -779,7 +817,7 @@ export const createOrderManual = async (req, res) => {
             <h3 style="color: #333; margin-top: 30px;">Cara Pembayaran</h3>
             <p>Lakukan transfer hingga 3 digit angka terakhir sesuai total pembayaran yaitu Rp. ${paddedLastThree}. Bila jumlahnya tidak sesuai dengan invoice, sistem tidak bisa mengenali pembayaranmu.</p>
             
-            <p>Setelah melakukan transfer, jika dalam 15 menit belum mendapat pesan whatsapp yang berisi akses Shoptik, maka konfirmasikan pembayaranmu melalui link dibawah ini:</p>
+            <p>Setelah melakukan transfer, jika dalam 15 menit belum mendapat pesan whatsapp yang berisi akses Streamo, maka konfirmasikan pembayaranmu melalui link dibawah ini:</p>
             
             <p style="text-align: center; margin: 30px 0;">
               <a href="https://streamo.d/confirm" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Konfirmasi Pembayaran</a>
@@ -793,6 +831,64 @@ export const createOrderManual = async (req, res) => {
     } catch (mailErr) {
       console.error("❌ Gagal mengirim email detail order:", mailErr.message);
       // Jangan return error di sini, karena order sudah berhasil dibuat
+    }
+
+    // ✅ KIRIM WHATSAPP DETAIL ORDER
+    try {
+      const user = req.session.user;
+      if (user.nomor_wa) {
+        const formattedPrice = new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR',
+          minimumFractionDigits: 0
+        }).format(order.amount);
+
+        // Ambil 3 digit terakhir untuk petunjuk transfer
+        const lastThreeDigits = order.amount % 1000;
+        const paddedLastThree = lastThreeDigits.toString().padStart(3, '0');
+        
+        const whatsappMessage = `✅ *CHECKOUT BERHASIL*
+
+Halo ${user.name || "Customer"},
+
+Terima kasih telah melakukan pemesanan:
+
+📦 *Produk:* ${subscription.name}
+💰 *Total Pembayaran:* ${formattedPrice}
+📋 *No. Invoice:* ${order.transactionId}
+📊 *Status:* Pending
+
+💳 *Informasi Transfer:*
+🏦 Bank: BCA
+🔢 No. Rekening: 1310493453
+👤 Atas Nama: Yuli Naelul Muna
+
+💡 *Petunjuk Pembayaran:*
+Lakukan transfer hingga 3 digit angka terakhir sesuai total pembayaran yaitu Rp. ${paddedLastThree}. Bila jumlahnya tidak sesuai dengan invoice, sistem tidak bisa mengenali pembayaranmu.
+
+Setelah melakukan transfer, jika dalam 15 menit belum mendapat pesan whatsapp yang berisi akses Streamo, maka konfirmasikan pembayaranmu melalui link:
+https://streamo.d/confirm
+
+Terima kasih! 🙏`;
+
+        const success = await sendWhatsAppNotification(
+          user.nomor_wa,
+          whatsappMessage,
+          null,
+          [],
+          user.name || "Customer"
+        );
+        
+        if (success) {
+          console.log("✅ WhatsApp notification sent successfully");
+        } else {
+          console.error("❌ Gagal mengirim WhatsApp");
+        }
+      } else {
+        console.log("ℹ️ User tidak memiliki nomor WhatsApp, tidak mengirim notifikasi");
+      }
+    } catch (whatsappErr) {
+      console.error("❌ Error sending WhatsApp:", whatsappErr.message);
     }
 
     // Signature dan payload Duitku (sama seperti sebelumnya)
@@ -1773,6 +1869,113 @@ export const getConfirmPayment = async (req, res) => {
   }
 };
 
+
+
+// Fungsi untuk mengirim WhatsApp via StarSender dengan debug info
+const sendWhatsAppNotification = async (phoneNumber, message, templateName = null, templateParams = [], recipientName = 'Unknown') => {
+  try {
+    const STAR_SENDER_API = 'https://api.starsender.online/api/send';
+    const API_KEY = `ad195c6b-69c2-4332-af21-60e2c193d9af`;
+
+    if (!API_KEY) {
+      console.error('❌ StarSender API Key tidak ditemukan');
+      return false;
+    }
+
+    // Debug: Log API key (sebagian saja untuk keamanan)
+    console.log(`🔑 API Key: ${API_KEY.substring(0, 10)}...`);
+
+    // Format nomor telepon - Mengubah dari 62 menjadi 0
+    const formatPhoneNumber = (phone) => {
+      if (!phone) {
+        console.error('❌ Nomor telepon tidak provided');
+        return null;
+      }
+      
+      let cleaned = phone.replace(/\D/g, '');
+      console.log(`📞 Nomor awal: ${phone}, setelah dibersihkan: ${cleaned}`);
+      
+      if (cleaned.startsWith('62')) {
+        // Ubah dari 62 menjadi 0
+        cleaned = '0' + cleaned.substring(2);
+        console.log(`📞 Format 62 -> 0: ${cleaned}`);
+      } else if (cleaned.startsWith('0')) {
+        console.log(`📞 Format sudah 0: ${cleaned}`);
+      } else if (cleaned.startsWith('8')) {
+        // Jika dimulai dengan 8, tambahkan 0 di depan
+        cleaned = '0' + cleaned;
+        console.log(`📞 Format 8 -> 0: ${cleaned}`);
+      } else {
+        console.warn(`⚠️ Format nomor tidak dikenali: ${cleaned}`);
+        // Default: tambahkan 0 di depan jika kurang dari 10 digit
+        if (cleaned.length < 10) {
+          cleaned = '0' + cleaned;
+          console.log(`📞 Format ditambahkan 0: ${cleaned}`);
+        }
+      }
+      
+      return cleaned;
+    };
+
+    const formattedNumber = formatPhoneNumber(phoneNumber);
+    
+    if (!formattedNumber) {
+      console.error('❌ Gagal memformat nomor telepon');
+      return false;
+    }
+
+    console.log(`📨 Mengirim WhatsApp ke: ${formattedNumber} (${recipientName})`);
+
+    const payload = templateName 
+      ? {
+          messageType: "template",
+          to: formattedNumber,
+          template_name: templateName,
+          template_params: templateParams
+        }
+      : {
+          messageType: "text",
+          to: formattedNumber,
+          body: message
+        };
+
+    console.log('📦 Payload yang dikirim:', JSON.stringify(payload, null, 2));
+
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': API_KEY
+      },
+      timeout: 10000 // Timeout 10 detik
+    };
+
+    const response = await axios.post(STAR_SENDER_API, payload, config);
+    console.log('✅ WhatsApp notification sent successfully to:', recipientName);
+    console.log('📨 Response dari StarSender:', response.data);
+    return true;
+
+  } catch (error) {
+    console.error('❌ Error sending WhatsApp notification to:', recipientName);
+    
+    if (error.response) {
+      // Server responded with error status
+      console.error('📊 Status:', error.response.status);
+      console.error('📋 Data:', error.response.data);
+      console.error('📋 Headers:', error.response.headers);
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error('❌ Tidak ada response dari server StarSender');
+      console.error('📡 Request:', error.request);
+    } else {
+      // Something else happened
+      console.error('❌ Error:', error.message);
+    }
+    
+    console.error('🔍 Stack trace:', error.stack);
+    return false;
+  }
+};
+
 export const postConfirmPayment = async (req, res) => {
   try {
     const {
@@ -1793,9 +1996,12 @@ export const postConfirmPayment = async (req, res) => {
       return res.status(401).json({ error: 'Anda harus login untuk mengkonfirmasi pembayaran' });
     }
 
+    console.log(`👤 User yang melakukan konfirmasi: ${user.name} (${user.email})`);
+
     // Validasi data yang diperlukan
     if (!transactionId || !invoiceNumber || !product || !amount || !senderName || 
         !senderEmail || !accountNumber || !bankOrigin || !bankTarget || !req.file) {
+      console.error('❌ Data yang diperlukan tidak lengkap');
       return res.status(400).json({ error: 'Semua field wajib diisi' });
     }
 
@@ -1812,16 +2018,21 @@ export const postConfirmPayment = async (req, res) => {
     });
 
     if (!order) {
+      console.error(`❌ Order tidak ditemukan dengan transactionId: ${transactionId}`);
       return res.status(404).json({ error: 'Transaksi tidak ditemukan' });
     }
 
+    console.log(`📦 Order ditemukan: ${order.id} untuk user: ${order.userSubscription.user.name}`);
+
     // Pastikan user hanya bisa mengkonfirmasi order miliknya sendiri
     if (order.userSubscription.userId !== user.id && user.role !== 'admin') {
+      console.error(`❌ Akses ditolak: User ${user.id} mencoba akses order ${order.id}`);
       return res.status(403).json({ error: 'Akses ditolak. Ini bukan transaksi Anda.' });
     }
 
     // Generate one-time token
     const token = crypto.randomBytes(32).toString('hex');
+    console.log(`🔐 Token generated: ${token}`);
 
     // Simpan data konfirmasi pembayaran ke database dengan token
     const confirmPayment = await prisma.confirmPayment.create({
@@ -1840,7 +2051,9 @@ export const postConfirmPayment = async (req, res) => {
       }
     });
 
-    // ✅ KIRIM EMAIL KE ADMIN DENGAN FOTO BUKTI TRANSFER
+    console.log(`💾 Konfirmasi pembayaran disimpan dengan ID: ${confirmPayment.id}`);
+
+    // ✅ KIRIM EMAIL KE ADMIN
     try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -1852,39 +2065,27 @@ export const postConfirmPayment = async (req, res) => {
         },
       });
 
-      // Ambil semua admin email
+      // Ambil semua admin
       const adminUsers = await prisma.user.findMany({
         where: {
           role: 'admin'
         },
         select: {
-          email: true
+          email: true,
+          nomor_wa: true,
+          name: true
         }
       });
+
+      console.log(`👨‍💼 Jumlah admin ditemukan: ${adminUsers.length}`);
 
       const adminEmails = adminUsers.map(admin => admin.email);
 
       if (adminEmails.length > 0) {
         const appUrl = process.env.APP_URL || "http://localhost:3000";
-        
-        // URL dengan one-time token
         const paymentSuccessUrl = `${appUrl}/verify-payment-token?transactionId=${transactionId}&token=${token}`;
         
-        // Baca file bukti transfer
-        let attachment = null;
-        try {
-          if (fs.existsSync(req.file.path)) {
-            attachment = {
-              filename: `bukti-transfer-${transactionId}${path.extname(req.file.originalname)}`,
-              path: req.file.path,
-              contentType: req.file.mimetype
-            };
-          }
-        } catch (fileError) {
-          console.error("❌ Gagal membaca file bukti transfer:", fileError.message);
-        }
-
-        // Siapkan data email
+        // DEFINE mailOptions YANG TEPAT
         const mailOptions = {
           from: process.env.SMTP_FROM,
           to: adminEmails.join(','),
@@ -1893,7 +2094,7 @@ export const postConfirmPayment = async (req, res) => {
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #333;">Konfirmasi Pembayaran Baru</h2>
               <p>Halo Admin,</p>
-              <p>Terjadi konfirmasi pembayaran baru yang perlu dicek:</p>
+              <p>Terdapat konfirmasi pembayaran baru yang memerlukan verifikasi:</p>
               
               <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
                 <tr>
@@ -1905,11 +2106,11 @@ export const postConfirmPayment = async (req, res) => {
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">${product}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Jumlah Tagihan</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Jumlah Pembayaran</td>
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">Rp ${parseFloat(amount).toLocaleString('id-ID')}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Nama Pengirim</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Pengirim</td>
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">${senderName}</td>
                 </tr>
                 <tr>
@@ -1925,85 +2126,147 @@ export const postConfirmPayment = async (req, res) => {
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">${bankTarget}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Nomor Rekening</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">No. Rekening</td>
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">${accountNumber}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Keterangan</td>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">${notes || 'Tidak ada keterangan'}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold;">Catatan</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">${notes || 'Tidak ada'}</td>
                 </tr>
               </table>
-
-              <p><strong>PENTING:</strong> Link di bawah ini hanya dapat digunakan sekali saja!</p>
-              
-              <p style="text-align: center; margin: 30px 0;">
-                <a href="${paymentSuccessUrl}" 
-                   style="background-color: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;"
-                   onclick="return confirm('Apakah Anda yakin ingin memverifikasi pembayaran ini? Link ini hanya dapat digunakan sekali.');">
-                  Verifikasi Pembayaran
-                </a>
-              </p>
-              
-              <p><small>Atau salin link berikut: ${paymentSuccessUrl}</small></p>
               
               <p><strong>Bukti Transfer:</strong></p>
-              <p>File bukti transfer terlampir dalam email ini.</p>
+              <p><img src="${req.file.path}" alt="Bukti Transfer" style="max-width: 100%; height: auto;"></p>
               
-              ${attachment ? `
-              <p style="text-align: center; margin: 20px 0;">
-                <img src="cid:buktiTransfer" alt="Bukti Transfer" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" />
-                <br>
-                <small>Preview bukti transfer</small>
-              </p>
-              ` : ''}
+              <p><strong>Link Verifikasi (Hanya Sekali Pakai):</strong></p>
+              <p><a href="${paymentSuccessUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verifikasi Pembayaran</a></p>
               
-              <p>Silakan verifikasi pembayaran ini dengan mengklik tombol di atas.</p>
+              <p>Silahkan verifikasi pembayaran ini segera.</p>
               
-              <p>Best regards,<br>Sistem Notifikasi</p>
+              <p>Best regards,<br>System Notification</p>
             </div>
           `,
         };
-
-        // Tambahkan attachment jika file ada
-        if (attachment) {
-          mailOptions.attachments = [
-            {
-              filename: attachment.filename,
-              path: attachment.path,
-              contentType: attachment.contentType
-            },
-            // Juga embed gambar dalam email untuk preview
-            {
-              filename: `preview-${attachment.filename}`,
-              path: attachment.path,
-              cid: 'buktiTransfer', // Content ID untuk embedding
-              contentType: attachment.contentType
-            }
-          ];
-        }
-
+        
         await transporter.sendMail(mailOptions);
         console.log("📧 Email notifikasi dengan bukti transfer berhasil dikirim ke admin");
       }
+
+      // ✅ KIRIM WHATSAPP KE ADMIN YANG MEMILIKI NOMOR WA
+      const adminsWithWhatsApp = adminUsers.filter(admin => admin.nomor_wa);
+      
+      console.log(`📱 Admin dengan WhatsApp: ${adminsWithWhatsApp.length}`);
+      adminsWithWhatsApp.forEach(admin => {
+        console.log(`   - ${admin.name}: ${admin.nomor_wa}`);
+      });
+
+      if (adminsWithWhatsApp.length > 0) {
+        const appUrl = process.env.APP_URL || "http://localhost:3000";
+        const paymentSuccessUrl = `${appUrl}/verify-payment-token?transactionId=${transactionId}&token=${token}`;
+
+        // Pesan WhatsApp untuk admin
+        const whatsappMessage = `🚀 *KONFIRMASI PEMBAYARAN BARU*
+
+📋 *Detail Transaksi:*
+• Invoice: ${transactionId}
+• Produk: ${product}
+• Jumlah: Rp ${parseFloat(amount).toLocaleString('id-ID')}
+• Pengirim: ${senderName}
+• Bank: ${bankOrigin} → ${bankTarget}
+
+📧 Email: ${senderEmail}
+🏦 Rekening: ${accountNumber}
+📝 Notes: ${notes || 'Tidak ada'}
+
+⚠️ *LINK VERIFIKASI (HANYA SEKALI PAKAI):*
+${paymentSuccessUrl}
+
+_Silahkan verifikasi pembayaran ini segera._`;
+
+        // Kirim WhatsApp ke semua admin
+        for (const admin of adminsWithWhatsApp) {
+          console.log(`📤 Mengirim WhatsApp ke admin: ${admin.name} (${admin.nomor_wa})`);
+          const success = await sendWhatsAppNotification(
+            admin.nomor_wa, 
+            whatsappMessage,
+            null,
+            [],
+            `Admin ${admin.name}`
+          );
+          
+          if (success) {
+            console.log(`✅ Berhasil mengirim WhatsApp ke admin: ${admin.name}`);
+          } else {
+            console.error(`❌ Gagal mengirim WhatsApp ke admin: ${admin.name}`);
+          }
+        }
+      } else {
+        console.log('ℹ️ Tidak ada admin dengan nomor WhatsApp yang terdaftar');
+      }
+
     } catch (mailErr) {
-      console.error("❌ Gagal mengirim email notifikasi ke admin:", mailErr.message);
-      // Jangan return error di sini, karena konfirmasi pembayaran sudah berhasil disimpan
+      console.error("❌ Gagal mengirim notifikasi ke admin:", mailErr.message);
     }
 
-   return res.render('succes-confirm', {
+    // ✅ KIRIM WHATSAPP KE USER YANG MELAKUKAN PEMBAYARAN
+    const userData = order.userSubscription.user;
+    console.log(`👤 Data user: ${userData.name}, WhatsApp: ${userData.nomor_wa || 'Tidak ada'}`);
+
+    if (userData.nomor_wa) {
+      try {
+        const userMessage = `✅ *KONFIRMASI PEMBAYARAN BERHASIL*
+
+Halo ${userData.name},
+
+Terima kasih telah melakukan konfirmasi pembayaran untuk:
+
+📦 *Produk:* ${product}
+💰 *Jumlah:* Rp ${parseFloat(amount).toLocaleString('id-ID')}
+📋 *No. Invoice:* ${transactionId}
+
+Pembayaran Anda telah berhasil kami terima dan sedang dalam proses verifikasi oleh tim admin. Mohon menunggu maksimal 1x24 jam untuk proses verifikasi.
+
+Jika ada pertanyaan, silakan hubungi customer service kami.
+
+Terima kasih! 🙏`;
+
+        console.log(`📤 Mengirim WhatsApp ke user: ${userData.name} (${userData.nomor_wa})`);
+        
+        const success = await sendWhatsAppNotification(
+          userData.nomor_wa,
+          userMessage,
+          'konfirmasi_pembayaran',
+          [userData.name, product, amount, transactionId],
+          `User ${userData.name}`
+        );
+        
+        if (success) {
+          console.log(`✅ Berhasil mengirim WhatsApp ke user: ${userData.name}`);
+        } else {
+          console.error(`❌ Gagal mengirim WhatsApp ke user: ${userData.name}`);
+        }
+
+      } catch (userWhatsappError) {
+        console.error('❌ Gagal mengirim WhatsApp ke user:', userWhatsappError.message);
+      }
+    } else {
+      console.log('ℹ️ User tidak memiliki nomor WhatsApp yang terdaftar');
+    }
+
+    return res.render('succes-confirm', {
       transactionId,
       order,
       user: req.session.user,
       alert: {
         type: 'success',
-        message: 'Konfirmasi berhasil! Tunggu sebentar untuk diverifikasi oleh admin'
+        message: 'Konfirmasi berhasil! Notifikasi telah dikirim ke admin dan WhatsApp Anda'
       }
     });
     
   } catch (error) {
-    console.error("Error in confirm-payment POST route:", error);
+    console.error("❌ Error in confirm-payment POST route:", error);
+    console.error("🔍 Stack trace:", error.stack);
     
-    // Render halaman form-confirm dengan error alert
     return res.render('form-confirm', {
       transactionId: req.body.transactionId,
       user: req.session.user,
@@ -2182,6 +2445,73 @@ export const verifyPaymentToken = async (req, res) => {
       }
     } catch (emailError) {
       console.error("❌ Debug: Gagal mengirim email konfirmasi:", emailError.message);
+    }
+    
+    // ✅ KIRIM WHATSAPP KE USER
+    try {
+      console.log("🔍 Debug: Preparing to send WhatsApp confirmation");
+      const user = await prisma.user.findUnique({
+        where: { id: confirmPayment.order.userSubscription.userId }
+      });
+      
+      if (user && user.nomor_wa) {
+        const formattedStartDate = startDate.toLocaleDateString('id-ID');
+        const formattedEndDate = endDate.toLocaleDateString('id-ID');
+        const formattedAmount = new Intl.NumberFormat('id-ID', {
+          style: 'currency',
+          currency: 'IDR'
+        }).format(confirmPayment.order.amount);
+        
+        const whatsappMessage = `🎉 *PEMBAYARAN BERHASIL DIVERIFIKASI!*
+
+Halo ${user.name || 'Pelanggan'},
+
+Pembayaran Anda telah berhasil diverifikasi oleh sistem.
+
+📋 *Detail Transaksi:*
+• No. Invoice: ${transactionId}
+• Produk: ${confirmPayment.order.userSubscription.subscription.name}
+• Jumlah: ${formattedAmount}
+• Status: ✅ Aktif
+
+📅 *Masa Aktif:*
+• Mulai: ${formattedStartDate}
+• Berakhir: ${formattedEndDate}
+
+Subscription Anda sekarang aktif dan dapat digunakan. Silakan login ke dashboard untuk mulai menggunakan layanan.
+
+Terima kasih telah mempercayai kami! 🙏
+
+Hormat kami,
+Tim Support`;
+
+        console.log(`📤 Mengirim WhatsApp ke user: ${user.name} (${user.nomor_wa})`);
+        
+        const success = await sendWhatsAppNotification(
+          user.nomor_wa,
+          whatsappMessage,
+          'verifikasi_pembayaran',
+          [
+            user.name || 'Pelanggan',
+            transactionId,
+            confirmPayment.order.userSubscription.subscription.name,
+            formattedAmount,
+            formattedStartDate,
+            formattedEndDate
+          ],
+          `User ${user.name}`
+        );
+        
+        if (success) {
+          console.log(`✅ Berhasil mengirim WhatsApp ke user: ${user.name}`);
+        } else {
+          console.error(`❌ Gagal mengirim WhatsApp ke user: ${user.name}`);
+        }
+      } else {
+        console.log('ℹ️ User tidak memiliki nomor WhatsApp yang terdaftar');
+      }
+    } catch (whatsappError) {
+      console.error('❌ Debug: Gagal mengirim WhatsApp ke user:', whatsappError.message);
     }
     
     console.log("✅ Debug: All operations completed successfully");

@@ -22,7 +22,7 @@ import {getLiveHistory, getStudioLiveHistory, postLiveHistory} from "../controll
 import {getShopeeProducts} from "../controllers/MonitoringProductController.js";
 import {
   requireLogin,
-  checkActiveSubscription,
+  
   // checkSubscription,
 } from "../Middlewares/authMiddleware.js";
 import {
@@ -105,22 +105,22 @@ const router = express.Router();
    AKUN CONTROLLER (CRUD Akun + Import CSV)
 ============================================================ */
 router.get("/akun", getAllAkun);
-router.post("/akun", checkActiveSubscription, requireApiLogin, createAkun);
-router.get("/akun/:id",  checkActiveSubscription, requireApiLogin,   getAkunById);
-router.put("/akun/:id",  checkActiveSubscription, requireApiLogin,   updateAkun);
-router.delete("/akun/:id", checkActiveSubscription,  requireApiLogin,   deleteAkun);
-router.post("/akun/import", checkActiveSubscription,   requireApiLogin,   upload.single("csvFile"), importAkunFromCSV);
-router.get("/download-csv-template",  checkActiveSubscription, requireApiLogin,   requireLogin, downloadCSVTemplate);
+router.post("/akun",  requireApiLogin, createAkun);
+router.get("/akun/:id",   requireApiLogin,   getAkunById);
+router.put("/akun/:id",   requireApiLogin,   updateAkun);
+router.delete("/akun/:id",   requireApiLogin,   deleteAkun);
+router.post("/akun/import",    requireApiLogin,   upload.single("csvFile"), importAkunFromCSV);
+router.get("/download-csv-template",   requireApiLogin,   requireLogin, downloadCSVTemplate);
 router.post('/akun/create', createAkunViaAPI);
 
 /* ============================================================
    USER MANAGEMENT CONTROLLER
 ============================================================ */
-router.get("/users", checkActiveSubscription,  requireApiLogin,   index);
-router.get("/users/:id", checkActiveSubscription,  requireApiLogin,   show);
-router.post("/users",  checkActiveSubscription, requireApiLogin,   store);
-router.put("/users/:id", checkActiveSubscription,  requireApiLogin,   update);
-router.delete("/users/:id", checkActiveSubscription,  requireApiLogin,   destroy);
+router.get("/users",   requireApiLogin,   index);
+router.get("/users/:id",   requireApiLogin,   show);
+router.post("/users",   requireApiLogin,   store);
+router.put("/users/:id",   requireApiLogin,   update);
+router.delete("/users/:id",   requireApiLogin,   destroy);
 
 /* ============================================================
    AFFILIATE CONTROLLER
@@ -137,46 +137,46 @@ router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updat
 /* ============================================================
    MONITORING LIVE CONTROLLER
 ============================================================ */
-router.get("/shopee-data", checkActiveSubscription, requireApiLogin, getShopeeData);
+router.get("/shopee-data",  requireApiLogin, getShopeeData);
 
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER
 ============================================================ */
-router.post("/cek-pembayaran/:id_studio", checkActiveSubscription,  requireApiLogin,   getDataPembayaran);
+router.post("/cek-pembayaran/:id_studio",   requireApiLogin,   getDataPembayaran);
 router.post("/cek-pembayaran-studio",  requireApiLogin,   getDataPembayaranStudio);
-router.post("/post-cek-pembayaran", checkActiveSubscription,  requireApiLogin,   postDataPembayaran);
+router.post("/post-cek-pembayaran",   requireApiLogin,   postDataPembayaran);
 
 /* ============================================================
    HISTORI LIVE CONTROLLER
 ============================================================ */
-router.post("/history",  checkActiveSubscription, requireApiLogin,   getLiveHistory);
-router.post("/historyPost",  checkActiveSubscription, requireApiLogin,   postLiveHistory);
-router.post("/histori_studio", checkActiveSubscription,  requireApiLogin,   getStudioLiveHistory);
+router.post("/history",   requireApiLogin,   getLiveHistory);
+router.post("/historyPost",   requireApiLogin,   postLiveHistory);
+router.post("/histori_studio",   requireApiLogin,   getStudioLiveHistory);
 
 /* ============================================================
    MONITORING PRODUCT CONTROLLER
 ============================================================ */
-router.post("/products", checkActiveSubscription,  requireApiLogin,   getShopeeProducts);
+router.post("/products",   requireApiLogin,   getShopeeProducts);
 
 /* ============================================================
    MANAGEMENT STUDIO  CONTROLLER
 ============================================================ */
-router.get("/studios", checkActiveSubscription,   requireApiLogin,   getAllStudios);
-router.get("/studio/:id", checkActiveSubscription,  requireApiLogin,   getAkunStudioById);
-router.get("/studios_akun",  checkActiveSubscription, requireApiLogin,   indexStudio);
-router.get("/studios/:id", checkActiveSubscription,  requireApiLogin,   getStudio);
-router.post("/studios",  checkActiveSubscription, requireApiLogin,   postStudios);
-router.put("/studios/:id", checkActiveSubscription,  requireApiLogin,   putStudio);
-router.delete("/studios/:id", checkActiveSubscription,  requireApiLogin,   delStudio);
+router.get("/studios",    requireApiLogin,   getAllStudios);
+router.get("/studio/:id",   requireApiLogin,   getAkunStudioById);
+router.get("/studios_akun",   requireApiLogin,   indexStudio);
+router.get("/studios/:id",   requireApiLogin,   getStudio);
+router.post("/studios",   requireApiLogin,   postStudios);
+router.put("/studios/:id",   requireApiLogin,   putStudio);
+router.delete("/studios/:id",   requireApiLogin,   delStudio);
 
 /* ============================================================
    MANAGEMENT SUBSCRIPTIONS  CONTROLLER
 ============================================================ */
 router.get("/subscriptions", indexSubscription);
-router.get("/subscriptions/:id", checkActiveSubscription, showSubscription);
-router.post("/subscriptions", checkActiveSubscription, storeSubscription);
-router.put("/subscriptions/:id", checkActiveSubscription, updateSubscription);
-router.delete("/subscriptions/:id", checkActiveSubscription, destroySubscription);
+router.get("/subscriptions/:id",  showSubscription);
+router.post("/subscriptions",  storeSubscription);
+router.put("/subscriptions/:id",  updateSubscription);
+router.delete("/subscriptions/:id",  destroySubscription);
 
 /* ============================================================
    MANAGEMENT USER SUBSCRIPTIONS CONTROLLER

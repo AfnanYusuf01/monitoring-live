@@ -318,7 +318,6 @@ export const checkActiveSubscription = async (req, res, next) => {
 };
 
 
-// middleware/checkExpiredAndLimit.js
 export const checkExpiredAndLimit = async (req, res, next) => {
   try {
     const user = req.session.user;
@@ -331,7 +330,6 @@ export const checkExpiredAndLimit = async (req, res, next) => {
     const userSubs = await prisma.userSubscription.findMany({
       where: { userId: user.id },
     });
-    // console.log(userSubs);
 
     for (const sub of userSubs) {
       if (sub.status === "active" && sub.endDate < now) {
@@ -370,10 +368,17 @@ export const checkExpiredAndLimit = async (req, res, next) => {
       const excess = totalAkun - totalLimit;
       const akunToDelete = akunUser.slice(-excess); // ambil paling akhir
 
-      await prisma.akun.updateMany({
-        where: { id: { in: akunToDelete.map(a => a.id) } },
-        data: { deletedAt: new Date() },
-      });
+      for (const akun of akunToDelete) {
+        const newId = Date.now() + Math.floor(Math.random() * 1000); // biar unik
+        await prisma.akun.update({
+          where: { id: akun.id },
+          data: {
+            id: newId,
+            deletedAt: new Date(),
+            studioId: null,
+          },
+        });
+      }
 
       console.log(
         `⚠️ User ${user.id} punya ${totalAkun} akun, limit aktif ${totalLimit}. ${excess} akun dihapus.`
@@ -386,3 +391,4 @@ export const checkExpiredAndLimit = async (req, res, next) => {
     return res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
   }
 };
+
