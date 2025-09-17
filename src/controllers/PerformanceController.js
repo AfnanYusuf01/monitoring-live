@@ -276,3 +276,214 @@ export const createAffiliateStat = async (req, res) => {
     });
   }
 };
+
+export const getAffiliateStatsByStudio = async (req, res) => {
+  try {
+    // Ambil user dari session (asumsi sudah ada middleware yang men-set req.session.user)
+    const user = req.session.user;
+
+    if (!user || !user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "User tidak terautentikasi",
+      });
+    }
+
+    // Hitung tanggal 7 hari terakhir
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7);
+
+    // Ambil data user dengan akun, studio, dan affiliate stats
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        akun: {
+          include: {
+            studio: true,
+            affiliateStats: {
+              where: {
+                ymd: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              orderBy: {
+                ymd: 'asc'
+              }
+            },
+          },
+        },
+      },
+    });
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User tidak ditemukan",
+      });
+    }
+
+    // Kelompokkan data per studio
+    const studioStats = {};
+    const allDailyStats = {};
+
+    // Inisialisasi semua tanggal dalam 7 hari terakhir
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      allDailyStats[dateKey] = {
+        date: dateKey,
+        clicks: 0,
+        cvByOrder: 0,
+        orderCvr: 0,
+        orderAmount: 0,
+        totalCommission: 0,
+        totalIncome: 0,
+        newBuyer: 0,
+        programType: 0,
+        itemSold: 0,
+        estCommission: 0,
+        estIncome: 0,
+        akunCount: 0
+      };
+    }
+
+    userData.akun.forEach((akun) => {
+      const studioId = akun.studioId || "unassigned";
+      const studioName = akun.studio?.nama_studio || "Tanpa Studio";
+
+      if (!studioStats[studioId]) {
+        studioStats[studioId] = {
+          studioId,
+          studioName,
+          totalStats: {
+            clicks: 0,
+            cvByOrder: 0,
+            orderCvr: 0,
+            orderAmount: 0,
+            totalCommission: 0,
+            totalIncome: 0,
+            newBuyer: 0,
+            programType: 0,
+            itemSold: 0,
+            estCommission: 0,
+            estIncome: 0,
+            akunCount: 0,
+          },
+          dailyStats: JSON.parse(JSON.stringify(allDailyStats)),
+          akunList: []
+        };
+      }
+
+      // Tambahkan akun ke list
+      studioStats[studioId].akunList.push({
+        id: akun.id.toString(),
+        nama_akun: akun.nama_akun,
+        email: akun.email
+      });
+
+      // Hitung statistik untuk akun ini
+      akun.affiliateStats.forEach((stat) => {
+        const statDate = stat.ymd.toISOString().split('T')[0];
+        
+        if (studioStats[studioId].dailyStats[statDate]) {
+          studioStats[studioId].dailyStats[statDate].clicks += stat.clicks;
+          studioStats[studioId].dailyStats[statDate].cvByOrder += stat.cvByOrder;
+          studioStats[studioId].dailyStats[statDate].orderCvr += stat.orderCvr;
+          studioStats[studioId].dailyStats[statDate].orderAmount += Number(stat.orderAmount);
+          studioStats[studioId].dailyStats[statDate].totalCommission += Number(stat.totalCommission);
+          studioStats[studioId].dailyStats[statDate].totalIncome += Number(stat.totalIncome);
+          studioStats[studioId].dailyStats[statDate].newBuyer += stat.newBuyer;
+          studioStats[studioId].dailyStats[statDate].programType += stat.programType;
+          studioStats[studioId].dailyStats[statDate].itemSold += stat.itemSold;
+          studioStats[studioId].dailyStats[statDate].estCommission += Number(stat.estCommission);
+          studioStats[studioId].dailyStats[statDate].estIncome += Number(stat.estIncome);
+          studioStats[studioId].dailyStats[statDate].akunCount++;
+        }
+
+        // Tambahkan ke total stats
+        studioStats[studioId].totalStats.clicks += stat.clicks;
+        studioStats[studioId].totalStats.cvByOrder += stat.cvByOrder;
+        studioStats[studioId].totalStats.orderCvr += stat.orderCvr;
+        studioStats[studioId].totalStats.orderAmount += Number(stat.orderAmount);
+        studioStats[studioId].totalStats.totalCommission += Number(stat.totalCommission);
+        studioStats[studioId].totalStats.totalIncome += Number(stat.totalIncome);
+        studioStats[studioId].totalStats.newBuyer += stat.newBuyer;
+        studioStats[studioId].totalStats.programType += stat.programType;
+        studioStats[studioId].totalStats.itemSold += stat.itemSold;
+        studioStats[studioId].totalStats.estCommission += Number(stat.estCommission);
+        studioStats[studioId].totalStats.estIncome += Number(stat.estIncome);
+      });
+
+      studioStats[studioId].totalStats.akunCount++;
+    });
+
+    // Konversi dailyStats menjadi array dan urutkan berdasarkan tanggal
+    const formattedStudioStats = Object.values(studioStats).map(studio => ({
+      ...studio,
+      dailyStats: Object.values(studio.dailyStats)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Data affiliate stats berhasil diambil",
+      data: {
+        period: {
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0],
+          days: 7
+        },
+        studios: formattedStudioStats,
+        summary: {
+          totalStudios: formattedStudioStats.length,
+          totalAkun: userData.akun.length,
+          totalStats: formattedStudioStats.reduce((acc, studio) => ({
+            clicks: acc.clicks + studio.totalStats.clicks,
+            cvByOrder: acc.cvByOrder + studio.totalStats.cvByOrder,
+            orderCvr: acc.orderCvr + studio.totalStats.orderCvr,
+            orderAmount: acc.orderAmount + studio.totalStats.orderAmount,
+            totalCommission: acc.totalCommission + studio.totalStats.totalCommission,
+            totalIncome: acc.totalIncome + studio.totalStats.totalIncome,
+            newBuyer: acc.newBuyer + studio.totalStats.newBuyer,
+            programType: acc.programType + studio.totalStats.programType,
+            itemSold: acc.itemSold + studio.totalStats.itemSold,
+            estCommission: acc.estCommission + studio.totalStats.estCommission,
+            estIncome: acc.estIncome + studio.totalStats.estIncome,
+            akunCount: acc.akunCount + studio.totalStats.akunCount,
+          }), {
+            clicks: 0,
+            cvByOrder: 0,
+            orderCvr: 0,
+            orderAmount: 0,
+            totalCommission: 0,
+            totalIncome: 0,
+            newBuyer: 0,
+            programType: 0,
+            itemSold: 0,
+            estCommission: 0,
+            estIncome: 0,
+            akunCount: 0
+          })
+        }
+      },
+      meta: {
+        userId: user.id,
+        userName: user.name,
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+  } catch (err) {
+    console.error("❌ Error getAffiliateStatsByStudio:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan server",
+      error: err.message,
+    });
+  }
+};
+
+

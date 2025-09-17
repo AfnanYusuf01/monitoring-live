@@ -84,6 +84,7 @@ import {
 
 import {
 createAffiliateStat,
+getAffiliateStatsByStudio,
 } from "../controllers/PerformanceController.js";
 
 import {
@@ -138,6 +139,7 @@ router.post("/affiliate-orders/:affiliateOrderId/status", requireApiLogin, updat
    MONITORING LIVE CONTROLLER
 ============================================================ */
 router.get("/shopee-data",  requireApiLogin, getShopeeData);
+router.get("/performa-affiliate/studio",  requireApiLogin, getAffiliateStatsByStudio);
 
 /* ============================================================
    CEK PEMBAYARAN CONTROLLER
