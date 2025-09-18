@@ -55,85 +55,85 @@ export default {
   },
 
 register: async (req, res) => {
-    const {name, email, password, nomor_wa, terms} = req.body;
+  const { name, email, password, nomor_wa, terms } = req.body;
 
-    try {
-      // Validasi input
-      if (!name || !email || !password || !nomor_wa) {
-        return res.render("pages/sign-up", {
-          navbar: "Sign Up",
-          error: "Semua field harus diisi",
-          success: null,
-          formData: {name, email, nomor_wa},
-        });
-      }
+  try {
+    // Validasi input
+    if (!name || !email || !password || !nomor_wa) {
+      return res.render("pages/sign-up", {
+        navbar: "Sign Up",
+        error: "Semua field harus diisi",
+        success: null,
+        formData: { name, email, nomor_wa },
+      });
+    }
 
-      // Cek apakah email sudah terdaftar
-      const existingUser = await prisma.user.findUnique({
-        where: {email},
+    // Cek apakah email sudah terdaftar
+    const existingUser = await prisma.User.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.render("pages/sign-up", {
+        navbar: "Sign Up",
+        error: "Email sudah terdaftar",
+        success: null,
+        formData: { name, email, nomor_wa },
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate access token 8 digit random
+    const generateAccessToken = () => {
+      return Math.floor(10000000 + Math.random() * 90000000).toString();
+    };
+
+    let accessToken;
+    let isTokenUnique = false;
+
+    // Pastikan token unik
+    while (!isTokenUnique) {
+      accessToken = generateAccessToken();
+      const existingToken = await prisma.User.findUnique({
+        where: { access_token: accessToken },
       });
 
-      if (existingUser) {
-        return res.render("pages/sign-up", {
-          navbar: "Sign Up",
-          error: "Email sudah terdaftar",
-          success: null,
-          formData: {name, email, nomor_wa},
-        });
+      if (!existingToken) {
+        isTokenUnique = true;
       }
+    }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+    // Buat user baru dengan access token
+    const newUser = await prisma.User.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        nomor_wa,
+        role: "user",
+        access_token: accessToken, // Menambahkan access token
+      },
+    });
 
-      // Generate access token 8 digit random
-      const generateAccessToken = () => {
-        return Math.floor(10000000 + Math.random() * 90000000).toString();
-      };
-      
-      let accessToken;
-      let isTokenUnique = false;
-      
-      // Pastikan token unik
-      while (!isTokenUnique) {
-        accessToken = generateAccessToken();
-        const existingToken = await prisma.user.findUnique({
-          where: { access_token: accessToken },
-        });
-        
-        if (!existingToken) {
-          isTokenUnique = true;
-        }
-      }
-
-      // Buat user baru dengan access token
-      const newUser = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: hashedPassword,
-          nomor_wa,
-          role: "user",
-          access_token: accessToken, // Menambahkan access token
+    // Kirim email konfirmasi pendaftaran
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
+        secure: process.env.SMTP_SECURE === "true",
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
         },
       });
 
-      // Kirim email konfirmasi pendaftaran
-      try {
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT),
-          secure: process.env.SMTP_SECURE === "true",
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-          },
-        });
-
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM,
-          to: newUser.email,
-          subject: "Selamat Datang di Streamo - Registrasi Berhasil",
-          html: `
+      const mailOptions = {
+        from: process.env.SMTP_FROM,
+        to: newUser.email,
+        subject: "Selamat Datang di Streamo - Registrasi Berhasil",
+        html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background-color: #007bff; padding: 20px; text-align: center; color: white;">
               <h1>Selamat Datang di Streamo!</h1>
@@ -143,16 +143,15 @@ register: async (req, res) => {
               <p>Selamat! Akun Streamo Anda telah berhasil dibuat.</p>
               
               <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                <p style="margin: 5px 0;"><strong>Detail akun Anda:</strong></p>
-                <p style="margin: 5px 0;">Nama: ${newUser.name}</p>
-                <p style="margin: 5px 0;">Email: ${newUser.email}</p>
-                <p style="margin: 5px 0;">Nomor WhatsApp: ${newUser.nomor_wa}</p>
-                <p style="margin: 5px 0;"><strong>Access Token: ${accessToken}</strong></p>
+                <p><strong>Detail akun Anda:</strong></p>
+                <p>Nama: ${newUser.name}</p>
+                <p>Email: ${newUser.email}</p>
+                <p>Nomor WhatsApp: ${newUser.nomor_wa}</p>
+                <p><strong>Access Token: ${accessToken}</strong></p>
               </div>
               
               <p>Access Token ini dapat digunakan untuk mengakses API atau fitur khusus lainnya.</p>
-              <p>Anda sekarang dapat login menggunakan email dan password yang telah Anda buat.</p>
-              <p>Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami.</p>
+              <p>Simpan token ini dengan aman dan jangan bagikan kepada siapapun.</p>
               
               <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.APP_URL || "http://localhost:3000"}/login" 
@@ -167,33 +166,52 @@ register: async (req, res) => {
             </div>
           </div>
         `,
-        });
-      } catch (mailErr) {
-        console.error("❌ Gagal kirim email konfirmasi:", mailErr.message);
-        // Tetap lanjutkan proses registrasi meskipun email gagal dikirim
-      }
-
-      // Auto login setelah registrasi
-      req.session.user = {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-        nomor_wa: newUser.nomor_wa,
-        access_token: newUser.access_token, // Menambahkan access token ke session
       };
 
-      // Redirect ke halaman utama setelah registrasi berhasil
-      return res.redirect("/dashboard");
-    } catch (err) {
-      console.error(err);
-      return res.render("pages/sign-up", {
-        navbar: "Sign Up",
-        error: "Terjadi kesalahan server",
-        success: null,
-        formData: {name, email, nomor_wa},
-      });
+      console.log("📨 Sedang mengirim email ke:", newUser.email);
+
+      // Verifikasi koneksi SMTP
+      await transporter.verify();
+      console.log("✅ Koneksi SMTP berhasil diverifikasi");
+
+      // Kirim email
+      const info = await transporter.sendMail(mailOptions);
+      console.log("✅ Email terkirim, MessageID:", info.messageId);
+
+      // Jika pakai Ethereal (testing SMTP), bisa cek preview
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        console.log("📬 Preview Email URL:", previewUrl);
+      }
+
+    } catch (mailErr) {
+      console.error("❌ Gagal kirim email konfirmasi:", mailErr);
+      // Jangan hentikan proses registrasi, cukup log error
     }
-  },
+
+    // Auto login setelah registrasi
+    req.session.user = {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      nomor_wa: newUser.nomor_wa,
+      role: newUser.role,
+      access_token: newUser.access_token,
+    };
+
+    // Redirect ke halaman utama setelah registrasi berhasil
+    return res.redirect("/dashboard");
+  } catch (err) {
+    console.error("❌ Error dalam proses registrasi:", err);
+    return res.render("pages/sign-up", {
+      navbar: "Sign Up",
+      error: "Terjadi kesalahan server. Silakan coba lagi.",
+      success: null,
+      formData: { name, email, nomor_wa },
+    });
+  }
+},
+
 
   // logout
   logout: (req, res) => {
