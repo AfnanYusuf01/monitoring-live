@@ -40,7 +40,7 @@
                             </div>
                             <div class="text-center p-3 bg-white rounded-lg shadow-sm">
                                 <div class="text-xl font-bold text-indigo-600" id="total-order">0</div>
-                                <div class="text-xs text-gray-600">Total Order</div>
+                                <div class="text-xs text-gray-600">Pesanan</div>
                             </div>
                             <div class="text-center p-3 bg-white rounded-lg shadow-sm">
                                 <div class="text-xl font-bold text-teal-600" id="total-amount">Rp 0</div>
@@ -48,7 +48,7 @@
                             </div>
                             <div class="text-center p-3 bg-white rounded-lg shadow-sm">
                                 <div class="text-xl font-bold text-orange-600" id="total-commission">Rp 0</div>
-                                <div class="text-xs text-gray-600">Total Komisi</div>
+                                <div class="text-xs text-gray-600">Total Komisi Kotor</div>
                             </div>
                             <div class="text-center p-3 bg-white rounded-lg shadow-sm">
                                 <div class="text-xl font-bold text-green-600" id="total-income">Rp 0</div>
@@ -143,9 +143,8 @@
                                     <th class="px-6 py-3 font-bold text-left uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Tanggal</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Klik</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Order</th>
-                                    <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">CVR</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Amount</th>
-                                    <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Komisi</th>
+                                    <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Komisi Kotor</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Income</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Buyer Baru</th>
                                     <th class="px-6 py-3 font-bold text-right uppercase align-middle bg-transparent border-b border-gray-200 shadow-none text-xxs border-b-solid tracking-none whitespace-nowrap text-slate-400 opacity-70">Item Terjual</th>
@@ -378,7 +377,7 @@ function showSummary(summary) {
     document.getElementById('total-clicks').textContent = summary.totalStats.clicks || 0;
     document.getElementById('total-order').textContent = summary.totalStats.cvByOrder || 0;
     document.getElementById('total-amount').textContent = formatRupiah(summary.totalStats.orderAmount);
-    document.getElementById('total-commission').textContent = formatRupiah(summary.totalStats.totalCommission);
+    document.getElementById('total-commission').textContent = formatRupiah(summary.totalStats.estCommission);
     document.getElementById('total-income').textContent = formatRupiah(summary.totalStats.totalIncome);
     summarySection.classList.remove('hidden');
 }
@@ -472,19 +471,19 @@ function renderAffiliateData() {
                 <span class="text-sm font-medium">${data.cvByOrder || 0}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
-                <span class="text-sm font-medium">${data.orderCvr || 0}%</span>
-            </td>
-            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
                 <span class="text-sm font-medium">${formatRupiah(data.orderAmount)}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
-                <span class="text-sm font-medium">${formatRupiah(data.totalCommission)}</span>
+                <span class="text-sm font-medium">${formatRupiah(data.estCommission)}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
                 <span class="text-sm font-medium">${formatRupiah(data.totalIncome)}</span>
             </td>
             <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
                 <span class="text-sm font-medium">${data.newBuyer || 0}</span>
+            </td>
+            <td class="px-6 py-3 align-middle border-b whitespace-nowrap text-right">
+                <span class="text-sm font-medium">${data.itemSold || 0}</span>
             </td>
         </tr>
     `).join('');
@@ -566,7 +565,7 @@ function exportToCSV() {
     }
     
     // Define CSV headers
-    const headers = ['No', 'Nama Akun', 'Email', 'Phone', 'Tanggal', 'Klik', 'Order', 'CVR', 'Amount', 'Komisi', 'Income', 'Buyer Baru', 'Item Terjual'];
+    const headers = ['No', 'Nama Akun', 'Email', 'Phone', 'Tanggal', 'Klik', 'Order', 'CVR', 'Amount', 'Komisi Kotor', 'Income', 'Buyer Baru', 'Item Terjual'];
     
     // Convert data to CSV format
     let csvContent = headers.join(',') + '\n';
@@ -582,7 +581,7 @@ function exportToCSV() {
             data.cvByOrder || 0,
             data.orderCvr || 0,
             data.orderAmount || 0,
-            data.totalCommission || 0,
+            data.estCommission || 0,
             data.totalIncome || 0,
             data.newBuyer || 0,
             data.itemSold || 0
