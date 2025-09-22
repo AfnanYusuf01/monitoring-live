@@ -903,7 +903,7 @@ export const createAkunViaAPI = async (req, res) => {
   }
 
   try {
-    // Cari user berdasarkan access token
+    // Cari user berdasarkan access token dengan include yang lengkap
     const user = await prisma.user.findUnique({
       where: { access_token: accessToken },
       include: {
@@ -914,10 +914,21 @@ export const createAkunViaAPI = async (req, res) => {
               gt: new Date() // Hanya subscription yang masih aktif
             }
           },
-          orderBy: {
-            endDate: 'desc' // Ambil yang paling baru
+          include: {
+            subscription: true // Include subscription untuk mendapatkan limitAkun default
           },
-          take: 1
+          orderBy: {
+            endDate: 'desc' // Urutkan dari yang paling baru
+          }
+        },
+        _count: {
+          select: {
+            akun: {
+              where: {
+                deletedAt: null // Hanya hitung akun yang tidak dihapus
+              }
+            }
+          }
         }
       }
     });
@@ -927,24 +938,30 @@ export const createAkunViaAPI = async (req, res) => {
     }
 
     // Cek apakah user memiliki subscription aktif
-    const activeSubscription = user.userSubscriptions[0];
-    if (!activeSubscription) {
+    if (user.userSubscriptions.length === 0) {
       return res.status(403).json({ error: "Anda tidak memiliki subscription aktif" });
     }
 
+    // Hitung total limit akun dari semua subscription aktif
+    const totalLimitAkun = user.userSubscriptions.reduce((total, sub) => {
+      // Prioritaskan limitAkun dari userSubscription, jika tidak ada gunakan dari subscription
+      const limit = sub.limitAkun > 0 ? sub.limitAkun : (sub.subscription?.limitAkun || 0);
+      return total + limit;
+    }, 0);
+
     // Hitung jumlah akun yang sudah dimiliki user
-    const akunCount = await prisma.akun.count({
-      where: {
-        userId: user.id,
-        deletedAt: null // Hanya hitung akun yang tidak dihapus
-      }
-    });
+    const currentAkunCount = user._count.akun;
 
     // Cek apakah user masih memiliki limit akun yang tersedia
-    if (akunCount >= activeSubscription.limitAkun) {
+    if (totalLimitAkun > 0 && currentAkunCount >= totalLimitAkun) {
       return res.status(403).json({ 
         error: "Limit akun telah tercapai", 
-        detail: `Anda memiliki ${akunCount} akun dari ${activeSubscription.limitAkun} yang diizinkan` 
+        detail: {
+          currentAccounts: currentAkunCount,
+          totalLimit: totalLimitAkun,
+          availableSlots: 0,
+          message: `Anda memiliki ${currentAkunCount} akun dari ${totalLimitAkun} yang diizinkan`
+        }
       });
     }
 
@@ -955,11 +972,24 @@ export const createAkunViaAPI = async (req, res) => {
 
     if (!profileResult.success) {
       if (profileResult.code === 30002) {
+        // Fallback untuk cookie tidak valid - tetap buat akun tapi dengan status khusus
         const nama_akun = `Akun Shopee ${Date.now()}`;
+
+        // Cek dulu apakah akun dengan ID fallback sudah ada
+        const fallbackId = BigInt(Date.now());
+        const existingAkun = await prisma.akun.findUnique({
+          where: { id: fallbackId }
+        });
+
+        if (existingAkun) {
+          return res.status(400).json({ 
+            error: "Gagal membuat akun, silakan coba lagi" 
+          });
+        }
 
         const akun = await prisma.akun.create({
           data: {
-            id: BigInt(Date.now()), // fallback id unik
+            id: fallbackId,
             nama_akun,
             email: null,
             phone: null,
@@ -973,6 +1003,12 @@ export const createAkunViaAPI = async (req, res) => {
           akun: serializeBigInt(akun),
           cookie_status: "logout",
           warning: "Cookie tidak valid, silakan perbarui cookie",
+          subscription_info: {
+            total_akun: currentAkunCount + 1,
+            total_limit_akun: totalLimitAkun,
+            remaining_slots: Math.max(0, totalLimitAkun - (currentAkunCount + 1)),
+            active_subscriptions: user.userSubscriptions.length
+          }
         });
       } else {
         return res.status(400).json({
@@ -983,10 +1019,27 @@ export const createAkunViaAPI = async (req, res) => {
     }
 
     const profileData = profileResult.data;
-    const nama_akun = profileData.shopee_user_name || `Akun Shopee ${Date.now()}`;
+    const nama_akun = profileData.shopee_user_name || profileData.username || `Akun Shopee ${Date.now()}`;
     const email = profileData.email || null;
     const phone = profileData.phone || null;
-    const akunId = BigInt(profileData.user_id);
+    const akunId = BigInt(profileData.user_id || profileData.userid);
+
+    // Cek apakah akun dengan ID ini sudah ada
+    const existingAkun = await prisma.akun.findUnique({
+      where: { id: akunId }
+    });
+
+    if (existingAkun) {
+      if (existingAkun.userId === userId) {
+        return res.status(400).json({ 
+          error: "Akun ini sudah terdaftar pada akun Anda" 
+        });
+      } else {
+        return res.status(400).json({ 
+          error: "Akun ini sudah terdaftar dengan user lain" 
+        });
+      }
+    }
 
     const akun = await prisma.akun.create({
       data: {
@@ -1005,12 +1058,20 @@ export const createAkunViaAPI = async (req, res) => {
       profile: profileData,
       cookie_status: "active",
       subscription_info: {
-        total_akun: akunCount + 1,
-        limit_akun: activeSubscription.limitAkun,
-        remaining: activeSubscription.limitAkun - (akunCount + 1)
+        total_akun: currentAkunCount + 1,
+        total_limit_akun: totalLimitAkun,
+        remaining_slots: Math.max(0, totalLimitAkun - (currentAkunCount + 1)),
+        active_subscriptions: user.userSubscriptions.length,
+        subscriptions: user.userSubscriptions.map(sub => ({
+          id: sub.id,
+          limitAkun: sub.limitAkun > 0 ? sub.limitAkun : sub.subscription?.limitAkun,
+          endDate: sub.endDate
+        }))
       }
     });
   } catch (err) {
+    console.error("Error createAkunViaAPI:", err);
+    
     if (err.code === "P2002") {
       const target = err.meta?.target;
       if (target?.includes("email")) {
@@ -1023,6 +1084,10 @@ export const createAkunViaAPI = async (req, res) => {
         return res.status(400).json({ error: "Akun dengan user_id ini sudah ada" });
       }
     }
-    res.status(500).json({ error: err.message });
+    
+    res.status(500).json({ 
+      error: "Terjadi kesalahan server",
+      detail: err.message 
+    });
   }
 };

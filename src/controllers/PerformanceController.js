@@ -135,38 +135,40 @@ export const createAffiliateStat = async (req, res) => {
 
         accountId = String(profileResult.data.user_id);
         
-        // CEK DULU apakah akun dengan ID ini sudah ada
+        // CEK apakah akun dengan ID ini sudah ada dan milik user yang sama
         const existingAkun = await prisma.akun.findUnique({
           where: { id: BigInt(accountId) }
         });
 
-        // Jika akun sudah ada, update cookie-nya (hanya jika milik user yang sama)
-        if (existingAkun) {
-          if (existingAkun.userId !== user.id) {
-            results.push({
-              accountId,
-              success: false,
-              message: "Akun sudah terdaftar dengan user lain",
-              error: "Account already belongs to another user",
-            });
-            hasFailures = true;
-            continue;
-          }
-          
+        // Jika akun tidak ditemukan, kembalikan error
+        if (!existingAkun) {
+          results.push({
+            accountId,
+            success: false,
+            message: "Akun belum terdaftar. Silakan tambahkan akun terlebih dahulu.",
+            error: "Account not registered",
+          });
+          hasFailures = true;
+          continue;
+        }
+
+        // Validasi bahwa akun milik user yang sama
+        if (existingAkun.userId !== user.id) {
+          results.push({
+            accountId,
+            success: false,
+            message: "Akun sudah terdaftar dengan user lain",
+            error: "Account already belongs to another user",
+          });
+          hasFailures = true;
+          continue;
+        }
+
+        // Update cookie akun jika diperlukan
+        if (existingAkun.cookie !== cookie) {
           await prisma.akun.update({
             where: { id: BigInt(accountId) },
             data: { cookie: cookie }
-          });
-        } else {
-          // Jika akun belum ada, buat akun baru
-          await prisma.akun.create({
-            data: {
-              id: BigInt(accountId),
-              nama_akun: profileResult.data.username || `Shopee-${accountId}`,
-              email: profileResult.data.email || null,
-              cookie: cookie,
-              userId: user.id
-            }
           });
         }
 
@@ -250,11 +252,11 @@ export const createAffiliateStat = async (req, res) => {
         totalDuplicates += (statDataArray.length - created.count);
         
         results.push({
-          accountId,
-          success: true,
-          message: "Data berhasil disimpan",
-          inserted: created.count,
-          duplicates: statDataArray.length - created.count,
+            accountId,
+            success: true,
+            message: "Data berhasil disimpan",
+            inserted: created.count,
+            duplicates: statDataArray.length - created.count,
         });
 
       } catch (error) {
