@@ -1,4 +1,4 @@
-import "dotenv/config"; // load .env
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import ejsMate from "ejs-mate";
@@ -9,7 +9,9 @@ import apiRoutes from "./routes/api.js";
 import flash from "connect-flash";
 import methodOverride from "method-override";
 import cookieParser from "cookie-parser";
-import cors from "cors"; // ✅ tambahkan ini
+import cors from "cors";
+import cron from "node-cron";                       // ✅ Tambah ini
+import { checkExpiredAndLimit } from "./cron/checkExpiredAndLimit.js"; // ✅ Import job
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,10 +21,10 @@ const PORT = process.env.PORT || 3000;
 
 // ✅ Konfigurasi CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173", // ganti sesuai domain frontend kamu
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "access_token"],
-  credentials: true // kalau pakai cookie/session dari frontend
+  credentials: true
 }));
 
 // EJS
@@ -30,28 +32,27 @@ app.engine("ejs", ejsMate);
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
-// Public assets
+// Public
 app.use(express.static(path.join(__dirname, "./public")));
 
-// ✅ Parser body dulu
+// Middleware
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(flash());
 app.use(methodOverride("_method"));
 
-// ✅ Session harus sebelum routes
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "rahasia_anda",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // true kalau pakai https
+    cookie: { secure: false },
   })
 );
 
 app.use((req, res, next) => {
-  res.locals.currentUser = req.session.user; // kirim ke semua view
+  res.locals.currentUser = req.session.user;
   next();
 });
 
@@ -60,9 +61,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Routes terakhir
+// ✅ Routes
 app.use("/", routes);
 app.use("/api", apiRoutes);
+
+// ✅ Cronjob setiap hari jam 14:10 WIB
+cron.schedule("30 14 * * *", async () => {
+  console.log("🕑 Cronjob start - Check Expired & Limit (14:10 WIB)");
+  await checkExpiredAndLimit();
+}, {
+  timezone: "Asia/Jakarta"
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
