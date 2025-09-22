@@ -65,13 +65,13 @@ app.use((req, res, next) => {
 app.use("/", routes);
 app.use("/api", apiRoutes);
 
-// ✅ Cronjob setiap hari jam 14:10 WIB
-cron.schedule("30 14 * * *", async () => {
-  console.log("🕑 Cronjob start - Check Expired & Limit (14:10 WIB)");
+cron.schedule("1 0 * * *", async () => {
+  console.log("🕑 Cronjob start - Check Expired & Limit (00:01 WIB)");
   await checkExpiredAndLimit();
 }, {
   timezone: "Asia/Jakarta"
 });
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
