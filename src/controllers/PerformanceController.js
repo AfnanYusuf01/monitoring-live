@@ -72,7 +72,7 @@ export const createAffiliateStat = async (req, res) => {
       }
     }
 
-    // Cari user berdasarkan access_token dengan include yang diperlukan
+    // Cari user berdasarkan access_token
     const user = await prisma.user.findUnique({
       where: { access_token },
       include: {
@@ -82,17 +82,9 @@ export const createAffiliateStat = async (req, res) => {
             endDate: {
               gt: new Date()
             }
-          },
-          include: {
-            subscription: true // Include subscription untuk mendapatkan limitAkun default
           }
         },
-        akun: true, // Untuk menghitung akun yang sudah dimiliki
-        _count: {
-          select: {
-            akun: true // Hitung total akun yang sudah dimiliki user
-          }
-        }
+        akun: true
       }
     });
 
@@ -103,7 +95,6 @@ export const createAffiliateStat = async (req, res) => {
       });
     }
 
-    // Cek apakah user memiliki subscription aktif
     if (user.userSubscriptions.length === 0) {
       return res.status(403).json({
         success: false,
@@ -111,14 +102,6 @@ export const createAffiliateStat = async (req, res) => {
       });
     }
 
-    // Hitung total limit akun dari semua subscription aktif
-    const totalLimitAkun = user.userSubscriptions.reduce((total, sub) => {
-      // Gunakan limitAkun dari userSubscription jika ada, jika tidak gunakan dari subscription
-      const limit = sub.limitAkun > 0 ? sub.limitAkun : (sub.subscription?.limitAkun || 0);
-      return total + limit;
-    }, 0);
-
-    // Hitung akun unik yang akan ditambahkan dari request
     const cookieGroups = {};
     requestDataArray.forEach(item => {
       if (!cookieGroups[item.cookie]) {
@@ -127,31 +110,10 @@ export const createAffiliateStat = async (req, res) => {
       cookieGroups[item.cookie].push(item);
     });
 
-    const uniqueAccountsToAdd = Object.keys(cookieGroups).length;
-
-    // Cek apakah akun yang sudah ada + akun baru melebihi limit
-    const currentAccountCount = user._count.akun;
-    const totalAfterAdd = currentAccountCount + uniqueAccountsToAdd;
-
-    if (totalLimitAkun > 0 && totalAfterAdd > totalLimitAkun) {
-      return res.status(403).json({
-        success: false,
-        message: "Limit akun terlampaui",
-        details: {
-          currentAccounts: currentAccountCount,
-          accountsToAdd: uniqueAccountsToAdd,
-          totalAfterAdd: totalAfterAdd,
-          totalLimit: totalLimitAkun,
-          availableSlots: Math.max(0, totalLimitAkun - currentAccountCount)
-        }
-      });
-    }
-
     const results = [];
     let totalInserted = 0;
     let totalDuplicates = 0;
     let hasFailures = false;
-    let accountsCreated = 0;
 
     // Proses setiap kelompok cookie
     for (const [cookie, items] of Object.entries(cookieGroups)) {
@@ -177,8 +139,6 @@ export const createAffiliateStat = async (req, res) => {
         const existingAkun = await prisma.akun.findUnique({
           where: { id: BigInt(accountId) }
         });
-
-        let isNewAccount = false;
 
         // Jika akun sudah ada, update cookie-nya (hanya jika milik user yang sama)
         if (existingAkun) {
@@ -208,8 +168,6 @@ export const createAffiliateStat = async (req, res) => {
               userId: user.id
             }
           });
-          accountsCreated++;
-          isNewAccount = true;
         }
 
         // Ekstrak data statistik dan bagi dengan 100000
@@ -263,7 +221,6 @@ export const createAffiliateStat = async (req, res) => {
             message: "Semua data sudah ada (duplikat)",
             inserted: 0,
             duplicates: statDataArray.length,
-            isNewAccount: isNewAccount
           });
           totalDuplicates += statDataArray.length;
           continue;
@@ -298,7 +255,6 @@ export const createAffiliateStat = async (req, res) => {
           message: "Data berhasil disimpan",
           inserted: created.count,
           duplicates: statDataArray.length - created.count,
-          isNewAccount: isNewAccount
         });
 
       } catch (error) {
@@ -319,12 +275,6 @@ export const createAffiliateStat = async (req, res) => {
         success: false,
         message: "Beberapa data gagal diproses",
         data: results,
-        accountSummary: {
-          currentAccounts: currentAccountCount,
-          accountsCreated: accountsCreated,
-          totalAfterAdd: currentAccountCount + accountsCreated,
-          totalLimit: totalLimitAkun
-        }
       });
     }
 
@@ -332,12 +282,6 @@ export const createAffiliateStat = async (req, res) => {
       success: true,
       message: "Semua affiliate stats berhasil disimpan",
       data: results,
-      accountSummary: {
-        currentAccounts: currentAccountCount,
-        accountsCreated: accountsCreated,
-        totalAfterAdd: currentAccountCount + accountsCreated,
-        totalLimit: totalLimitAkun
-      }
     });
   } catch (err) {
     console.error("❌ Error createAffiliateStat:", err.message);
